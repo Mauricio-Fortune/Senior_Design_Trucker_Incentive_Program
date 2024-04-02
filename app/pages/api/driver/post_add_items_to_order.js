@@ -16,25 +16,27 @@ export default async function handler(req, res) {
 
     console.log(dbConfig);
 
-    try {
+    const {order_ID,item_ID,item_Quantity,item_Name} = req.body;
+    console.log(order_ID);
+    console.log(item_ID);
+    console.log(item_Quantity);
+    console.log(item_Name);
+    try     {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const { point_change_id, user_ID, point_change_value, reason, org_ID, timestamp } = req.body;
-        console.log(user_ID);
-        console.log(point_change_value);
-        console.log(reason);
-        console.log(org_ID);
-        console.log(timestamp);
+        const sql_query = (`INSERT INTO Order_Item (order_ID, item_ID, item_Quantity, item_Name) VALUES (?, ?, ?, ?) `);
 
-        const query = 'INSERT INTO Point_Changes_Audit (point_change_id, user_ID, point_change_value, reason, org_ID, timestamp) VALUES (?,?,?,?,?,?)';
-        const response = await connection.query(query, [point_change_id, user_ID, point_change_value, reason, org_ID, timestamp]);
+        const [results] = await connection.execute(sql_query, [order_ID,item_ID,item_Quantity,item_Name]);
 
         // Close the database connection
         await connection.end();
 
-        // Send the data as JSON response
-        res.status(200).json({message: "Successfully edited points"});
+        if (results.affectedRows > 0) {
+            res.status(200).json({ message: "Item added successfully" });
+        } else {
+            res.status(404).json({ message: "User could not be added" });
+        }
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });
