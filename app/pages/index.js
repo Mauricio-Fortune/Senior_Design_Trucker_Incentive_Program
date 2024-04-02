@@ -2,8 +2,26 @@
 import React from 'react';
 import Head from 'next/head';
 import ResponsiveAppBar from '../styles/appbar';
+import { useEffect, useState } from 'react';
+import { fetchUserAttributes } from '@aws-amplify/auth';
+
 
 function Home() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    async function currentAuthenticatedUser() {
+      try {
+        const user = await fetchUserAttributes(); // Adjusted to get the user object directly
+        setUser(user);
+        console.log(user);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    currentAuthenticatedUser();
+  }, []); // Empty dependency array means this runs once on component mount
+
   return (
     <>
       <Head>
@@ -12,7 +30,21 @@ function Home() {
       </Head>
       <ResponsiveAppBar />
       <main>
-        <div style={{ textAlign: 'center', marginTop: '50px' }}>
+        <div style={{ textAlign: 'center'}}>
+          {user && (
+          <p
+            style={{
+              fontSize: '2em', // Increase font size
+              fontWeight: 'bold',
+              marginTop: '20px', // Increase top margin for separation
+              paddingBottom: '20px', // Increase bottom padding
+            }}
+          >
+            Welcome back, {user.name}
+          </p>
+          )}
+        </div>
+        <div style={{ textAlign: 'center', marginTop: '10px' }}>
           <div
             style={{
               border: '2px solid #333',

@@ -15,7 +15,6 @@ import MenuItem from '@mui/material/MenuItem';
 import { useRouter } from 'next/router';
 
 const pages = ['Home', 'About', 'Drivers', 'Sponsors', 'Admins'];
-const sections = ['Section1', 'Section2', 'Section3'];
 
 function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
@@ -68,14 +67,14 @@ function ResponsiveAppBar() {
     <AppBar position="static">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <IconButton
+          {/* <IconButton
             edge="start"
             color="inherit"
             aria-label="menu"
             onClick={handleOpenNavMenu}
           >
             <MenuIcon />
-          </IconButton>
+          </IconButton> */}
 
           <Typography
             variant="h6"
@@ -91,7 +90,7 @@ function ResponsiveAppBar() {
             }}
             onClick={() => handleNavigate('/')}
           >
-            LOGO
+            DRIVE
           </Typography>
 
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
@@ -115,7 +114,7 @@ function ResponsiveAppBar() {
               </Tooltip>
             ) : (
               <Button color="inherit" onClick={handleLogin}>
-                Login
+                Account
               </Button>
             )}
             <Menu

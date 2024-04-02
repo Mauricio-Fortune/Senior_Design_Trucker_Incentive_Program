@@ -37,9 +37,7 @@ export default function Drivers() {
 
   // Sample driver data (replace with actual data)
   const driverData = [
-    { id: 1, name: 'Driver 1', points: 120, goal: 500 },
-    { id: 2, name: 'Driver 2', points: 300, goal: 1000 },
-    // Add more drivers as needed
+    { id: 1, name: 'Driver 1', points: 120, goal: 500 }
   ];
 
   return (
@@ -80,22 +78,6 @@ export default function Drivers() {
                 </CardContent>
               </Card>
             ))}
-            {/* Other Drivers */}
-          <Typography variant="h4" gutterBottom>
-            Other Drivers
-          </Typography>
-          <Grid container spacing={2}>
-            {driverData.map((driver) => (
-              <Grid item key={driver.id} xs={12} sm={6} md={4} lg={3}>
-                <Card className={classes.card}>
-                  <CardContent>
-                    <Typography variant="h6">{driver.name}</Typography>
-                    <Typography>Points: {driver.points}</Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
           </div>
         )}
         </Container>
