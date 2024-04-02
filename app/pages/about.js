@@ -4,7 +4,8 @@ import Box from '@mui/material/Box';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import styles from '@/styles/Home.module.css';
-import ResponsiveAppBar from '../styles/appbar';
+import ResponsiveAppBar from '../Components/appbar';
+import Layout from '@/Components/Layout';
 
 export default function About() {
   const [value, setValue] = useState(0);
@@ -32,7 +33,7 @@ export default function About() {
         <title>About Us</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <ResponsiveAppBar />
+      <Layout>
       <Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }}>
         <Tabs
           value={value}
@@ -110,6 +111,8 @@ export default function About() {
           )}
         </div>
       </main>
+      </Layout>
+      
     </>
   );
 }

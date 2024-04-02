@@ -1,7 +1,7 @@
 // pages/sponsors.js
 import React, { useState } from 'react';
 import Head from 'next/head';
-import ResponsiveAppBar from '../styles/appbar';
+import ResponsiveAppBar from '../Components/appbar';
 import {
   Container,
   Typography,
@@ -16,6 +16,7 @@ import {
 
 import AddItemCatalog from "./catalog/org_catalog_add"
 import ManageCatalog from "./catalog/org_catalog_manager"
+import ProtectedLayout from '@/Components/ProtectedLayout';
 
 export default function Sponsors() {
   const [value, setValue] = useState(0);
@@ -105,7 +106,7 @@ export default function Sponsors() {
         <title>Sponsors</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <ResponsiveAppBar />
+      <ProtectedLayout>
       <Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }}>
         <Tabs
           value={value}
@@ -233,10 +234,9 @@ export default function Sponsors() {
         )}
       </>
     )}
-
-
-         
       </Container>
+    </ProtectedLayout>
+      
     </>
   );
 }

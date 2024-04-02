@@ -1,10 +1,11 @@
 // pages/index.js
 import React from 'react';
 import Head from 'next/head';
-import ResponsiveAppBar from '../styles/appbar';
+import ResponsiveAppBar from '../Components/appbar';
 import { useEffect, useState } from 'react';
 import { fetchUserAttributes } from '@aws-amplify/auth';
 
+import Layout from '@/Components/Layout';
 
 function Home() {
   const [user, setUser] = useState(null);
@@ -57,7 +58,7 @@ function Home() {
         <title>Home</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <ResponsiveAppBar />
+      <Layout>
       <main>
         <div style={{ textAlign: 'center' }}>
           {user && (
@@ -106,6 +107,7 @@ function Home() {
         </div>
         {/* Your additional content goes here */}
       </main>
+      </Layout>
     </>
   );
 }
