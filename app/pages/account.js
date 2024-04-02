@@ -1,7 +1,7 @@
 // pages/account.js
 import React, { useState } from 'react';
 import Head from 'next/head';
-
+import ResponsiveAppBar from '../styles/appbar';
 import {
   Container,
   Typography,
@@ -11,7 +11,6 @@ import {
   CardContent,
   Box,
 } from '@mui/material';
-import Layout from '@/Components/Layout';
 
 export default function Account() {
   const [username, setUsername] = useState('mockuser');
@@ -51,7 +50,7 @@ export default function Account() {
         <title>Account</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Layout>
+      <ResponsiveAppBar />
       <Container>
         <Typography variant="h3" gutterBottom style={{ marginTop: '16px' }}>
           Account Settings
@@ -154,7 +153,6 @@ export default function Account() {
           </CardContent>
         </Card>
       </Container>
-      </Layout>
     </>
   );
 }
