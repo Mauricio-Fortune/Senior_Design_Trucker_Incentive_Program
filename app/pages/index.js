@@ -22,6 +22,35 @@ function Home() {
     currentAuthenticatedUser();
   }, []); // Empty dependency array means this runs once on component mount
 
+  useEffect(() => {
+    if (user) {
+      console.log("cognito triggered");
+      async function cognitoToRDS() {
+        try {
+          const requestOptions = {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              user_ID: user.sub,
+              email: user.email,
+              first_Name: user.name,
+              last_Name: "Last Name", //update with new cognito instance
+              user_type: "DRIVER" //update with new cognito instance
+            })
+          }
+          const response = await fetch('/api/user/post_cognito_to_rds', requestOptions);
+          console.log(response);
+        }
+        catch (error) {
+          console.error(error);
+        }
+      }
+      cognitoToRDS();
+    }
+  }, [user]);
+
   return (
     <>
       <Head>
@@ -30,18 +59,18 @@ function Home() {
       </Head>
       <ResponsiveAppBar />
       <main>
-        <div style={{ textAlign: 'center'}}>
+        <div style={{ textAlign: 'center' }}>
           {user && (
-          <p
-            style={{
-              fontSize: '2em', // Increase font size
-              fontWeight: 'bold',
-              marginTop: '20px', // Increase top margin for separation
-              paddingBottom: '20px', // Increase bottom padding
-            }}
-          >
-            Welcome back, {user.name}
-          </p>
+            <p
+              style={{
+                fontSize: '2em', // Increase font size
+                fontWeight: 'bold',
+                marginTop: '20px', // Increase top margin for separation
+                paddingBottom: '20px', // Increase bottom padding
+              }}
+            >
+              Welcome back, {user.name}
+            </p>
           )}
         </div>
         <div style={{ textAlign: 'center', marginTop: '10px' }}>
