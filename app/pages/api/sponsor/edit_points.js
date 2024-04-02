@@ -20,16 +20,16 @@ export default async function handler(req, res) {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const userEmail = req.query.userEmail;
+        const { point_change_id, user_ID, point_change_value, reason, org_ID, timestamp } = req.body;
 
-        const [rows] = await connection.query('SELECT user_Type, first_name, last_name FROM User WHERE email = ?', [userEmail]);
-
+        const query = 'INSERT INTO Point_Changes_Audit (point_change_id, user_ID, point_change_value, reason, org_ID, timestamp) VALUES (?,?,?,?,?,?)';
+        const response = await connection.query(query, [point_change_id, user_ID, point_change_value, reason, org_ID, timestamp]);
 
         // Close the database connection
         await connection.end();
 
         // Send the data as JSON response
-        res.status(200).json(rows);
+        res.status(200).json({message: "Successfully edited points"});
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

@@ -1,3 +1,5 @@
+// POST add catalog item to catalog table
+
 import mysql from 'mysql2/promise';
 import { config } from 'dotenv';
 
@@ -20,10 +22,15 @@ export default async function handler(req, res) {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const userEmail = req.query.userEmail;
+        // get attributes
+        const {org_ID} = req.query;
 
-        const [rows] = await connection.query('SELECT user_Type, first_name, last_name FROM User WHERE email = ?', [userEmail]);
-
+        
+        // make query
+        const query = 'SELECT * FROM Org_Item WHERE org_ID = ?';
+        
+        // send query
+        const [rows] = await connection.query(query, [org_ID]);
 
         // Close the database connection
         await connection.end();

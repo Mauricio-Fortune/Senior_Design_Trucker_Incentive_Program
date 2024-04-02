@@ -63,7 +63,7 @@ export default function Catalog_add() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          orgID : 1,
+          orgID : 12,
           itemID : getID(item)
         })
       };

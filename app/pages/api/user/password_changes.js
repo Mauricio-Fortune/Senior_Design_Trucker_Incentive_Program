@@ -16,20 +16,20 @@ export default async function handler(req, res) {
 
     console.log(dbConfig);
 
+    const { password_change_id, timestamp, user_ID, change_type } = req.body;
+
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const userEmail = req.query.userEmail;
+        const query = ('INSERT INTO Password_Changes_Audit (password_change_id, timestamp, user_ID, change_type) VALUES (?,?,?,?); ');
 
-        const [rows] = await connection.query('SELECT user_Type, first_name, last_name FROM User WHERE email = ?', [userEmail]);
+        const response = await connection.query(query, [password_change_id, timestamp, user_ID, change_type]);
 
-
-        // Close the database connection
         await connection.end();
 
         // Send the data as JSON response
-        res.status(200).json(rows);
+        res.status(200).json({message: "Successfully audited password change"});
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

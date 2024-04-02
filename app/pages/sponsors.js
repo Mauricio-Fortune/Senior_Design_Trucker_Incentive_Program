@@ -229,8 +229,7 @@ export default function Sponsors() {
           <AddItemCatalog />
         )}
         {catalogValue === 1 && (
-           <ManageCatalog />
-          
+           <ManageCatalog />   
         )}
       </>
     )}

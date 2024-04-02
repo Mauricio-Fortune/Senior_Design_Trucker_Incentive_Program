@@ -1,4 +1,4 @@
-// seach iTunes API
+// search iTunes API
 
 export default async function handler(req, res) {
   try {
