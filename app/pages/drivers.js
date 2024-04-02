@@ -15,7 +15,7 @@ import {
 import { makeStyles } from '@mui/styles';
 import { useRouter } from 'next/router';
 import Store from './store';
-import Driver_catalog from './catalog/driver_catalog';
+import Driver_Catalog from './catalog/driver_catalog';
 
 const useStyles = makeStyles(() => ({
   card: {

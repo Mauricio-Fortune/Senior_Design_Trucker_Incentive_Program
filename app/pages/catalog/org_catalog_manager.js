@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
 
@@ -6,32 +8,34 @@ export default function Catalog_Manage() {
   const [detailedItemData, setDetailedItemData] = useState({});
 
  // hardcoded until cognito is fixed
- // 12 is testorg
-  const orgID = 12;
+  const orgID = 1;
+
 
   useEffect(() => {
-      fetchData() // get item ids
-      const fetchItemDetails = async () => { // get data associated with ids and store the json data
-        const detailsPromises = entries.map(entry => getItemData(entry.item_ID));
-        const detailsResults = await Promise.all(detailsPromises);
-    
-        
-        const detailsObject = detailsResults.reduce((acc, detail, index) => {
-          
+    fetchData(); // Called only on component mount
+  }, []);
+  
+  useEffect(() => {
+    const fetchItemDetails = async () => {
+      const detailsPromises = entries.map(entry => getItemData(entry.item_ID)); 
+      const detailsResults = await Promise.all(detailsPromises);
+  
+      const detailsObject = detailsResults.reduce((acc, detail, index) => {
+        if (detail) { 
           const itemID = entries[index].item_ID;
           acc[itemID] = detail;
-          return acc;
-        }, {});
-    
-        setDetailedItemData(detailsObject);
-      };
-    
-      if (entries.length > 0) {
-        fetchItemDetails();
-      }
-    }, [entries]);
-    
-    
+        }
+        return acc;
+      }, {});
+  
+      setDetailedItemData(detailsObject);
+    };
+  
+    if (entries.length > 0) {
+      fetchItemDetails();
+    }
+  }, [entries]); // Depends on `entries`
+  
 
   const fetchData = async () => { // fetches all itemIDs in database
     try {
@@ -61,6 +65,7 @@ export default function Catalog_Manage() {
       setEntries([]);
     }
   };
+  
  const getItemData = async (itemID) => { // gets item data from iTunes
       try {
         const response = await fetch(`https://itunes.apple.com/lookup?id=${itemID}`);
@@ -73,6 +78,30 @@ export default function Catalog_Manage() {
       }
     };
 
+    const removeItem = async (itemID,orgID) => {
+      try {
+            const requestOptions = {
+              method: "DELETE",
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ 
+                orgID : orgID,
+                itemID : itemID
+              })
+            };
+        
+            const response = await fetch('/api/catalog/delete_item', requestOptions);
+        
+            if (!response.ok) {
+              throw new Error('Failed to add items to database');
+            }
+        
+          } catch (error) {
+            console.error('Error Deleting items to database:', error);
+            
+          }
+    };
 
 // different types of json from itunes
     const SongItem = ({ song }) => (
@@ -178,32 +207,6 @@ export default function Catalog_Manage() {
       minHeight: '40px', 
       cursor: 'pointer',
     }
-
-    const removeItem = async (itemID,orgID) => {
-      try {
-            const requestOptions = {
-              method: "DELETE",
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ 
-                orgID : orgID,
-                itemID : itemID
-              })
-            };
-        
-            const response = await fetch('/api/catalog/delete_item', requestOptions);
-        
-            if (!response.ok) {
-              throw new Error('Failed to add items to database');
-            }
-        
-          } catch (error) {
-            console.error('Error Deleting items to database:', error);
-            
-          }
-    };
-
   return (
     <div>
       <Typography variant="h4" gutterBottom component="div" align = "center">
@@ -211,9 +214,7 @@ export default function Catalog_Manage() {
       </Typography>
       <TableContainer component={Paper}>
         <Table aria-label="simple table">
-         
           <TableBody>
-
           {entries.map((entry) => (
             <TableRow key={entry.item_ID}>
                   <TableCell align = "center">
