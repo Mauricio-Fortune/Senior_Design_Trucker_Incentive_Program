@@ -27,8 +27,8 @@ export default async function handler(req, res) {
         const query = 'INSERT INTO User_Org (user_ID, org_ID)  VALUES (?,?)'
         const response = await connection.query(query,[user_ID, org_ID]);
 
-        const query2 = 'INSERT INTO Driver_app_audit (org_ID, user_ID, reason, timestamp) VALUES (?,?,?,?)';
-        const response2 = await connection.query(query2,[org_ID, user_ID, reason, timestamp]);
+        const query2 = 'INSERT INTO Driver_app_audit (org_ID, user_ID, reason, timestamp, status) VALUES (?,?,?,?,?)';
+        const response2 = await connection.query(query2,[org_ID, user_ID, reason, timestamp, "PENDING"]);
 
         // Close the database connection
         await connection.end();
