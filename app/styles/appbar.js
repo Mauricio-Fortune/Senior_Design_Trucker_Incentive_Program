@@ -13,6 +13,8 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import { useRouter } from 'next/router';
+// import { Amplify } from 'aws-amplify';
+import { signOut } from 'aws-amplify/auth';
 
 const pages = ['Home', 'About', 'Drivers', 'Sponsors', 'Admins'];
 
@@ -44,10 +46,18 @@ function ResponsiveAppBar() {
     handleCloseUserMenu();
   };
 
-  const handleLogin = () => {
-    // Redirect to the Cognito login URL
-    window.location.href = "https://team25officialsignup.auth.us-east-1.amazoncognito.com/login?client_id=100d3kpmsuk6qt752bcqkstbsp&response_type=code&scope=email+openid+phone&redirect_uri=https%3A%2F%2Fmain.d2gmf4p0ogiu5s.amplifyapp.com%2F";
-  };
+  // const handleLogin = () => {
+  //   // Redirect to the Cognito login URL
+  //   window.location.href = "https://team25officialsignup.auth.us-east-1.amazoncognito.com/login?client_id=100d3kpmsuk6qt752bcqkstbsp&response_type=code&scope=email+openid+phone&redirect_uri=https%3A%2F%2Fmain.d2gmf4p0ogiu5s.amplifyapp.com%2F";
+  // };
+
+  async function handleLogout() {
+    try {
+      await signOut();
+    } catch (error) {
+      console.log('error signing out: ', error);
+    }
+  }
 
   const handleNavigate = (path) => {
     if (path.toLowerCase() === '/login' && !isLoggedIn) {
@@ -113,8 +123,8 @@ function ResponsiveAppBar() {
                 </IconButton>
               </Tooltip>
             ) : (
-              <Button color="inherit" onClick={handleLogin}>
-                Account
+              <Button color="inherit" onClick={handleLogout}>
+                Sign Out
               </Button>
             )}
             <Menu
