@@ -11,7 +11,7 @@ import {
   TextField,
 } from '@mui/material';
 import Head from 'next/head';
-import ResponsiveAppBar from '../../Components/appbar';
+import ResponsiveAppBar from '../../styles/appbar';
 
 
 

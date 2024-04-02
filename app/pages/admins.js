@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-//import ResponsiveAppBar from '../Components/appbar';
-import { Auth } from 'aws-amplify';
+import ResponsiveAppBar from '../styles/appbar';
 import { useRouter } from 'next/router';
 import { Container, Typography, Card, CardContent, Button, TextField, Box } from '@mui/material';
-import ProtectedLayout from '@/Components/ProtectedLayout';
 
 let mockSponsors = [
   { id: 1, name: 'ABC Corporation' },
@@ -30,51 +28,51 @@ function Admin() {
   const [error, setError] = useState(null);
   const router = useRouter();
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       console.log('Hello World!');
-  //       const user = await Auth.currentAuthenticatedUser(); // Retrieve the authenticated user from Cognito
-  //       const userEmail = user.attributes.email; // Extract the user's email
-  //       console.log('User email:', userEmail);
-  //       // const response = await fetch('/api/user/get-user-type');
-  //       const response = await fetch(`/api/user/get-user-type?userEmail=${encodeURIComponent(userEmail)}`);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        console.log('Hello World!');
+        const user = await Auth.currentAuthenticatedUser(); // Retrieve the authenticated user from Cognito
+        const userEmail = user.attributes.email; // Extract the user's email
+        console.log('User email:', userEmail);
+        // const response = await fetch('/api/user/get-user-type');
+        const response = await fetch(`/api/user/get-user-type?userEmail=${encodeURIComponent(userEmail)}`);
 
-  //       if (!response.ok) {
-  //         throw new Error('Failed to fetch data');
-  //       }
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
 
-  //       const data = await response.json();
-  //       const role = data[0].user_Type;
+        const data = await response.json();
+        const role = data[0].user_Type;
 
-  //       setUserRole(role);
-  //       setIsLoading(false);
-  //     } catch (error) {
-  //       setError(error.message);
-  //       setIsLoading(false);
-  //     }
-  //   };
+        setUserRole(role);
+        setIsLoading(false);
+      } catch (error) {
+        setError(error.message);
+        setIsLoading(false);
+      }
+    };
 
-  //   fetchData();
-  // }, []);
+    fetchData();
+  }, []);
 
-  // useEffect(() => {
-  //   if (!isLoading && !error) {
-  //     if (userRole === 'ADMIN') {
-  //       router.push('/admin');
-  //     } else {
-  //       router.push('/login');
-  //     }
-  //   }
-  // }, [isLoading, error, userRole]);
+  useEffect(() => {
+    if (!isLoading && !error) {
+      if (userRole === 'ADMIN') {
+        router.push('/admin');
+      } else {
+        router.push('/login');
+      }
+    }
+  }, [isLoading, error, userRole]);
 
-  // if (isLoading) {
-  //   return <div>Loading...</div>;
-  // }
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-  // if (error) {
-  //   return <div>Error: {error}</div>;
-  // }
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   const getUserEmailFromCognito = async () => {
     // Implement the logic to retrieve the user's email from Cognito here
@@ -141,7 +139,7 @@ function Admin() {
         <title>Admin</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <ProtectedLayout>
+      <ResponsiveAppBar />
       <Container>
         <Typography variant="h3" gutterBottom>
           Admin Dashboard
@@ -280,8 +278,6 @@ function Admin() {
         </Button>
 
     </Container>
-    </ProtectedLayout>
-      
     </React.Fragment>
   );
 }
