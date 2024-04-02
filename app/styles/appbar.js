@@ -114,7 +114,7 @@ function ResponsiveAppBar() {
               </Tooltip>
             ) : (
               <Button color="inherit" onClick={handleLogin}>
-                Login
+                Switch Account
               </Button>
             )}
             <Menu
