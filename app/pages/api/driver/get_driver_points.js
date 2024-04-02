@@ -22,15 +22,26 @@ export default async function handler(req, res) {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const userID = req.query.userID;
+        //const {user_ID} = req.body;
+        const user_ID = req.query.user_ID;
+        console.log(user_ID);
 
-        const [rows] = await connection.query('SELECT userID, SUM(point_chage) AS total FROM Point_Changes_Audit GROUP BY userID WHERE userID = ?', [userID]);
-
+        const [rows] = await connection.query(
+            'SELECT user_ID, SUM(point_change_value) AS total FROM Point_Changes_Audit WHERE user_ID = ? GROUP BY user_ID', 
+            [user_ID]
+        );
         // Close the database connection
         await connection.end();
 
-        // Send the data as JSON response
-        res.status(200).json(rows);
+        if (rows.length > 0) {
+            // Since the query groups by user_ID, there should be only one row in the result.
+            // Send back the sum directly.
+            const pointsSum = rows[0].total;
+            res.status(200).json({ totalPoints: pointsSum });
+        } else {
+            // If no data found for the user_ID, you might want to return 0 or a message indicating no points were found.
+            res.status(404).json({ message: 'No points found for the provided user_ID.', totalPoints: 0 });
+        }
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });
