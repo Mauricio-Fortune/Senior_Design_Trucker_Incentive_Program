@@ -1,7 +1,6 @@
-// pages/drivers.js
 import React, { useState } from 'react';
 import Head from 'next/head';
-import ResponsiveAppBar from '../styles/appbar';
+import ResponsiveAppBar from '../Components/appbar';
 import {
   Container,
   Typography,
@@ -12,24 +11,19 @@ import {
   Tab,
   Box,
 } from '@mui/material';
-import { makeStyles } from '@mui/styles';
+import { styled } from '@mui/system'; // Import styled from @mui/system instead of makeStyles
 import { useRouter } from 'next/router';
 import Store from './store';
 import Driver_Catalog from './catalog/driver_catalog';
+import ProtectedLayout from '@/Components/ProtectedLayout';
 
-const useStyles = makeStyles(() => ({
-  card: {
-    marginBottom: 16,
-  },
-  tabsContainer: {
-    marginTop: 16,
-    borderBottom: '1px solid #ddd', // Optional: Add a border between tabs and content
-  },
-}));
+// Use the styled utility function to create a styled component
+const StyledCard = styled(Card)({
+  marginBottom: 16,
+});
 
 export default function Drivers() {
   const [value, setValue] = useState(0);
-  const classes = useStyles();
   const router = useRouter();
 
   const handleChange = (event, newValue) => {
@@ -47,7 +41,7 @@ export default function Drivers() {
         <title>Drivers</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <ResponsiveAppBar />
+      <ProtectedLayout>
         {/* Box for Tabs */}
         <Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }}>
         <Tabs
@@ -69,7 +63,7 @@ export default function Drivers() {
               Dashboard
             </Typography>
             {driverData.map((driver) => (
-              <Card key={driver.id} className={classes.card}>
+              <StyledCard key={driver.id}>
                 <CardContent>
                   <Typography variant="h6">{driver.name}</Typography>
                   <Typography>Points: {driver.points}</Typography>
@@ -77,8 +71,24 @@ export default function Drivers() {
                     Points until Goal: {driver.goal - driver.points}
                   </Typography>
                 </CardContent>
-              </Card>
+              </StyledCard>
             ))}
+            {/* Other Drivers */}
+          <Typography variant="h4" gutterBottom>
+            Other Drivers
+          </Typography>
+          <Grid container spacing={2}>
+            {driverData.map((driver) => (
+              <Grid item key={driver.id} xs={12} sm={6} md={4} lg={3}>
+                <StyledCard>
+                  <CardContent>
+                    <Typography variant="h6">{driver.name}</Typography>
+                    <Typography>Points: {driver.points}</Typography>
+                  </CardContent>
+                </StyledCard>
+              </Grid>
+            ))}
+          </Grid>
           </div>
         )}
         </Container>
@@ -86,6 +96,8 @@ export default function Drivers() {
         {value === 1 && (
             <Driver_Catalog />
         )}
-    </>
+      </ProtectedLayout>
+      </>
+        
   );
 }

@@ -15,6 +15,8 @@ import MenuItem from '@mui/material/MenuItem';
 import { useRouter } from 'next/router';
 // import { Amplify } from 'aws-amplify';
 import { signOut } from 'aws-amplify/auth';
+import { LoginRounded } from '@mui/icons-material';
+
 
 const pages = ['Home', 'About', 'Drivers', 'Sponsors', 'Admins'];
 
@@ -58,6 +60,12 @@ function ResponsiveAppBar() {
       console.log('error signing out: ', error);
     }
   }
+  const handleLogin = () => {
+    // Redirect to the Cognito login URL
+    //window.location.href = "https://team25officialsignup.auth.us-east-1.amazoncognito.com/login?client_id=100d3kpmsuk6qt752bcqkstbsp&response_type=code&scope=email+openid+phone&redirect_uri=https%3A%2F%2Fmain.d2gmf4p0ogiu5s.amplifyapp.com%2F";
+    // Redirect to the login page
+    router.push('/login');
+  };
 
   const handleNavigate = (path) => {
     if (path.toLowerCase() === '/login' && !isLoggedIn) {
