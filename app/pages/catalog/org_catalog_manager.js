@@ -7,6 +7,8 @@ export default function Catalog_Manage() {
   const [entries, setEntries] = useState([]);
   const [detailedItemData, setDetailedItemData] = useState({});
 
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
  // hardcoded until cognito is fixed
   const orgID = 1;
 
@@ -46,7 +48,7 @@ export default function Catalog_Manage() {
         }
       };
 
-      const response = await fetch(`/api/catalog/get_items_from_org?org_ID=${orgID}`, requestOptions);
+      const response = await fetch(`${baseUrl}/api/catalog/get_items_from_org?org_ID=${orgID}`, requestOptions);
 
       if (!response.ok) {
         throw new Error('Failed to fetch data');
@@ -91,7 +93,7 @@ export default function Catalog_Manage() {
               })
             };
         
-            const response = await fetch('/api/catalog/delete_item', requestOptions);
+            const response = await fetch(`${baseUrl}/api/catalog/delete_item`, requestOptions);
         
             if (!response.ok) {
               throw new Error('Failed to add items to database');
