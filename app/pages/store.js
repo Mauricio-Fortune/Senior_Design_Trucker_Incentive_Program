@@ -1,6 +1,6 @@
 import { React, useState } from 'react';
 import Head from 'next/head';
-import ResponsiveAppBar from '../Components/appbar';
+import ResponsiveAppBar from '../styles/appbar';
 import { Typography, Grid, Box, FormControl, InputLabel, Select, MenuItem, Card, CardMedia, CardContent, CardActions, Button } from '@mui/material';
 
 export default function Store() {
