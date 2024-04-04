@@ -1,9 +1,8 @@
 // pages/application.js
 import React from 'react';
 import Head from 'next/head';
-import ResponsiveAppBar from '../Components/appbar';
+import ResponsiveAppBar from '../styles/appbar';
 import { Container, Typography, TextField, Button, Box } from '@mui/material';
-import Layout from '@/Components/Layout';
 
 export default function Application() {
   return (
@@ -12,7 +11,7 @@ export default function Application() {
         <title>Driver Application</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Layout>
+      <ResponsiveAppBar />
       <Container>
         <Box mt={4}>
           <Typography variant="h3" gutterBottom>
@@ -39,7 +38,6 @@ export default function Application() {
         </form>
         <Box mt={2} />
       </Container>
-      </Layout>
     </>
   );
 }
