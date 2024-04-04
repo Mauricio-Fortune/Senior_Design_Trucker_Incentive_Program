@@ -7,6 +7,7 @@ export default function Catalog_Manage() {
   const [entries, setEntries] = useState([]);
   const [detailedItemData, setDetailedItemData] = useState({});
 
+  
  // hardcoded until cognito is fixed
   const orgID = 1;
 
