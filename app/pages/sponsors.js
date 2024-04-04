@@ -1,7 +1,8 @@
 // pages/sponsors.js
 import React, { useState } from 'react';
 import Head from 'next/head';
-import ResponsiveAppBar from '../styles/appbar';
+import ResponsiveAppBar from '../Components/appbar';
+import ProtectedLayout from '@/Components/ProtectedLayout';
 import {
   Container,
   Typography,
@@ -105,7 +106,7 @@ export default function Sponsors() {
         <title>Sponsors</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <ResponsiveAppBar />
+      <ProtectedLayout>
       <Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }}>
         <Tabs
           value={value}
@@ -237,6 +238,7 @@ export default function Sponsors() {
 
          
       </Container>
+      </ProtectedLayout>
     </>
   );
 }

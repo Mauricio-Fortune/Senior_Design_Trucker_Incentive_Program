@@ -1,7 +1,8 @@
 import { React, useState } from 'react';
 import Head from 'next/head';
-import ResponsiveAppBar from '../styles/appbar';
+import ResponsiveAppBar from '../Components/appbar';
 import { Typography, Grid, Box, FormControl, InputLabel, Select, MenuItem, Card, CardMedia, CardContent, CardActions, Button } from '@mui/material';
+import ProtectedLayout from '@/Components/ProtectedLayout';
 
 export default function Store() {
     const mockData = [
@@ -40,6 +41,7 @@ export default function Store() {
                 <title>Store</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
+            <ProtectedLayout>
             <header style={headerStyle}>Store</header>
             <Box display="flex" justifyContent="center" alignItems="center" flexDirection="column" m={2}>
                 <Typography variant="h5" gutterBottom>
@@ -93,6 +95,7 @@ export default function Store() {
                     </Grid>
                 ))}
             </Grid>
+            </ProtectedLayout>
         </>
     );
 

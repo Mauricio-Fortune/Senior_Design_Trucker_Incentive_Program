@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-import ResponsiveAppBar from '../styles/appbar';
+import ResponsiveAppBar from '../Components/appbar';
 import { useRouter } from 'next/router';
 import { Container, Typography, Card, CardContent, Button, TextField, Box } from '@mui/material';
+import ProtectedLayout from '@/Components/ProtectedLayout';
+import { Auth } from "aws-amplify";
+import { fetchUserAttributes } from '@aws-amplify/auth';
 
 let mockSponsors = [
   { id: 1, name: 'ABC Corporation' },
@@ -32,11 +35,11 @@ function Admin() {
     const fetchData = async () => {
       try {
         console.log('Hello World!');
-        const user = await Auth.currentAuthenticatedUser(); // Retrieve the authenticated user from Cognito
-        const userEmail = user.attributes.email; // Extract the user's email
-        console.log('User email:', userEmail);
+        const user = await fetchUserAttributes(); // Retrieve the authenticated user from Cognito
+ // Extract the user's email
+        console.log('User Credentials:', user);
         // const response = await fetch('/api/user/get-user-type');
-        const response = await fetch(`/api/user/get-user-type?userEmail=${encodeURIComponent(userEmail)}`);
+        const response = await fetch(`/api/user/get-user-type?userEmail=${encodeURIComponent(user.email)}`);
 
         if (!response.ok) {
           throw new Error('Failed to fetch data');
@@ -55,16 +58,6 @@ function Admin() {
 
     fetchData();
   }, []);
-
-  useEffect(() => {
-    if (!isLoading && !error) {
-      if (userRole === 'ADMIN') {
-        router.push('/admin');
-      } else {
-        router.push('/login');
-      }
-    }
-  }, [isLoading, error, userRole]);
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -139,7 +132,7 @@ function Admin() {
         <title>Admin</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <ResponsiveAppBar />
+      <ProtectedLayout>
       <Container>
         <Typography variant="h3" gutterBottom>
           Admin Dashboard
@@ -278,6 +271,7 @@ function Admin() {
         </Button>
 
     </Container>
+    </ProtectedLayout>
     </React.Fragment>
   );
 }

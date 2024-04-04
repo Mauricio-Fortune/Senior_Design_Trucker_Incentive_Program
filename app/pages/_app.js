@@ -44,4 +44,4 @@ function App({ Component, pageProps }) {
   return <Component {...pageProps} />;
 }
 
-export default withAuthenticator(App);
+export default App;

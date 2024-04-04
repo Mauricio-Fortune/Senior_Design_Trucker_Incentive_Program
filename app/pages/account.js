@@ -1,7 +1,9 @@
 // pages/account.js
 import React, { useState } from 'react';
 import Head from 'next/head';
-import ResponsiveAppBar from '../styles/appbar';
+import ResponsiveAppBar from '../Components/appbar';
+import ProtectedLayout from '@/Components/ProtectedLayout';
+
 import {
   Container,
   Typography,
@@ -50,7 +52,7 @@ export default function Account() {
         <title>Account</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <ResponsiveAppBar />
+      <ProtectedLayout>
       <Container>
         <Typography variant="h3" gutterBottom style={{ marginTop: '16px' }}>
           Account Settings
@@ -153,6 +155,7 @@ export default function Account() {
           </CardContent>
         </Card>
       </Container>
+      </ProtectedLayout>
     </>
   );
 }
