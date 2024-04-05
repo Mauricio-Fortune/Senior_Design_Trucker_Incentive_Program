@@ -15,11 +15,7 @@ export default function Catalog_Manage() {
   const orgID = 1;
   const order_ID = 3;
 
-<<<<<<< HEAD
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-=======
   
->>>>>>> Sprint9
 
 
   const handleLimitTypeChange = (event) => {
@@ -35,11 +31,7 @@ export default function Catalog_Manage() {
         }
       };
 
-<<<<<<< HEAD
-      const response = await fetch(`${baseUrl}/api/driver/get_driver_points?user_ID=${user_ID}`, requestOptions);
-=======
       const response = await fetch(`/api/driver/get_driver_points?user_ID=${user.sub}`, requestOptions);
->>>>>>> Sprint9
       if (!response.ok) throw new Error('Failed to fetch item data');
       console.log("HELLO");
   
@@ -111,7 +103,7 @@ export default function Catalog_Manage() {
         }
       };
 
-      const response = await fetch(`${baseUrl}/api/catalog/get_items_from_org?org_ID=${orgID}`, requestOptions);
+      const response = await fetch(`/api/catalog/get_items_from_org?org_ID=${orgID}`, requestOptions);
 
       if (!response.ok) {
         throw new Error('Failed to fetch data');
@@ -163,7 +155,7 @@ export default function Catalog_Manage() {
         console.log(getID(item));
         console.log(quantityType);
         console.log(getName(item));
-      const response = await fetch(`${baseUrl}/api/driver/post_add_items_to_order`, requestOptions);
+      const response = await fetch(`/api/driver/post_add_items_to_order`, requestOptions);
       
       const points = (-Math.round(getPoints(item))* 10 * quantityType);
       console.log(points);
@@ -182,7 +174,7 @@ export default function Catalog_Manage() {
         })
       };
       // const { , user_ID, point_change_value, reason, org_ID, timestamp } = req.body;
-      const pointchange = await fetch(`${baseUrl}/api/sponsor/edit_points`, pointOptions);
+      const pointchange = await fetch(`/api/sponsor/edit_points`, pointOptions);
   
       if (!response.ok) {
         throw new Error('Failed to add items to database');
