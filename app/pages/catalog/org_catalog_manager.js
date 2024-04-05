@@ -7,8 +7,12 @@ export default function Catalog_Manage() {
   const [entries, setEntries] = useState([]);
   const [detailedItemData, setDetailedItemData] = useState({});
 
+<<<<<<< HEAD
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+=======
+  
+>>>>>>> Sprint9
  // hardcoded until cognito is fixed
   const orgID = 1;
 

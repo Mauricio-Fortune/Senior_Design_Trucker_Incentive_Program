@@ -1,17 +1,6 @@
 import React, { useState } from 'react'; // Correctly import useState
-import {
-  Container,
-  Typography,
-  Card,
-  CardContent,
-  Tabs,
-  Tab,
-  Box,
-  Button,
-  TextField,
-} from '@mui/material';
-import Head from 'next/head';
-import ResponsiveAppBar from '../../Components/appbar';
+
+
 
 
 

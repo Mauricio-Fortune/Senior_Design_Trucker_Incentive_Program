@@ -2,19 +2,24 @@
 
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
+import { fetchUserAttributes } from '@aws-amplify/auth';
 
 export default function Catalog_Manage() {
   const [entries, setEntries] = useState([]);
   const [quantityType, setQuantityType] = useState(1);
   const [detailedItemData, setDetailedItemData] = useState({});
   const [driverPoints, setDriverPoints] = useState(0);
+  const [user, setUser] = useState(null);
 
  // hardcoded until cognito is fixed
   const orgID = 1;
-  const user_ID = 1;
   const order_ID = 3;
 
+<<<<<<< HEAD
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+=======
+  
+>>>>>>> Sprint9
 
 
   const handleLimitTypeChange = (event) => {
@@ -30,24 +35,42 @@ export default function Catalog_Manage() {
         }
       };
 
+<<<<<<< HEAD
       const response = await fetch(`${baseUrl}/api/driver/get_driver_points?user_ID=${user_ID}`, requestOptions);
+=======
+      const response = await fetch(`/api/driver/get_driver_points?user_ID=${user.sub}`, requestOptions);
+>>>>>>> Sprint9
       if (!response.ok) throw new Error('Failed to fetch item data');
+      console.log("HELLO");
+  
       
       const data = await response.json();
-      // Assuming your server response structure is something like { totalPoints: 10 }
-      return data.totalPoints; // This extracts just the totalPoints value from the response
+      console.log(data.totalPoints);
+ 
+      return data.totalPoints; 
     } catch (error) {
       console.error('Failed to fetch item data:', error);
-      return 0; // Return a default/fallback value, assuming no points on error
+      return 0; 
     }
 };
 
 
   useEffect(() => {
+    async function currentAuthenticatedUser() {
+      try {
+        const user = await fetchUserAttributes(); // Adjusted to get the user object directly
+        setUser(user);
+        console.log(user);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    currentAuthenticatedUser();
+    
     (async () => {
       const driverPoints = await getDriverPoints();
       // Assuming points will be a number. If it's 0 or a positive number, set it. This replaces the null check.
-      if (driverPoints !== null) { // Considering your catch returns 0, this could also check for > 0 if you only want to set positive values.
+      if (driverPoints != null) { // Considering your catch returns 0, this could also check for > 0 if you only want to set positive values.
         setDriverPoints(driverPoints);
       }
     })();
@@ -151,7 +174,7 @@ export default function Catalog_Manage() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          user_ID : user_ID,
+          user_ID : user.sub,
           point_change_value : points,
           reason: "order", 
           org_ID: orgID,
