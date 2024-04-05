@@ -1,7 +1,7 @@
 // pages/index.js
 import React from 'react';
 import Head from 'next/head';
-import Layout from '@/Components/Layout';
+// import Layout from '@/Components/Layout';
 
 function Home() {
   return (
@@ -10,7 +10,7 @@ function Home() {
         <title>Home</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Layout>
+      {/* <Layout> */}
       <main>
         <div style={{ textAlign: 'center', marginTop: '50px' }}>
           <div
@@ -45,7 +45,7 @@ function Home() {
         </div>
         {/* Your additional content goes here */}
       </main>
-      </Layout>
+      {/* </Layout> */}
     </>
   );
 }
