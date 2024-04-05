@@ -60,20 +60,6 @@ function Home() {
       </Head>
       <Layout>
       <main>
-        <div style={{ textAlign: 'center' }}>
-          {user && (
-            <p
-              style={{
-                fontSize: '2em', // Increase font size
-                fontWeight: 'bold',
-                marginTop: '20px', // Increase top margin for separation
-                paddingBottom: '20px', // Increase bottom padding
-              }}
-            >
-              Welcome back, {user.name}
-            </p>
-          )}
-        </div>
         <div style={{ textAlign: 'center', marginTop: '10px' }}>
           <div
             style={{
