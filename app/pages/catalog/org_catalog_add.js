@@ -22,7 +22,6 @@ export default function Catalog_add() {
   const [limitType, setLimitType] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   // Update state with the user's input
   const handleInputChange = (event) => {
@@ -69,7 +68,7 @@ export default function Catalog_add() {
         })
       };
   
-      const response = await fetch(`${baseUrl}/api/catalog/post_add_item`, requestOptions);
+      const response = await fetch('/api/catalog/post_add_item', requestOptions);
   
       if (!response.ok) {
         throw new Error('Failed to add items to database');
@@ -104,7 +103,7 @@ export default function Catalog_add() {
         })
       };
 
-      const response = await fetch(`${baseUrl}/api/catalog/get_search`, requestOptions);
+      const response = await fetch('/api/catalog/get_search', requestOptions);
 
       if (!response.ok) {
         throw new Error('Failed to fetch data');
