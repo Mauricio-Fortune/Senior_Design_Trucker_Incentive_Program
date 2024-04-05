@@ -155,7 +155,7 @@ export default function Catalog_Manage() {
         console.log(getID(item));
         console.log(quantityType);
         console.log(getName(item));
-      const response = await fetch(`/api/driver/post_add_items_to_order`, requestOptions);
+      const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
       
       const points = (-Math.round(getPoints(item))* 10 * quantityType);
       console.log(points);
@@ -174,7 +174,7 @@ export default function Catalog_Manage() {
         })
       };
       // const { , user_ID, point_change_value, reason, org_ID, timestamp } = req.body;
-      const pointchange = await fetch(`/api/sponsor/edit_points`, pointOptions);
+      const pointchange = await fetch('/api/sponsor/edit_points', pointOptions);
   
       if (!response.ok) {
         throw new Error('Failed to add items to database');
