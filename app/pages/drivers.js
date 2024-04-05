@@ -1,7 +1,8 @@
 // pages/drivers.js
 import React, { useState } from 'react';
 import Head from 'next/head';
-import ResponsiveAppBar from '../styles/appbar';
+import ResponsiveAppBar from '../Components/appbar';
+import ProtectedLayout from '@/Components/ProtectedLayout';
 import {
   Container,
   Typography,
@@ -47,7 +48,7 @@ export default function Drivers() {
         <title>Drivers</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <ResponsiveAppBar />
+      <ProtectedLayout>
         {/* Box for Tabs */}
         <Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }}>
         <Tabs
@@ -86,6 +87,7 @@ export default function Drivers() {
         {value === 1 && (
             <Driver_Catalog />
         )}
+        </ProtectedLayout>
     </>
   );
 }
