@@ -106,24 +106,25 @@ export default function Account() {
           </CardContent>
         </Card>
 
-        <Card style={{ marginBottom: '16px' }}>
-          <CardContent>
-            <Typography variant="h5" gutterBottom>
-              Change Profile Picture
-            </Typography>
-            <TextField
-              label="New Profile Picture URL"
-              variant="outlined"
-              fullWidth
-              value={profilePicture}
-              onChange={(e) => setProfilePicture(e.target.value)}
-              style={{ marginBottom: '8px' }}
-            />
-            <Button variant="contained" color="primary" onClick={handleProfilePictureChange}>
-              Change Profile Picture
-            </Button>
-          </CardContent>
-        </Card>
+        {/* <Card style={{ marginBottom: '16px' }}>
+  <CardContent>
+    <Typography variant="h5" gutterBottom>
+      Change Profile Picture
+    </Typography>
+    <TextField
+      label="New Profile Picture URL"
+      variant="outlined"
+      fullWidth
+      value={profilePicture}
+      onChange={(e) => setProfilePicture(e.target.value)}
+      style={{ marginBottom: '8px' }}
+    />
+    <Button variant="contained" color="primary" onClick={handleProfilePictureChange}>
+      Change Profile Picture
+    </Button>
+  </CardContent>
+</Card> */}
+
 
         <Card style={{ marginBottom: '16px' }}>
           <CardContent>
