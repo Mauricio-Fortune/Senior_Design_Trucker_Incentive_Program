@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-import ResponsiveAppBar from '../Components/appbar';
 import { useRouter } from 'next/router';
 import { Container, Typography, Card, CardContent, Button, TextField, Box } from '@mui/material';
 import ProtectedLayout from '@/Components/ProtectedLayout';
@@ -30,49 +29,6 @@ function Admin() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const router = useRouter();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        console.log('Hello World!');
-        const user = await fetchUserAttributes(); // Retrieve the authenticated user from Cognito
- // Extract the user's email
-        console.log('User Credentials:', user);
-        // const response = await fetch('/api/user/get-user-type');
-        const response = await fetch(`/api/user/get-user-type?userEmail=${encodeURIComponent(user.email)}`);
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch data');
-        }
-
-        const data = await response.json();
-        const role = data[0].user_Type;
-
-        setUserRole(role);
-        setIsLoading(false);
-      } catch (error) {
-        setError(error.message);
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
-  const getUserEmailFromCognito = async () => {
-    // Implement the logic to retrieve the user's email from Cognito here
-    // You can use the AWS SDK for JavaScript to interact with Cognito
-    // Refer to the previous message for an example of how to retrieve user attributes
-    return 'user@example.com'; // Replace this with the actual logic to fetch the user's email
-  };
 
   const handleAddSponsor = async (sponsorName) => {
     try {
@@ -132,7 +88,6 @@ function Admin() {
         <title>Admin</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <ProtectedLayout>
       <Container>
         <Typography variant="h3" gutterBottom>
           Admin Dashboard
@@ -271,7 +226,6 @@ function Admin() {
         </Button>
 
     </Container>
-    </ProtectedLayout>
     </React.Fragment>
   );
 }
