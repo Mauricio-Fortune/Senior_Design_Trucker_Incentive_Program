@@ -2,19 +2,74 @@
 
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
+import { fetchUserAttributes } from '@aws-amplify/auth';
 
 export default function Catalog_Manage() {
   const [entries, setEntries] = useState([]);
   const [detailedItemData, setDetailedItemData] = useState({});
+  const [user, setUser] = useState();
+  const [orgID,setOrgID] = useState();
+
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 
   
  // hardcoded until cognito is fixed
-  const orgID = 1;
+
+ useEffect(() => {
+  async function currentAuthenticatedUser() {
+    try {
+      const user = await fetchUserAttributes(); // Assuming this correctly fetches the user
+      setUser(user); // Once the user is set, it triggers the useEffect for getDriverPoints
+      console.log(user);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  currentAuthenticatedUser();
+}, []);
+
+
+const getOrgID = async () => { // fetches all itemIDs in database
+  try {
+    const requestOptions = {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+    console.log("USER " + user.sub);
+    const response = await fetch(`/api/driver/get_current_sponsor?user_ID=${user.sub}`, requestOptions);
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch data');
+    }
+    const result = await response.json();
+    
+    setOrgID(result.org_ID);
+    //console.log("result.org_ID = " + result.org_ID);
+    //console.log("orgID = " + orgID);
+  } catch (error) {
+    console.error('Failed to fetch data:', error);
+    setOrgID([]);
+  }
+};
+useEffect(() => {
+  if (user) {
+    (async () => {
+      const orgID = await getOrgID();
+      if (orgID != null) {
+        setOrgID(orgID);
+      }
+    })();
+  }
+}, [user]); 
+
 
 
   useEffect(() => {
     fetchData(); // Called only on component mount
-  }, []);
+  }, [orgID]);
   
   useEffect(() => {
     const fetchItemDetails = async () => {
