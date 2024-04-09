@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
 import { fetchUserAttributes } from '@aws-amplify/auth';
 
-
 export default function Catalog_Manage() {
   const [entries, setEntries] = useState([]);
   const [quantityType, setQuantityType] = useState(1);
@@ -14,102 +13,89 @@ export default function Catalog_Manage() {
   const [orgID,setOrgID] = useState();
   const [order_ID, setOrderID] = useState();
   const [cart_ID, setCart] = useState(-1);
+  const [cartPoints, setCartPoints] = useState(0);
 
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+  const order_cart = async () => {
 
+    if( cartPoints > driverPoints){
+      throw new Error('Not Enough Points!');
+     
+    }else {
 
-  useEffect(() => {
-    const fetchData = async () => { // fetches all itemIDs in database
-      try {
-        const requestOptions = {
-          method: "GET",
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        };
-  
-        const response = await fetch(`/api/catalog/get_items_from_org?org_ID=${orgID}`, requestOptions);
-  
-        if (!response.ok) {
-          throw new Error('Failed to fetch data');
-        }
-  
-        const result = await response.json();
-  
-        if (Array.isArray(result)) { // Assuming the API directly returns an array
-          setEntries(result);
-        } else {
-          console.error('Expected results to be an array but got:', result);
-          setEntries([]);
-        }
-      } catch (error) {
-        console.error('Failed to fetch data:', error);
-        setEntries([]);
-      }
-    };
-    fetchData();
-  }, [orgID]);
+      const pointOptions = {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          user_ID : user.sub,
+          point_change_value : -cartPoints,
+          reason: "cart order", 
+          org_ID: orgID,
+          timestamp: "04/02/2024"
+        })
+      };
+        const pointchange = await fetch('/api/sponsor/edit_points', pointOptions);
 
-
-  const createNewOrder = async (cart) => { // fetches all itemIDs in database
-    try {
-        const requestOptions = {
+        const cartOptions = {
           method: "POST",
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            user_ID: user.sub,
-            is_cart: cart
+          body: JSON.stringify({ 
+            user_ID : user.sub,
+            order_ID: cart_ID
           })
+        };
+        console.log("THIS IS CART ORDER\nuser_ID: "+ user.sub + "\norder_ID: "+cart_ID);
+
+        const cartchange = await fetch('/api/driver/post_complete_cart', cartOptions)
+        .then((response) => response.text())
+        .then((result) => console.log(result))
+        .catch((error) => console.error(error));
+      
+    }
+  };
+  
+  const addCartPoints =  async (item) => {
+    const points = (Math.round(getPoints(item))* 10);
+    setCartPoints(cartPoints => cartPoints + points)
+
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [orgID]);
+
+
+
+  const getOrgID = async () => { // fetches all itemIDs in database
+    try {
+      const requestOptions = {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json'
+        }
       };
       console.log("USER " + user.sub);
-      const response = await fetch(`/api/driver/post_new_order`, requestOptions);
+      const response = await fetch(`/api/driver/get_current_sponsor?user_ID=${user.sub}`, requestOptions);
 
       if (!response.ok) {
         throw new Error('Failed to fetch data');
       }
       const result = await response.json();
-      if(cart == true){
-        setCart(result.order_ID);
-      }
-        setOrderID(result.order_ID);
-
+      
+      setOrgID(result.org_ID);
+      //console.log("result.org_ID = " + result.org_ID);
+      //console.log("orgID = " + orgID);
     } catch (error) {
       console.error('Failed to fetch data:', error);
-      setOrderID([]);
+      setOrgID([]);
     }
   };
-
-
- 
   useEffect(() => {
-    const getOrgID = async () => { // fetches all itemIDs in database
-      try {
-        const requestOptions = {
-          method: "GET",
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        };
-        console.log("USER " + user.sub);
-        const response = await fetch(`/api/driver/get_current_sponsor?user_ID=${user.sub}`, requestOptions);
-  
-        if (!response.ok) {
-          throw new Error('Failed to fetch data');
-        }
-        const result = await response.json();
-        
-        setOrgID(result.org_ID);
-        //console.log("result.org_ID = " + result.org_ID);
-        //console.log("orgID = " + orgID);
-      } catch (error) {
-        console.error('Failed to fetch data:', error);
-        setOrgID([]);
-      }
-    };
-
     if (user) {
       (async () => {
         const orgID = await getOrgID();
@@ -120,8 +106,36 @@ export default function Catalog_Manage() {
     }
   }, [user]); 
 
+  const removeItem = async (itemID) => {
+    try {
+          const requestOptions = {
+            method: "DELETE",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+              order_ID : cart_ID,
+              item_ID : itemID
+            })
+          };
 
-
+          console.log("ORDER_ID: "+ cart_ID);
+          console.log("ITEM_ID: "+ itemID);
+      
+          const response = await fetch('/api/driver/delete_item_from_cart', requestOptions) 
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+            .catch((error) => console.error(error));
+      
+          if (!response.ok) {
+            throw new Error('Failed to add items to database');
+          }
+      
+        } catch (error) {
+          console.error('Error Deleting items to database:', error);
+          
+        }
+  };
 
   const handleLimitTypeChange = (event) => {
     setQuantityType(Number(event.target.value)); // Convert to number if it's ensured to be numeric
@@ -142,33 +156,6 @@ export default function Catalog_Manage() {
   }, []);
   
   useEffect(() => {
-    const getDriverPoints = async () => {
-      try {
-        const requestOptions = {
-          method: "GET",
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        };
-        if(user == null){
-          currentAuthenticatedUser();
-        }
-   
-        const response = await fetch(`/api/driver/get_driver_points?user_ID=${user.sub}`, requestOptions);
-        if (!response.ok) throw new Error('Failed to fetch item data');
-        
-    
-        
-        const data = await response.json();
-        console.log(data.totalPoints);
-   
-        return data.totalPoints; 
-      } catch (error) {
-        console.error('Failed to fetch item data:', error);
-        console.log(user);
-        return 0; 
-      }
-  };
     // This now depends on the user state. Once the user is fetched and set, this runs.
     if (user) {
       (async () => {
@@ -181,19 +168,6 @@ export default function Catalog_Manage() {
   }, [user]); // Depend on user state
   
   useEffect(() => {
-    const getItemData = async (itemID) => { // gets item data from iTunes
-      try {
-        const response = await fetch(`https://itunes.apple.com/lookup?id=${itemID}`);
-        if (!response.ok) throw new Error('Failed to fetch item data');
-        const data = await response.json();
-        return data.results[0]; 
-      } catch (error) {
-        console.error('Failed to fetch item data:', error);
-        return null;
-      }
-    };
-
-
     const fetchItemDetails = async () => {
       
       const detailsPromises = entries.map(entry => getItemData(entry.item_ID)); 
@@ -216,33 +190,103 @@ export default function Catalog_Manage() {
   }, [entries]); // Depends on `entries`
   
 
-
-
-  
-
-
-    const getCartID = async () => {
-      try {
-        const requestOptions = {
-          method: "GET",
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        };
-        console.log("USER " + user.sub);
-        const response = await fetch(`/api/driver/get_cart_orderID?user_ID=${user.sub}`, requestOptions);
-        if (!response.ok) {
-          throw new Error('Failed to fetch data');
+  const fetchData = async () => { // fetches all itemIDs in database
+    try {
+      const requestOptions = {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json'
         }
-        const result = await response.json();
-        setCart(result.order_ID);
-        return result.order_ID; // Return the new cart_ID
+      };
+
+      const cart_ID = await getCartID();
+
+      const response = await fetch(`/api/driver/get_items_from_cart?order_ID=${cart_ID}`, requestOptions);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+
+      const result = await response.json();
+
+      if (Array.isArray(result)) { // Assuming the API directly returns an array
+        setEntries(result);
+      } else {
+        console.error('Expected results to be an array but got:', result);
+        setEntries([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+      setEntries([]);
+    }
+  };
+
+
+  const getDriverPoints = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+      if(user == null){
+        currentAuthenticatedUser();
+      }
+ 
+      const response = await fetch(`/api/driver/get_driver_points?user_ID=${user.sub}`, requestOptions);
+      if (!response.ok) throw new Error('Failed to fetch item data');
+      
+  
+      
+      const data = await response.json();
+      console.log(data.totalPoints);
+ 
+      return data.totalPoints; 
+    } catch (error) {
+      console.error('Failed to fetch item data:', error);
+      console.log(user);
+      return -1; 
+    }
+};
+  
+const getItemData = async (itemID) => { // gets item data from iTunes
+      try {
+        const response = await fetch(`https://itunes.apple.com/lookup?id=${itemID}`);
+        if (!response.ok) throw new Error('Failed to fetch item data');
+        const data = await response.json();
+        const p = await addCartPoints(data.results[0]);
+        return data.results[0]; 
       } catch (error) {
-        console.error('Failed to fetch data:', error);
-        setCart(-1);
-        return -1; // Return -1 on failure
+        console.error('Failed to fetch item data:', error);
+        return null;
       }
     };
+
+const getCartID = async () => {
+    try {
+    const requestOptions = {
+        method: "GET",
+        headers: {
+        'Content-Type': 'application/json'
+        }
+    };
+    console.log("USER " + user.sub);
+    const response = await fetch(`/api/driver/get_cart_orderID?user_ID=${user.sub}`, requestOptions);
+    if (!response.ok) {
+        throw new Error('Failed to fetch data');
+    }
+    const result = await response.json();
+    setCart(result.order_ID);
+
+    return result.order_ID; // Return the new cart_ID
+    } catch (error) {
+        console.log(result.order_ID);
+        console.error('Failed to fetch data:', error);
+        setCart(-1);
+    return -1; // Return -1 on failure
+    }
+};
 
   const order_item = async (itemID,cart) => {
     const item = detailedItemData[itemID];
@@ -274,6 +318,8 @@ export default function Catalog_Manage() {
     
         // Response from the server after adding items to the database
         const result = await response.json();
+ 
+      alert('Selected items have been added to the database successfully.');
       }catch (error) {
         console.error('Error adding items to database:', error);
       }
@@ -299,37 +345,31 @@ export default function Catalog_Manage() {
       const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
       
       const points = (-Math.round(getPoints(item))* 10 * quantityType);
-      if(points > driverPoints){
-        throw new Error('Not Enough Points!');
-      }
-      else{
-        console.log(points);
+      console.log(points);
   
-        const pointOptions = {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ 
-            user_ID : user.sub,
-            point_change_value : points,
-            reason: "order", 
-            org_ID: orgID,
-            timestamp: "04/02/2024"
-          })
-        };
-          const pointchange = await fetch('/api/sponsor/edit_points', pointOptions);
+      const pointOptions = {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          user_ID : user.sub,
+          point_change_value : points,
+          reason: "order", 
+          org_ID: orgID,
+          timestamp: "04/02/2024"
+        })
+      };
+        const pointchange = await fetch('/api/sponsor/edit_points', pointOptions);
+  
+        if (!response.ok) {
+          throw new Error('Failed to add items to database');
+        }
     
-          if (!response.ok) {
-            throw new Error('Failed to add items to database');
-          }
-      
-          // Response from the server after adding items to the database
-          const result = await response.json();
-   
-  
-      }
-     
+        // Response from the server after adding items to the database
+        const result = await response.json();
+ 
+      alert('Selected items have been added to the database successfully.');
   
     } catch (error) {
       console.error('Error adding items to database:', error);
@@ -515,6 +555,12 @@ export default function Catalog_Manage() {
       <Typography variant="h6" gutterBottom component="div" align="center">
       Your Points: {driverPoints}
     </Typography>
+    <Typography variant="h6" gutterBottom component="div" align="center">
+        Total Cart Cost: {cartPoints}
+    </Typography>
+    <Typography variant="h6" gutterBottom component="div" align="center">
+         <button onClick={() => order_cart()} style = {button_style}>Order Cart</button>
+    </Typography>
       <TableContainer component={Paper}>
         <Table aria-label="simple table">
           <TableBody>
@@ -522,22 +568,7 @@ export default function Catalog_Manage() {
             <TableRow key={entry.item_ID}>
                   <TableCell align = "center">
                         {renderEntryComponent(entry.item_ID)}
-                        <button onClick={() => order_item(entry.item_ID,false)} style = {button_style}>Order</button>
-                        <button onClick={() => order_item(entry.item_ID,true)} style = {button_style}>Add to Cart</button>
-                        <select value={quantityType} onChange={handleLimitTypeChange} style={dropdown_menu_style}>
-                          <option value="1">1</option>
-                          <option value="2">2</option>
-                          <option value="3">3</option>
-                          <option value="4">4</option>
-                          <option value="5">5</option>
-                          <option value="6">6</option>
-                          <option value="7">7</option>
-                          <option value="8">8</option>
-                          <option value="9">9</option>
-                          <option value="10">10</option>
-                          <option value="15">15</option>
-                          <option value="20">20</option>
-                        </select>
+                        <button onClick={() => removeItem(entry.item_ID)} style = {button_style}>Remove</button>
                   </TableCell>
             </TableRow>
             ))}

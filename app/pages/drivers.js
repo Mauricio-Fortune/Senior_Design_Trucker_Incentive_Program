@@ -19,6 +19,7 @@ import { makeStyles } from '@mui/styles';
 import { useRouter } from 'next/router';
 import Store from './store';
 import Driver_Catalog from './catalog/driver_catalog';
+import Driver_Cart from './catalog/driver_cart';
 
 const useStyles = makeStyles(() => ({
   card: {
@@ -45,9 +46,13 @@ export default function Drivers() {
     { id: 2, name: 'UPS', points: 200, goal: 600 },
     { id: 3, name: 'FedEx', points: 150, goal: 550 }
   ];
+  const [catalogValue, setCatalogValue] = useState(0);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
+  };
+  const handleCatalogChange = (event, newValue) => {
+    setCatalogValue(newValue);
   };
 
   // Function to handle company selection
@@ -180,11 +185,28 @@ export default function Drivers() {
             </Grid>
           </Grid>
         )}
-      </Container>
-      {/* Store page works better outside container */}
-      {value === 2 && (
-        <Driver_Catalog />
-      )}
+        </Container>
+        <Container>
+        {/*Store page works better outside container*/}
+        {value === 2 && (
+           <>
+           <Tabs value={catalogValue} onChange={handleCatalogChange} aria-label="catalog tabs">
+             <Tab label="Store" />
+             <Tab label="Your Cart" />
+           </Tabs>
+           
+           {/* Tab Panels */}
+           {catalogValue === 0 && (
+             <Driver_Catalog />
+           )}
+           {catalogValue === 1 && (
+              <Driver_Cart />   
+           )}
+         </>
+           
+        )}
+        </Container>
+        
     </>
   );
 }

@@ -1,4 +1,5 @@
 // search iTunes API
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default async function handler(req, res) {
   try {
