@@ -1,7 +1,6 @@
 // pages/sponsors.js
 import React, { useState } from 'react';
 import Head from 'next/head';
-import ResponsiveAppBar from '../Components/appbar';
 import ProtectedLayout from '@/Components/ProtectedLayout';
 import {
   Container,
@@ -106,7 +105,6 @@ export default function Sponsors() {
         <title>Sponsors</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <ProtectedLayout>
       <Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }}>
         <Tabs
           value={value}
@@ -123,7 +121,7 @@ export default function Sponsors() {
         {value === 0 && (
           <div>
             <Typography variant="h3" gutterBottom style={{ marginTop: '16px' }}>
-              Dashboard
+              Sponsor Dashboard
             </Typography>
             <Typography variant="h4" gutterBottom>
               Sponsored Drivers
@@ -238,7 +236,6 @@ export default function Sponsors() {
 
          
       </Container>
-      </ProtectedLayout>
     </>
   );
 }

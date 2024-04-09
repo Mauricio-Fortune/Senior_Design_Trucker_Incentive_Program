@@ -4,7 +4,6 @@ import { config } from 'dotenv';
 config(); // This loads the .env variables
 
 export default async function handler(req, res) {
-
     // Database connection configuration
     const dbConfig = {
         host: process.env.DB_HOST,
@@ -14,27 +13,27 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
-    console.log(dbConfig);
-
-    const {user_ID,is_cart} = req.body;
-    // table shoudl be auto increment for the orderID
-
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const sql_query = (`INSERT INTO Orders (user_ID, is_cart) VALUES (?,?) `);
+        // Assuming req.body is an object with user_ID and order_ID properties
+        const { user_ID, order_ID } = req.body;
 
-        const [results] = await connection.execute(sql_query, [user_ID,is_cart]);
+        // Corrected query
+        const [result] = await connection.query('UPDATE Orders SET is_cart = FALSE WHERE order_ID = ? AND user_ID = ?', [order_ID, user_ID]);
 
         // Close the database connection
         await connection.end();
 
-        if (results.affectedRows > 0) {
-           res.status(200).json({ order_ID: results.insertId });
+        if (result.affectedRows > 0) {
+            // Rows were updated
+            res.status(200).json("Updated");
         } else {
-            res.status(404).json({ message: "Order could not be added" });
+            // No rows were updated
+            res.status(404).json("No matching records found to update.");
         }
+
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

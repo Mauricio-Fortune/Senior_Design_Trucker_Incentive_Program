@@ -1,3 +1,5 @@
+// USED FOR TESTING
+
 import mysql from 'mysql2/promise';
 import { config } from 'dotenv';
 
@@ -16,25 +18,28 @@ export default async function handler(req, res) {
 
     console.log(dbConfig);
 
-    const {user_ID,is_cart} = req.body;
-    // table shoudl be auto increment for the orderID
-
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const sql_query = (`INSERT INTO Orders (user_ID, is_cart) VALUES (?,?) `);
+        // get application
+        const {order_ID, item_ID} = req.body;
 
-        const [results] = await connection.execute(sql_query, [user_ID,is_cart]);
+        
+        
+        // make query
+        const query = 'DELETE FROM Order_Item WHERE order_ID = ? AND item_ID = ?';
+        
+        // send query
+        const [rows] = await connection.query(query,[order_ID, item_ID]);
+
+      
 
         // Close the database connection
         await connection.end();
 
-        if (results.affectedRows > 0) {
-           res.status(200).json({ order_ID: results.insertId });
-        } else {
-            res.status(404).json({ message: "Order could not be added" });
-        }
+        // Send the data as JSON response
+        res.status(200).json(rows);
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

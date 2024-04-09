@@ -1,4 +1,5 @@
-import React, { useState } from 'react'; // Correctly import useState
+import React, { useState,useEffect } from 'react';
+import { fetchUserAttributes } from '@aws-amplify/auth';
 
 
 
@@ -9,9 +10,65 @@ export default function Catalog_add() {
   const [searchTerm, setSearchTerm] = useState('');
   const [mediaType, setMediaType] = useState('all');
   const [limitType, setLimitType] = useState('');
+  const [user, setUser] = useState();
+  const [orgID,setOrgID] = useState();
   const [selectedItems, setSelectedItems] = useState([]);
 
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  useEffect(() => {
+    async function currentAuthenticatedUser() {
+      try {
+        const user = await fetchUserAttributes(); // Assuming this correctly fetches the user
+        setUser(user); // Once the user is set, it triggers the useEffect for getDriverPoints
+        console.log(user);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    currentAuthenticatedUser();
+  }, []);
+
+
+  
+  useEffect(() => {
+    const getOrgID = async () => { // fetches all itemIDs in database
+      try {
+        const requestOptions = {
+          method: "GET",
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+        console.log("USER " + user.sub);
+        const response = await fetch(`/api/driver/get_current_sponsor?user_ID=${user.sub}`, requestOptions);
+  
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        const result = await response.json();
+        
+        setOrgID(result.org_ID);
+        //console.log("result.org_ID = " + result.org_ID);
+        //console.log("orgID = " + orgID);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+        setOrgID([]);
+      }
+    };
+    if (user) {
+      (async () => {
+        const orgID = await getOrgID();
+        if (orgID != null) {
+          setOrgID(orgID);
+        }
+      })();
+      
+    }
+  }, [user]); 
+
+
+
 
   // Update state with the user's input
   const handleInputChange = (event) => {
@@ -53,7 +110,7 @@ export default function Catalog_add() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          orgID : 1,
+          orgID : orgID,
           itemID : getID(item)
         })
       };
@@ -121,18 +178,15 @@ const headerStyle = {
   fontWeight: 'bold',
   margin: '20px 0' 
 };
-
 const listItemStyle = {
   listStyleType: 'none',
   textAlign: 'center',
   fontSize: '18px',
   margin: '10px 0'
 };
-
 const spacerStyle = {
   height: '50px',
 };
-
 const searchBarStyle = {
     marginRight: '10px',
     fontSize: '20px',

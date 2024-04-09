@@ -2,6 +2,7 @@ import {React} from 'react';
 import { Authenticator, useAuthenticator, useTheme, View, Heading, Text, Button, Image } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import { withAuthenticator } from '@aws-amplify/ui-react';
+import Layout from './Layout';
   
 const components = {
     Header() {
@@ -251,9 +252,11 @@ const components = {
 
 const ProtectedLayout = ({ children, level }) => {
       return (
+        <Layout>
         <Authenticator components={components} formFields={formFields}>
           {children}
         </Authenticator>
+        </Layout>
       );
 };
 
