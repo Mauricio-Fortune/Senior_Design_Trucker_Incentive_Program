@@ -1,13 +1,11 @@
 import {React} from 'react';
 import { Authenticator, useAuthenticator, useTheme, View, Heading, Text, Button, Image } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
-import { Email } from '@mui/icons-material';
-
+import { withAuthenticator } from '@aws-amplify/ui-react';
   
 const components = {
     Header() {
       const { tokens } = useTheme();
-  
       return (
         <View textAlign="center" padding={tokens.space.large}>
           <Image
@@ -177,7 +175,7 @@ const components = {
     signIn: {
       username: {
         placeholder: 'Enter your email',
-        label: 'Email'
+        label: 'Email',
       },
     },
     signUp: {
@@ -250,11 +248,10 @@ const components = {
     },
   };
 
-  
 
-const ProtectedLayout = ({ children }) => {
+const ProtectedLayout = ({ children, level }) => {
       return (
-        <Authenticator formFields={formFields} components={components}>
+        <Authenticator components={components} formFields={formFields}>
           {children}
         </Authenticator>
       );
