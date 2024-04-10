@@ -183,15 +183,19 @@ export default function Catalog_Manage() {
   useEffect(() => {
     const getItemData = async (itemID) => { // gets item data from iTunes
       try {
-        const response = await fetch(`https://itunes.apple.com/lookup?id=${itemID}`);
-        if (!response.ok) throw new Error('Failed to fetch item data');
-        const data = await response.json();
-        return data.results[0]; 
+        
+        const response = await fetch(`/api/catalog/get_lookup?item_ID=${itemID}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch item data: ${response.statusText}`);
+        }
+        const data = await response.json(); // Parse the JSON from the response
+        return data;
       } catch (error) {
         console.error('Failed to fetch item data:', error);
         return null;
       }
     };
+
 
 
     const fetchItemDetails = async () => {
