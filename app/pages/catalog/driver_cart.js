@@ -55,6 +55,8 @@ export default function Catalog_Manage() {
         .then((response) => response.text())
         .then((result) => console.log(result))
         .catch((error) => console.error(error));
+
+        alert("Items have been ordered!");
       
     }
   };
@@ -251,17 +253,20 @@ export default function Catalog_Manage() {
 };
   
 const getItemData = async (itemID) => { // gets item data from iTunes
-      try {
-        const response = await fetch(`https://itunes.apple.com/lookup?id=${itemID}`);
-        if (!response.ok) throw new Error('Failed to fetch item data');
-        const data = await response.json();
-        const p = await addCartPoints(data.results[0]);
-        return data.results[0]; 
-      } catch (error) {
-        console.error('Failed to fetch item data:', error);
-        return null;
-      }
-    };
+  try {
+    
+    const response = await fetch(`/api/catalog/get_lookup?item_ID=${itemID}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch item data: ${response.statusText}`);
+    }
+    const data = await response.json(); // Parse the JSON from the response
+    const point = await addCartPoints(data);
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch item data:', error);
+    return null;
+  }
+};
 
 const getCartID = async () => {
     try {
@@ -288,96 +293,6 @@ const getCartID = async () => {
     }
 };
 
-  const order_item = async (itemID,cart) => {
-    const item = detailedItemData[itemID];
-
-    if(cart == true){
-      try{
-
-        const cart_ID = await getCartID();
-        console.log("Cart_ID = " + cart_ID);
-        if(cart_ID == -1){
-          createNewOrder(cart);
-        }
-        const requestOptions = {
-            method: "POST",
-            headers: {
-            'Content-Type': 'application/json'
-          },
-            body: JSON.stringify({ 
-            order_ID : cart_ID,
-            item_ID : getID(item),
-            item_Quantity: quantityType,
-            item_Name: getName(item)
-          })
-        };
-        const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
-        if (!response.ok) {
-          throw new Error('Failed to add items to database');
-        }
-    
-        // Response from the server after adding items to the database
-        const result = await response.json();
- 
-      alert('Selected items have been added to the database successfully.');
-      }catch (error) {
-        console.error('Error adding items to database:', error);
-      }
-     
-      
-    }
-    else{
-    try {
-      createNewOrder(cart);
-      const requestOptions = {
-          method: "POST",
-          headers: {
-          'Content-Type': 'application/json'
-        },
-          body: JSON.stringify({ 
-          order_ID : order_ID,
-          item_ID : getID(item),
-          item_Quantity: quantityType,
-          item_Name: getName(item)
-        })
-      };
-
-      const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
-      
-      const points = (-Math.round(getPoints(item))* 10 * quantityType);
-      console.log(points);
-  
-      const pointOptions = {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          user_ID : user.sub,
-          point_change_value : points,
-          reason: "order", 
-          org_ID: orgID,
-          timestamp: "04/02/2024"
-        })
-      };
-        const pointchange = await fetch('/api/sponsor/edit_points', pointOptions);
-  
-        if (!response.ok) {
-          throw new Error('Failed to add items to database');
-        }
-    
-        // Response from the server after adding items to the database
-        const result = await response.json();
- 
-      alert('Selected items have been added to the database successfully.');
-  
-    } catch (error) {
-      console.error('Error adding items to database:', error);
-    }
-    }
-  
-
-};
 
          //pull item Name from specific type
   const getName = (item) => {

@@ -14,7 +14,7 @@ export default function Catalog_add() {
   const [orgID,setOrgID] = useState();
   const [selectedItems, setSelectedItems] = useState([]);
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 
   useEffect(() => {
     async function currentAuthenticatedUser() {
