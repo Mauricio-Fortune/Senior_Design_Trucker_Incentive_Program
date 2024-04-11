@@ -188,7 +188,7 @@ const components = {
         label: 'Password:',
         placeholder: 'Enter your Password:',
         isRequired: false,
-        order: 5,
+        // order: 5,
       },
       username: {
         label: 'Email',
@@ -198,15 +198,15 @@ const components = {
       },
       confirm_password: {
         label: 'Confirm Password:',
-        order: 6,
+        // order: 6,
       },
-      'custom:user_type': {
-        label: 'Account Type',
-        placeholder: 'Enter Account Type',
-        order: 3
-      },
+      // 'custom:user_type': {
+      //   label: 'Account Type',
+      //   placeholder: 'Enter Account Type',
+      //   order: 3
+      // },
       birthdate: {
-        order: 4
+        // order: 4
       }
     },
     forceNewPassword: {
@@ -252,11 +252,11 @@ const components = {
 
 const ProtectedLayout = ({ children, level }) => {
       return (
-        <Layout>
         <Authenticator components={components} formFields={formFields}>
+          <Layout>
           {children}
+          </Layout>
         </Authenticator>
-        </Layout>
       );
 };
 

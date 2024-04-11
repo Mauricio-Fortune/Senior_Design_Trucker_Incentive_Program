@@ -5,7 +5,6 @@ import DriversPage from './drivers'; // Assuming the file name is drivers.js
 import SponsorsPage from './sponsors'; // Assuming the file name is sponsors.js
 import AdminsPage from './admins'; // Assuming the file name is admins.js
 import AdminDriverPage from './adminDriver';
-import Layout from '../components/Layout';
 import ProtectedLayout from '@/Components/ProtectedLayout';
 
 function Dashboard() {
