@@ -14,7 +14,7 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
-    console.log(dbConfig);
+
 
     const { password_change_id, timestamp, user_ID, change_type } = req.body;
 

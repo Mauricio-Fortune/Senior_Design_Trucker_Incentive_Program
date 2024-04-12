@@ -14,7 +14,7 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
-    console.log(dbConfig);
+   
 
     const {user_ID,is_cart} = req.body;
     // table shoudl be auto increment for the orderID
