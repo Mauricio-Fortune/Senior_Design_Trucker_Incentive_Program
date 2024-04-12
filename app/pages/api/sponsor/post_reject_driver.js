@@ -20,14 +20,17 @@ export default async function handler(req, res) {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const { user_ID, org_ID, reason, timestamp } = req.body;
+        const { user_ID, org_ID, driver_app_id} = req.body;
+        console.log(user_ID);
+        console.log(org_ID);
+        console.log(driver_app_id);
 
         const query = 'UPDATE User_Org SET app_Status = ? WHERE user_ID = ? AND org_ID = ?'
         const response = await connection.query(query,["REJECTED", user_ID, org_ID]);
 
-        //ADD AUDIT LOG
-        const query2 = 'INSERT INTO Driver_app_audit (org_ID, user_ID, reason, timestamp, status) VALUES (?,?,?,?,?)';
-        const response2 = await connection.query(query2,[org_ID, user_ID, reason, timestamp, "REJECTED"]);
+        //UPDATE AUDIT LOG
+        const query2 = 'UPDATE Driver_App_Audit  SET app_status = ? WHERE driver_app_id = ?';
+        const response2 = await connection.query(query2,["REJECTED",driver_app_id]);
 
         // Close the database connection
         await connection.end();
