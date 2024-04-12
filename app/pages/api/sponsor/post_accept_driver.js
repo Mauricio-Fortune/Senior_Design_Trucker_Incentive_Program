@@ -14,16 +14,14 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
-    console.log(dbConfig);
+    
 
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
         const { user_ID, org_ID, driver_app_id } = req.body;
-        console.log(user_ID);
-        console.log(org_ID);
-        console.log(driver_app_id);
+
 
         const query = 'UPDATE User_Org SET app_Status = ? WHERE user_ID = ? AND org_ID = ?'
         const response = await connection.query(query,["ACCEPTED", user_ID, org_ID]);

@@ -14,13 +14,10 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
-    console.log(dbConfig);
+  
 
     const {order_ID,item_ID,item_Quantity,item_Name} = req.body;
-    console.log(order_ID);
-    console.log(item_ID);
-    console.log(item_Quantity);
-    console.log(item_Name);
+  
     try     {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);

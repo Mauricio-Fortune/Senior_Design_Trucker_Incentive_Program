@@ -15,7 +15,6 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
-    console.log(dbConfig);
 
     try {
         // Create a connection to the database
