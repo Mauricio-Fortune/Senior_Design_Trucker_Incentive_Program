@@ -101,12 +101,10 @@ function Dashboard() {
       {userType === "SPONSOR" && <SponsorsPage isSpoofing={false}/>}
       {userType === "ADMIN" && (
         <>
-          <DriversPage isSpoofing={true} driverSpoofID={'70cfd9c1-cab7-4957-80e7-d76ad7c0cc55'} />
-          <div style={{ marginBottom: '20px' }}></div>
-          <SponsorsPage isSpoofing={true} sponsorSpoofID={'12a24b29-1a15-4c33-ab87-45fe4fdd0abe'} />
-          <div style={{ marginBottom: '20px' }}></div>
           <AdminsPage />
-          <div style={{ marginBottom: '20px' }}></div>
+          <div style={{ marginBottom: '40px' }}></div>
+          {/* <SponsorsPage isSpoofing={true} sponsorSpoofID={'12a24b29-1a15-4c33-ab87-45fe4fdd0abe'} />
+          <div style={{ marginBottom: '40px' }}></div> */}
         </>
       )}
     </ProtectedLayout>

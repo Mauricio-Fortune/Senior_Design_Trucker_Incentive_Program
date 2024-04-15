@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { Container, Typography, Card, CardContent, Button, TextField, Box, CircularProgress, MenuItem, Snackbar } from '@mui/material';
+import AdminPanel from './admin_panel';
 
 function Admin() {
   const [sponsorOrgs, setSponsorOrgs] = useState([]);  
@@ -137,15 +138,13 @@ function Admin() {
   return (
     <React.Fragment>
       <Head>
-        <title>Admin Dashboard</title>
+        <h1>Admin Dashboard</h1>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Container>
         <Typography variant="h3" gutterBottom>
           Admin Dashboard
         </Typography>
-
-        <Box mt={3} />
 
         <Typography variant="h4" gutterBottom>
           Select Organization
@@ -241,6 +240,7 @@ function Admin() {
             {error}
           </Typography>
         )}
+        <AdminPanel />
       </Container>
     </React.Fragment>
   );
