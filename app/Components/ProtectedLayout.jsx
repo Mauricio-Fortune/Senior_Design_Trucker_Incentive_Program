@@ -1,7 +1,6 @@
 import {React} from 'react';
 import { Authenticator, useAuthenticator, useTheme, View, Heading, Text, Button, Image } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
-import { withAuthenticator } from '@aws-amplify/ui-react';
 import Layout from './Layout';
   
 const components = {
@@ -188,7 +187,7 @@ const components = {
         label: 'Password:',
         placeholder: 'Enter your Password:',
         isRequired: false,
-        // order: 5,
+        order: 5,
       },
       username: {
         label: 'Email',
@@ -198,15 +197,15 @@ const components = {
       },
       confirm_password: {
         label: 'Confirm Password:',
-        // order: 6,
+        order: 6,
       },
-      // 'custom:user_type': {
-      //   label: 'Account Type',
-      //   placeholder: 'Enter Account Type',
-      //   order: 3
-      // },
+      'custom:user_type': {
+        label: 'Account Type',
+        placeholder: 'Enter Account Type',
+        order: 3
+      },
       birthdate: {
-        // order: 4
+        order: 4
       }
     },
     forceNewPassword: {

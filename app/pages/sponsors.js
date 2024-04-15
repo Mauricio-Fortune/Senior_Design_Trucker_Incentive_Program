@@ -18,7 +18,7 @@ import AddItemCatalog from "./catalog/org_catalog_add"
 import ManageCatalog from "./catalog/org_catalog_manager"
 import { fetchUserAttributes } from '@aws-amplify/auth';
 
-export default function Sponsors() {
+export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
   const [value, setValue] = useState(0);
   const [catalogValue, setCatalogValue] = useState(0);
   const [newDriverName, setNewDriverName] = useState('');
@@ -338,25 +338,25 @@ export default function Sponsors() {
           </div>
         )}
 
-    {value === 2 && (
-      <>
-        <Tabs value={catalogValue} onChange={handleCatalogChange} aria-label="catalog tabs">
-          <Tab label="Add Items" />
-          <Tab label="Manage Items" />
-        </Tabs>
-        
-        {/* Tab Panels */}
-        {catalogValue === 0 && (
-          <AddItemCatalog />
+        {value === 2 && (
+          <>
+            <Tabs value={catalogValue} onChange={handleCatalogChange} aria-label="catalog tabs">
+              <Tab label="Add Items" />
+              <Tab label="Manage Items" />
+            </Tabs>
+
+            {/* Tab Panels */}
+            {catalogValue === 0 && (
+              <AddItemCatalog isSpoof={isSpoofing} spoofId={sponsorSpoofID} />
+            )}
+            {catalogValue === 1 && (
+              <ManageCatalog isSpoof={isSpoofing} spoofId={sponsorSpoofID} />
+            )}
+          </>
         )}
-        {catalogValue === 1 && (
-           <ManageCatalog />   
-        )}
-      </>
-    )}
 
 
-         
+
       </Container>
     </>
   );

@@ -17,7 +17,6 @@ import {
 } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { useRouter } from 'next/router';
-import Store from './store';
 import Driver_Catalog from './catalog/driver_catalog';
 import Driver_Cart from './catalog/driver_cart';
 
@@ -36,7 +35,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-export default function Drivers() {
+export default function Drivers({isSpoofing, sponsorSpoofID = ''}) {
   const [value, setValue] = useState(0);
   const [selectedCompany, setSelectedCompany] = useState('');
   const classes = useStyles();
@@ -197,11 +196,11 @@ export default function Drivers() {
            
            {/* Tab Panels */}
            {catalogValue === 0 && (
-             <Driver_Catalog />
+             <Driver_Catalog isSpoof={isSpoofing} spoofId={sponsorSpoofID} />
            )}
            {catalogValue === 1 && (
-              <Driver_Cart />   
-           )}
+              <Driver_Cart isSpoof={isSpoofing} spoofId={sponsorSpoofID} />   
+           )} 
          </>
            
         )}

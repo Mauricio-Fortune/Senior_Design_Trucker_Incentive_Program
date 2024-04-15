@@ -1,10 +1,8 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
 import { fetchUserAttributes } from '@aws-amplify/auth';
 
-export default function Catalog_Manage() {
+export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
   const [entries, setEntries] = useState([]);
   const [quantityType, setQuantityType] = useState(1);
   const [detailedItemData, setDetailedItemData] = useState({});
@@ -310,6 +308,69 @@ const getCartID = async () => {
           
         }
   };
+<<<<<<< HEAD
+=======
+
+  const handleLimitTypeChange = (event) => {
+    setQuantityType(Number(event.target.value)); // Convert to number if it's ensured to be numeric
+  };
+
+
+  useEffect(() => {
+    async function currentAuthenticatedUser() {
+      if (isSpoof) {
+        setUser({
+          sub: spoofId
+        })
+        console.log("spoof id: ", spoofId);
+      }
+      else {
+      try {
+        const user = await fetchUserAttributes(); // Assuming this correctly fetches the user
+        setUser(user); // Once the user is set, it triggers the useEffect for getDriverPoints
+        console.log(user);
+      } catch (err) {
+        console.log(err);
+      }
+      }
+    }
+    currentAuthenticatedUser();
+  }, []);
+  
+  useEffect(() => {
+    // This now depends on the user state. Once the user is fetched and set, this runs.
+    if (user) {
+      (async () => {
+        const driverPoints = await getDriverPoints();
+        if (driverPoints != null) {
+          setDriverPoints(driverPoints);
+        }
+      })();
+    }
+  }, [user]); // Depend on user state
+  
+  useEffect(() => {
+    const fetchItemDetails = async () => {
+      
+      const detailsPromises = entries.map(entry => getItemData(entry.item_ID)); 
+      const detailsResults = await Promise.all(detailsPromises);
+  
+      const detailsObject = detailsResults.reduce((acc, detail, index) => {
+        if (detail) { 
+          const itemID = entries[index].item_ID;
+          acc[itemID] = detail;
+        }
+        return acc;
+      }, {});
+  
+      setDetailedItemData(detailsObject);
+    };
+  
+    if (entries.length > 0) {
+      fetchItemDetails();
+    }
+  }, [entries]); // Depends on `entries`
+>>>>>>> origin
   
 
 

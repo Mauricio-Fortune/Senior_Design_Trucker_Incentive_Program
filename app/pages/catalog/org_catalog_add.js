@@ -2,10 +2,7 @@ import React, { useState,useEffect } from 'react';
 import { fetchUserAttributes } from '@aws-amplify/auth';
 
 
-
-
-
-export default function Catalog_add() {
+export default function Catalog_add({isSpoof = false, spoofId = null}) {
   const [entries, setEntries] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [mediaType, setMediaType] = useState('all');
@@ -18,6 +15,13 @@ export default function Catalog_add() {
 
   useEffect(() => {
     async function currentAuthenticatedUser() {
+      if (isSpoof) {
+        setUser({
+          sub: spoofId
+        })
+        console.log("spoof id: ", spoofId);
+      }
+      else {
       try {
         const user = await fetchUserAttributes(); // Assuming this correctly fetches the user
         setUser(user); // Once the user is set, it triggers the useEffect for getDriverPoints
@@ -25,6 +29,7 @@ export default function Catalog_add() {
       } catch (err) {
         console.log(err);
       }
+    }
     }
     currentAuthenticatedUser();
   }, []);
@@ -115,7 +120,7 @@ export default function Catalog_add() {
         })
       };
   
-      const response = await fetch(`${baseUrl}/api/catalog/post_add_item`, requestOptions);
+      const response = await fetch(`/api/catalog/post_add_item`, requestOptions);
   
       if (!response.ok) {
         throw new Error('Failed to add items to database');
@@ -150,7 +155,7 @@ export default function Catalog_add() {
         })
       };
 
-      const response = await fetch(`${baseUrl}/api/catalog/get_search`, requestOptions);
+      const response = await fetch(`/api/catalog/get_search`, requestOptions);
 
       if (!response.ok) {
         throw new Error('Failed to fetch data');
