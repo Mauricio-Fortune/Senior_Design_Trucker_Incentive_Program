@@ -13,9 +13,9 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
   const [cart_ID, setCart] = useState(-1);
   const [cartPoints, setCartPoints] = useState(0);
 
-  const handleLimitTypeChange = (event) => {
-    setQuantityType(Number(event.target.value)); // Convert to number if it's ensured to be numeric
-  };
+  // const handleLimitTypeChange = (event) => {
+  //   setQuantityType(Number(event.target.value)); // Convert to number if it's ensured to be numeric
+  // };
 
  
    
@@ -308,8 +308,6 @@ const getCartID = async () => {
           
         }
   };
-<<<<<<< HEAD
-=======
 
   const handleLimitTypeChange = (event) => {
     setQuantityType(Number(event.target.value)); // Convert to number if it's ensured to be numeric
@@ -370,7 +368,6 @@ const getCartID = async () => {
       fetchItemDetails();
     }
   }, [entries]); // Depends on `entries`
->>>>>>> origin
   
 
 
