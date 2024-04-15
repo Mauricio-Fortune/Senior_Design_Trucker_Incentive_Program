@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 import { fetchUserAttributes } from '@aws-amplify/auth';
 
 
-export default function Catalog_Manage() {
+export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
   const [entries, setEntries] = useState([]);
   const [quantityType, setQuantityType] = useState(1);
   const [detailedItemData, setDetailedItemData] = useState({});
@@ -130,12 +130,20 @@ export default function Catalog_Manage() {
 
   useEffect(() => {
     async function currentAuthenticatedUser() {
+      if (isSpoof) {
+        setUser({
+          sub: spoofId
+        })
+        console.log("spoof id: ", spoofId);
+      }
+      else {
       try {
         const user = await fetchUserAttributes(); // Assuming this correctly fetches the user
         setUser(user); // Once the user is set, it triggers the useEffect for getDriverPoints
         console.log(user);
       } catch (err) {
         console.log(err);
+      }
       }
     }
     currentAuthenticatedUser();
