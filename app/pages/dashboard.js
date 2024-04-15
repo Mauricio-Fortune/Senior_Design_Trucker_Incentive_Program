@@ -24,6 +24,7 @@ function Dashboard() {
       }
       catch (err) {
         console.log(err)
+        setIsLoading(false);
       }
     }
     cognitoCreditials();
