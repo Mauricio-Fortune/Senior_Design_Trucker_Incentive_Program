@@ -1,8 +1,9 @@
 // pages/account.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-import ResponsiveAppBar from '../Components/appbar';
 import ProtectedLayout from '@/Components/ProtectedLayout';
+import { updatePassword } from 'aws-amplify/auth';
+import { fetchUserAttributes } from '@aws-amplify/auth';
 
 import {
   Container,
@@ -20,6 +21,20 @@ export default function Account() {
   const [newPassword, setNewPassword] = useState('');
   const [profilePicture, setProfilePicture] = useState('');
   const [name, setName] = useState('Mock User');
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    async function currentAuthenticatedUser() {
+      try {
+        const user = await fetchUserAttributes(); // Adjusted to get the user object directly
+        setUser(user);
+        console.log(user);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    currentAuthenticatedUser();
+  }, []); // Empty dependency array means this runs once on component mount
 
   const handleUsernameChange = () => {
     // Implement logic to change the username
@@ -27,8 +42,42 @@ export default function Account() {
   };
 
   const handlePasswordChange = () => {
-    // Implement logic to change the password
-    console.log('Changing password');
+    async function handleUpdatePassword(oldPassword, newPassword) {
+      try {
+        await updatePassword({ oldPassword, newPassword });
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    async function passwordAudit() { // fetches all itemIDs in database
+      try {
+        const requestOptions = {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user_ID: user.sub,
+            change_type: 'Update Password'
+          })
+      };
+      const response = await fetch(`/api/user/password_changes`, requestOptions);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+      const result = await response.json();
+
+    } catch (error) {
+      console.error('Failed to update password:', error);
+    }
+  }
+
+    handleUpdatePassword(password,newPassword);
+    console.log('Password Change triggered');
+
+    passwordAudit();
+    console.log('Change documented');
   };
 
   const handleProfilePictureChange = () => {
