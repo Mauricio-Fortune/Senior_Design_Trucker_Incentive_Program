@@ -10,6 +10,7 @@ function Admin() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedOrg, setSelectedOrg] = useState('');
+  const [selectedUser, setSelectedUser] = useState('');
   const [selectedOrgBool, setSelectOrgBool] = useState(false);
   const [newSponsorName, setNewSponsorName] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -27,8 +28,7 @@ function Admin() {
     if(sponsorOrgs.length > 0){
       fetchSponsorsInSameOrg();
     }
-
-  setIsLoading(false);
+    setIsLoading(false);
   }, [selectedOrg]);
 
   useEffect(() => {
@@ -36,9 +36,17 @@ function Admin() {
     if(sponsorOrgs.length > 0){
       fetchDriversInSameOrg();
     }
-
-  setIsLoading(false);
+    setIsLoading(false);
   }, [selectedOrg]);
+
+  useEffect(() => {
+    setIsLoading(true);
+    if(sponsorOrgs.length > 0){
+      handleRemoveUser();
+    }
+    setIsLoading(false);
+  }, [selectedUser]);
+
 
   const fetchSponsorOrgs = async () => {
     try {
@@ -115,23 +123,51 @@ function Admin() {
     }
   };
 
-  const handleRemoveSponsor = async (sponsorId) => {
+  // const handleRemoveSponsor = async (sponsorId) => {
+  //   try {
+  //     const response = await fetch('/api/admin/delete_org', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({ org_ID: sponsorId }),
+  //     });
+  //     if (!response.ok) {
+  //       throw new Error('Failed to remove sponsor');
+  //     }
+  //     setSponsors(sponsors.filter((sponsor) => sponsor.id !== sponsorId));
+  //     setSuccessMessage('Sponsor removed successfully');
+  //   } catch (error) {
+  //     console.error('Error removing sponsor:', error);
+  //     setError('Failed to remove sponsor');
+  //   }
+  // };
+
+  const handleRemoveUser = async (userID) => {
     try {
-      const response = await fetch('/api/admin/delete_org', {
-        method: 'POST',
+      const requestOptions = {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ org_ID: sponsorId }),
-      });
+        body: JSON.stringify({
+          user_ID: userID
+        })
+      };
+      console.log("User Deleted" + userID);
+      const response = await fetch(`/api/user/delete_user`, requestOptions);
+      
       if (!response.ok) {
         throw new Error('Failed to remove sponsor');
       }
-      setSponsors(sponsors.filter((sponsor) => sponsor.id !== sponsorId));
-      setSuccessMessage('Sponsor removed successfully');
+      const updatedSponsorUsers = sponsorUsers.filter(user => user.user_ID !== userID);
+      const updatedDriverUsers = driverUsers.filter(user => user.user_ID !== userID);
+      setSponsorUsers(updatedSponsorUsers);
+      setDriverUsers(updatedDriverUsers);
+      setSuccessMessage('User removed successfully');
     } catch (error) {
       console.error('Error removing sponsor:', error);
-      setError('Failed to remove sponsor');
+      setError('Failed to remove user');
     }
   };
 
@@ -177,7 +213,7 @@ function Admin() {
           <Card key={user.user_ID} style={{ marginBottom: '16px' }}>
             <CardContent>
               <Typography variant="h6">ID: {user.user_Type}</Typography>
-              <Typography variant="subtitle1">Name: {user.first_Name}</Typography>
+              <Typography variant="body1">Name: {user.first_Name}</Typography>
               <Button
                 variant="contained"
                 color="secondary"
@@ -197,7 +233,9 @@ function Admin() {
           <Card key={user.user_ID} style={{ marginBottom: '16px' }}>
             <CardContent>
               <Typography variant="h6">ID: {user.user_Type}</Typography>
-              <Typography variant="subtitle1">Name: {user.first_Name}</Typography>
+              <Typography variant="body1">Name: {user.first_Name}</Typography>
+              <Typography variant="body1">Points: {user.total_points}</Typography>
+              <Typography variant="body1">Status: {user.app_Status}</Typography>
               <Button
                 variant="contained"
                 color="secondary"
