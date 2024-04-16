@@ -14,17 +14,19 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
-    console.log(dbConfig);
 
-    const { login_attempts_id, timestamp, username, status } = req.body;
+
+    const { user_ID, status } = req.body;
 
     try {
+        const currentTimestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const query = ('INSERT INTO Login_Attempts_Audit (login_attempts_id, timestamp, username, status) VALUES (?,?,?,?); ');
+        const query = ('INSERT INTO Login_Attempts_Audit (timestamp, user_ID, status) VALUES (?,?,?); ');
 
-        const response = await connection.query(query, [login_attempts_id, timestamp, username, status]);
+        const response = await connection.query(query, [currentTimestamp, user_ID, status]);
 
         await connection.end();
 

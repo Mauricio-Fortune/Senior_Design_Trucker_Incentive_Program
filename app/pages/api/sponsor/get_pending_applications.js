@@ -25,23 +25,23 @@ export default async function viewAllApplications(req, res) {
         // Prepare the SELECT query
         const query = `
             SELECT 
-                User_Org.user_ID, 
-                User_Org.org_ID, 
+                Driver_App_Audit.driver_app_id, 
+                Driver_App_Audit.user_ID, 
+                Driver_App_Audit.timestamp, 
+                Driver_App_Audit.reason,
                 User.first_Name, 
-                User.last_Name, 
-                User.email, 
-                User_Org.app_Status 
+                User.email
             FROM 
-                User_Org 
+                Driver_App_Audit 
             JOIN 
-                User ON User_Org.user_ID = User.user_ID 
+                User ON Driver_App_Audit.user_ID = User.user_ID 
             WHERE 
-                User_Org.org_ID = ? AND 
-                User_Org.app_Status = 'PENDING'
-        `;
+                Driver_App_Audit.org_ID = ? AND 
+                Driver_App_Audit.app_Status = 'PENDING';
+            `;
 
         // Execute the query
-        const [applications] = await connection.query(query, [org_ID]);
+        const [applications] = await connection.query(query, [org_ID,"PENDING"]);
 
         // Send the data as JSON response
         res.status(200).json(applications);

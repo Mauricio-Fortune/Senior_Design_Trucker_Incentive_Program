@@ -23,20 +23,19 @@ export default async function handler(req, res) {
         const { user_ID, org_ID, driver_app_id} = req.body;
         console.log(user_ID);
         console.log(org_ID);
-        console.log(driver_app_id);
 
         const query = 'UPDATE User_Org SET app_Status = ? WHERE user_ID = ? AND org_ID = ?'
         const response = await connection.query(query,["REJECTED", user_ID, org_ID]);
 
         //UPDATE AUDIT LOG
-        const query2 = 'UPDATE Driver_App_Audit  SET app_status = ? WHERE driver_app_id = ?';
-        const response2 = await connection.query(query2,["REJECTED",driver_app_id]);
+        const query2 = 'UPDATE Driver_App_Audit  SET app_status = ? WHERE user_ID = ? AND org_ID = ?';
+        const response2 = await connection.query(query2,["REJECTED",user_ID, org_ID]);
 
         // Close the database connection
         await connection.end();
 
         // Send the data as JSON response
-        res.status(200).json({message: "Successfully rejected driver"});
+        res.status(200).json({message: "Successfully removed driver"});
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

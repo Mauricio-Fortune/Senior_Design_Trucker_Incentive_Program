@@ -4,6 +4,9 @@ import { useRouter } from 'next/router';
 import DriversPage from './drivers'; // Assuming the file name is drivers.js
 import SponsorsPage from './sponsors'; // Assuming the file name is sponsors.js
 import AdminsPage from './admins'; // Assuming the file name is admins.js
+import AdminDriverPage from './adminDriver';
+import SponsorDriverPage from './sponsorDriver';
+import Layout from '../components/Layout';
 import ProtectedLayout from '@/Components/ProtectedLayout';
 import { fetchUserAttributes } from '@aws-amplify/auth';
 
@@ -24,6 +27,7 @@ function Dashboard() {
       }
       catch (err) {
         console.log(err)
+        setIsLoading(false);
       }
     }
     cognitoCreditials();
@@ -97,16 +101,20 @@ function Dashboard() {
   return (
     <ProtectedLayout>
       {/* Render appropriate component based on userType */}
-      {userType === "DRIVER" && <DriversPage isSpoofing={false}/>}
-      {userType === "SPONSOR" && <SponsorsPage isSpoofing={false}/>}
-      {userType === "ADMIN" && (
+      {userType === "driver" && <DriversPage />}
+      {userType === "sponsor" && ( 
         <>
-          <DriversPage isSpoofing={true} driverSpoofID={'70cfd9c1-cab7-4957-80e7-d76ad7c0cc55'} />
-          <div style={{ marginBottom: '20px' }}></div>
-          <SponsorsPage isSpoofing={true} sponsorSpoofID={'12a24b29-1a15-4c33-ab87-45fe4fdd0abe'} />
-          <div style={{ marginBottom: '20px' }}></div>
+            <SponsorDriverPage />
+            <div style={{ marginBottom: '20px' }}></div>
+            <SponsorsPage />
+        </>
+      )}
+      {userType === "admin" && (
+        <>
           <AdminsPage />
-          <div style={{ marginBottom: '20px' }}></div>
+          <div style={{ marginBottom: '40px' }}></div>
+          {/* <SponsorsPage isSpoofing={true} sponsorSpoofID={'12a24b29-1a15-4c33-ab87-45fe4fdd0abe'} />
+          <div style={{ marginBottom: '40px' }}></div> */}
         </>
       )}
     </ProtectedLayout>

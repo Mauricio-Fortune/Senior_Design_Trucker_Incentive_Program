@@ -14,29 +14,26 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
-    
-
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const { user_ID, org_ID, driver_app_id} = req.body;
-        console.log(user_ID);
-        console.log(org_ID);
-        console.log(driver_app_id);
+        const orgIDsString = req.query.org_IDs;
 
-        const query = 'UPDATE User_Org SET app_Status = ? WHERE user_ID = ? AND org_ID = ?'
-        const response = await connection.query(query,["REJECTED", user_ID, org_ID]);
+        // Parse the string of organization IDs
+        const orgIDs = orgIDsString.split(',');
 
-        //UPDATE AUDIT LOG
-        const query2 = 'UPDATE Driver_App_Audit  SET app_status = ? WHERE driver_app_id = ?';
-        const response2 = await connection.query(query2,["REJECTED",driver_app_id]);
+        // Generate placeholders for the orgIDs in the SQL query
+        const placeholders = orgIDs.map(() => '?').join(',');
+
+        // Query organization names for the provided orgIDs
+        const [rows] = await connection.query(`SELECT org_Name FROM Org WHERE org_ID IN (${placeholders})`, orgIDs);
 
         // Close the database connection
         await connection.end();
 
         // Send the data as JSON response
-        res.status(200).json({message: "Successfully rejected driver"});
+        res.status(200).json({ org_Names: rows.map(row => row.org_Name) }); // Extract organization names from the rows
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

@@ -14,29 +14,23 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
-    
+    console.log(dbConfig);
 
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const { user_ID, org_ID, driver_app_id} = req.body;
-        console.log(user_ID);
-        console.log(org_ID);
-        console.log(driver_app_id);
+        const org_name = req.query.org_name;
+        const user_type = req.query.user_type; 
 
-        const query = 'UPDATE User_Org SET app_Status = ? WHERE user_ID = ? AND org_ID = ?'
-        const response = await connection.query(query,["REJECTED", user_ID, org_ID]);
+        const [rows] = await connection.query('SELECT u.user_ID, u.user_Type, u.first_Name, u.last_Name FROM User u JOIN User_Org uo ON u.user_ID = uo.user_ID JOIN Org o ON uo.org_ID = o.org_ID WHERE o.org_Name = ? AND u.user_Type = ?', [org_name, user_type]);
 
-        //UPDATE AUDIT LOG
-        const query2 = 'UPDATE Driver_App_Audit  SET app_status = ? WHERE driver_app_id = ?';
-        const response2 = await connection.query(query2,["REJECTED",driver_app_id]);
 
         // Close the database connection
         await connection.end();
 
         // Send the data as JSON response
-        res.status(200).json({message: "Successfully rejected driver"});
+        res.status(200).json(rows);
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });
