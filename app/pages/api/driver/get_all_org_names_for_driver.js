@@ -18,16 +18,18 @@ export default async function handler(req, res) {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const orgIDsString = req.query.org_IDs;
+        const org_IDs = req.query.org_IDs;
+        console.log(org_IDs);
 
         // Parse the string of organization IDs
-        const orgIDs = orgIDsString.split(',');
 
         // Generate placeholders for the orgIDs in the SQL query
-        const placeholders = orgIDs.map(() => '?').join(',');
+        const placeholders = org_IDs.map(() => '?').join(',');
+        console.log(placeholders);
+        
 
         // Query organization names for the provided orgIDs
-        const [rows] = await connection.query(`SELECT org_Name FROM Org WHERE org_ID IN (${placeholders})`, orgIDs);
+        const [rows] = await connection.query(`SELECT org_Name FROM Org WHERE org_ID IN (${placeholders})`, org_IDs);
 
         // Close the database connection
         await connection.end();

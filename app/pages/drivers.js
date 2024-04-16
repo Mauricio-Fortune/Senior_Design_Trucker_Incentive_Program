@@ -37,9 +37,7 @@ const useStyles = makeStyles(() => ({
 
 export default function Drivers() {
   const [user, setUser] = useState();
-  const [orgIDs, setOrgIDs] = useState([]);
-  const [orgNames, setOrgNames] = useState([]);
-  const [org_Not_Names, setOrgNotNames] = useState([]);
+  const [org_Name, setOrgName] = useState([]);
   const [value, setValue] = useState(0);
   const [selectedCompany, setSelectedCompany] = useState('');
   const classes = useStyles();
@@ -63,7 +61,7 @@ export default function Drivers() {
     router.push('/application');
   };
 
-  const getOrgIDs = async () => {
+  const getOrgNames = async () => {
     try {
         const requestOptions = {
             method: "GET",
@@ -76,48 +74,9 @@ export default function Drivers() {
             throw new Error('Failed to fetch organization IDs');
         }
         const result = await response.json();
-        setOrgIDs(result.org_IDs); // Assuming result.org_IDs contains the IDs
+        setOrgName(result.org_Name); // Assuming result.org_IDs contains the IDs
     } catch (error) {
         console.error('Failed to fetch organization IDs:', error);
-    }
-};
-
-const getOrgNames = async () => {
-    try {
-        if (orgIDs.length === 0) return; // Skip if orgIDs are not available yet
-        const requestOptions = {
-            method: "GET",
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        };
-        const response = await fetch(`/api/driver/get_all_org_names_for_driver?org_IDs=${JSON.stringify(orgIDs)}`, requestOptions);
-        if (!response.ok) {
-            throw new Error('Failed to fetch organization names');
-        }
-        const result = await response.json();
-        setOrgNames(result.org_Names);
-    } catch (error) {
-        console.error('Failed to fetch organization names:', error);
-    }
-};
-
-const getOrgNamesNotMember = async () => {
-    try {
-        const requestOptions = {
-            method: "GET",
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        };
-        const response = await fetch(`/api/driver/get_org_names_not_member?org_IDs=${JSON.stringify(orgIDs)}`, requestOptions);
-        if (!response.ok) {
-            throw new Error('Failed to fetch organization names');
-        }
-        const result = await response.json();
-        setOrgNotNames(result.org_Names);
-    } catch (error) {
-        console.error('Failed to fetch organization names:', error);
     }
 };
 
@@ -126,7 +85,6 @@ useEffect(() => {
         try {
             const user = await fetchUserAttributes(); // Assuming this correctly fetches the user
             setUser(user);
-            getOrgIDs(); // Fetch organization IDs when the user is set
         } catch (err) {
             console.log(err);
         }
@@ -135,16 +93,8 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
-  getOrgIDs(); // Fetch organization names when orgIDs are available
+    getOrgNames(); // Fetch organization names when user is available
 }, [user]);
-
-useEffect(() => {
-    getOrgNames(); // Fetch organization names when orgIDs are available
-}, [orgIDs]);
-
-useEffect(() => {
-    getOrgNamesNotMember();
-}, [orgIDs]);
 
   return (
     <>
@@ -180,8 +130,8 @@ useEffect(() => {
                 displayEmpty
               >
                 <MenuItem value="" disabled>Select Company</MenuItem>
-                {orgNames.map((orgName, index) => (
-                  <MenuItem key={index} value={orgName}>{orgName}</MenuItem>
+                {org_Name.map((org_Name, index) => (
+                  <MenuItem key={index} value={org_Name}>{org_Name}</MenuItem>
                 ))}
               </Select>
             </FormControl>
