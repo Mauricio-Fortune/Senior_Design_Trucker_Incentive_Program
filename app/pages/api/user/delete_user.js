@@ -17,14 +17,17 @@ export default async function handler(req, res) {
     };
 
 
+    const {user_ID} = req.body;
 
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const userID = req.query.userID;
+        const sql_query = (`UPDATE User SET is_active = false WHERE user_ID = ?`);
 
-        const [result] = await connection.query('UPDATE User SET is_active = false WHERE userID = ?', [userID]);
+        //const userID = req.query.userID;
+
+        const [result] = await connection.execute(sql_query, [user_ID]);
 
         // Close the database connection
         await connection.end();
