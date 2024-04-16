@@ -6,8 +6,7 @@ import ProtectedLayout from '@/Components/ProtectedLayout';
 export default function Application() {
   const [company, setCompany] = useState('');
   const [user, setUser] = useState();
-  const [orgIDs, setOrgIDs] = useState([]);
-  const [org_Not_Names, setOrgNotNames] = useState([]);
+  const [org_Name, setOrgNotNames] = useState([]);
   const [formData, setFormData] = useState({
     company: '',
     name: '',
@@ -17,7 +16,7 @@ export default function Application() {
   });
   const [submitted, setSubmitted] = useState(false);
 
-  const getOrgIDs = async () => {
+  const getOrgNotNames = async () => {
     try {
       const requestOptions = {
         method: "GET",
@@ -25,33 +24,14 @@ export default function Application() {
           'Content-Type': 'application/json'
         }
       };
-      const response = await fetch(`/api/driver/get_all_orgIDs_for_driver?user_ID=${user.sub}`, requestOptions);
+      const response = await fetch(`/api/driver/get_org_names_not_member?user_ID=${user.sub}`, requestOptions);
       if (!response.ok) {
         throw new Error('Failed to fetch organization IDs');
       }
       const result = await response.json();
-      setOrgIDs(result.org_IDs);
+      setOrgNotNames(result.org_Name);
     } catch (error) {
       console.error('Failed to fetch organization IDs:', error);
-    }
-  };
-
-  const getOrgNamesNotMember = async () => {
-    try {
-      const requestOptions = {
-        method: "GET",
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      };
-      const response = await fetch(`/api/driver/get_org_names_not_member?org_IDs=${JSON.stringify(orgIDs)}`, requestOptions);
-      if (!response.ok) {
-        throw new Error('Failed to fetch organization names');
-      }
-      const result = await response.json();
-      setOrgNotNames(result.org_Names);
-    } catch (error) {
-      console.error('Failed to fetch organization names:', error);
     }
   };
 
@@ -69,12 +49,8 @@ export default function Application() {
   }, []);
 
   useEffect(() => {
-    getOrgIDs();
+    getOrgNotNames();
   }, [user]);
-
-  useEffect(() => {
-    getOrgNamesNotMember();
-  }, [orgIDs]);
 
   const handleCompanyChange = (event) => {
     setCompany(event.target.value);
@@ -138,8 +114,8 @@ export default function Application() {
                   label="Select Company"
                 >
                   <MenuItem value="" disabled>Select Company</MenuItem>
-                  {org_Not_Names.map((orgName, index) => (
-                    <MenuItem key={index} value={orgName}>{orgName}</MenuItem>
+                  {org_Name.map((org_Name, index) => (
+                    <MenuItem key={index} value={org_Name}>{org_Name}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
