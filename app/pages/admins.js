@@ -138,7 +138,7 @@ function Admin() {
   return (
     <React.Fragment>
       <Head>
-        <h1>Admin Dashboard</h1>
+        <title>Admin Dashboard</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Container>
