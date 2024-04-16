@@ -4,9 +4,6 @@ import { useRouter } from 'next/router';
 import DriversPage from './drivers'; // Assuming the file name is drivers.js
 import SponsorsPage from './sponsors'; // Assuming the file name is sponsors.js
 import AdminsPage from './admins'; // Assuming the file name is admins.js
-import AdminDriverPage from './adminDriver';
-import SponsorDriverPage from './sponsorDriver';
-import Layout from '../components/Layout';
 import ProtectedLayout from '@/Components/ProtectedLayout';
 import { fetchUserAttributes } from '@aws-amplify/auth';
 
@@ -101,15 +98,15 @@ function Dashboard() {
   return (
     <ProtectedLayout>
       {/* Render appropriate component based on userType */}
-      {userType === "driver" && <DriversPage />}
-      {userType === "sponsor" && ( 
+      {userType === "DRIVER" && <DriversPage />}
+      {userType === "SPONSOR" && ( 
         <>
             <SponsorDriverPage />
             <div style={{ marginBottom: '20px' }}></div>
             <SponsorsPage />
         </>
       )}
-      {userType === "admin" && (
+      {userType === "ADMIN" && (
         <>
           <AdminsPage />
           <div style={{ marginBottom: '40px' }}></div>

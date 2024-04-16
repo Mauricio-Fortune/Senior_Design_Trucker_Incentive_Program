@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { fetchUserAttributes } from '@aws-amplify/auth';
-import ResponsiveAppBar from '../Components/appbar';
 import Application from './application';
+import Driver_Catalog from './catalog/driver_catalog';
+import Driver_Cart from './catalog/driver_cart';
 import {
   Container,
   Typography,
