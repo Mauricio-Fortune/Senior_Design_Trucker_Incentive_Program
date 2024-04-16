@@ -101,7 +101,6 @@ function Dashboard() {
       {userType === "DRIVER" && <DriversPage />}
       {userType === "SPONSOR" && ( 
         <>
-            <SponsorDriverPage />
             <div style={{ marginBottom: '20px' }}></div>
             <SponsorsPage />
         </>
