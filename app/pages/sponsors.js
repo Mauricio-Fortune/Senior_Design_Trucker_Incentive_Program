@@ -12,6 +12,10 @@ import {
   Box,
   Button,
   TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
 } from '@mui/material';
 
 import AddItemCatalog from "./catalog/org_catalog_add"
@@ -25,9 +29,12 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
   const [newDriverPoints, setNewDriverPoints] = useState('');
   const [user, setUser] = useState();
   const [orgID,setOrgID] = useState(0);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [pointsChange, setPointsChange] = useState(0);
+  const [currentDriverId, setCurrentDriverId] = useState(null);
   const [applications, setApplications] = useState([
     {
-      id: 1,
+      id: 0,
       userID: '',
       name: '',
       email: '',
@@ -35,6 +42,16 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
       timestamp: ''
     }
   ]);
+
+  const [userInfo, setUserInfo] = useState([
+    {
+      userID: '',
+      userName: '',
+      userEmail: '',
+      points: 0
+    }
+  ])
+  
 
 
   useEffect(() => {
@@ -75,7 +92,41 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
 
     };
 
+    const fetchDriverData = async () => {
+      try {
+        const requestOptions = {
+          method: "GET",
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+
+        const response = await fetch(`/api/sponsor/get_driver_info?org_ID=${orgID}`, requestOptions);
+  
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        
+        const result = await response.json();
+
+        const updatedUsers = result.map(app => ({
+          userID: app.user_ID,
+          userName: app.first_Name,
+          userEmail: app.email,
+          points: app.total_points
+          
+        }));
+  
+        setUserInfo(updatedUsers);
+      
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      }
+
+    };
+
     fetchAppData()
+    fetchDriverData()
   }, [orgID]);
 
   useEffect(() => {
@@ -123,7 +174,6 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
         }
       })();
     }
-
   
   }, [user]); // Depend on user state
   
@@ -151,14 +201,57 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
     setValue(newValue);
   };
 
+
+
   const handleManagePoints = (driverId) => {
-    // Implement logic to manage points for the selected driver
-    console.log(`Managing points for driver with ID: ${driverId}`);
-  };
+    setCurrentDriverId(driverId);
+    setPointsChange(0);  
+    setDialogOpen(true);
+};
+
+const handleCloseDialog = () => {
+    setDialogOpen(false);
+};
+
+const handleSubmit = () => {
+    console.log(`Submitting points change: ${pointsChange} for driver ID: ${currentDriverId}`);
+    const pointOptions = {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            user_ID : currentDriverId,
+            point_change_value : pointsChange,
+            reason: "Cause I said so", 
+            org_ID: orgID,
+            timestamp: "timestamp"
+          })
+        };
+          fetch('/api/sponsor/edit_points', pointOptions);
+
+    // Here, add your logic to update the points backend or state
+    handleCloseDialog();
+};
 
   const handleRemoveDriver = (driverId) => {
     // Implement logic to remove the selected driver
-    setMockDriverData((prevData) => prevData.filter((driver) => driver.id !== driverId));
+    const requestOptions = {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        user_ID : driverId,
+        org_ID : orgID
+      })
+    };
+   
+    fetch('api/sponsor/post_remove_driver', requestOptions)
+      .then((response) => response.text())
+      .then((result) => console.log(result))
+      .catch((error) => console.error(error));
+
     console.log(`Removing driver with ID: ${driverId}`);
   };
 
@@ -196,7 +289,6 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
       .then((result) => console.log(result))
       .catch((error) => console.error(error));
 
-   // const acceptedDriver = applications.find((app) => app.id === applicationId);
     
    // window.location.reload();
   };
@@ -248,15 +340,16 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
             <Typography variant="h4" gutterBottom>
               Sponsored Drivers
             </Typography>
-            {mockDriverData.map((driver) => (
-              <Card key={driver.id} style={{ marginBottom: '16px' }}>
+            {userInfo.map((driver) => (
+              <Card key={driver.userID} style={{ marginBottom: '16px' }}>
                 <CardContent>
-                  <Typography variant="h6">{driver.name}</Typography>
+                  <Typography variant="h5">{driver.userName}</Typography>
+                  <Typography variant="body1">{driver.userEmail}</Typography>
                   <Typography variant="body1">Points: {driver.points}</Typography>
                   <Button
                     variant="contained"
                     color="primary"
-                    onClick={() => handleManagePoints(driver.id)}
+                    onClick={() => handleManagePoints(driver.userID)}
                     style={{ marginRight: '8px' }}
                   >
                     Manage Points
@@ -264,13 +357,34 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
                   <Button
                     variant="contained"
                     color="secondary"
-                    onClick={() => handleRemoveDriver(driver.id)}
+                    onClick={() => handleRemoveDriver(driver.userID)}
                   >
                     Remove Driver
                   </Button>
                 </CardContent>
               </Card>
             ))}
+
+                {/* Points Management Dialog */}
+                <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+                    <DialogTitle>Manage Points</DialogTitle>
+                    <DialogContent>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            id="points"
+                            label="Change Points"
+                            type="number"
+                            fullWidth
+                            value={pointsChange}
+                            onChange={(e) => setPointsChange(e.target.value)}
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseDialog}>Cancel</Button>
+                        <Button onClick={handleSubmit} color="primary">Submit</Button>
+                    </DialogActions>
+                </Dialog>
 
             {/* Form for adding new driver */}
             <Typography variant="h4" gutterBottom style={{ marginTop: '16px' }}>
@@ -286,7 +400,7 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
                 style={{ marginBottom: '8px' }}
               />
               <TextField
-                label="Points"
+                label="email"
                 variant="outlined"
                 fullWidth
                 value={newDriverPoints}
