@@ -213,7 +213,7 @@ function Admin() {
           <Card key={user.user_ID} style={{ marginBottom: '16px' }}>
             <CardContent>
               <Typography variant="h6">ID: {user.user_Type}</Typography>
-              <Typography variant="subtitle1">Name: {user.first_Name}</Typography>
+              <Typography variant="body1">Name: {user.first_Name}</Typography>
               <Button
                 variant="contained"
                 color="secondary"
@@ -233,7 +233,9 @@ function Admin() {
           <Card key={user.user_ID} style={{ marginBottom: '16px' }}>
             <CardContent>
               <Typography variant="h6">ID: {user.user_Type}</Typography>
-              <Typography variant="subtitle1">Name: {user.first_Name}</Typography>
+              <Typography variant="body1">Name: {user.first_Name}</Typography>
+              <Typography variant="body1">Points: {user.total_points}</Typography>
+              <Typography variant="body1">Status: {user.app_Status}</Typography>
               <Button
                 variant="contained"
                 color="secondary"

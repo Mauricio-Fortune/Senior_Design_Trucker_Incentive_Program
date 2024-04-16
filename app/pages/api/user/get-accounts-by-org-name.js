@@ -23,7 +23,32 @@ export default async function handler(req, res) {
         const org_name = req.query.org_name;
         const user_type = req.query.user_type; 
 
-        const [rows] = await connection.query('SELECT u.user_ID, u.user_Type, u.first_Name, u.last_Name FROM User u JOIN User_Org uo ON u.user_ID = uo.user_ID JOIN Org o ON uo.org_ID = o.org_ID WHERE o.org_Name = ? AND u.user_Type = ? AND u.is_active = 1', [org_name, user_type]);
+        const query = `
+            SELECT 
+                u.user_ID, 
+                u.first_Name, 
+                u.last_Name,
+                u.user_Type,
+                u.email,
+                uo.app_Status,
+                SUM(pca.point_change_value) AS total_points
+            FROM 
+                User u 
+            JOIN 
+                User_Org uo ON u.user_ID = uo.user_ID 
+            JOIN 
+                Org o ON uo.org_ID = o.org_ID
+            LEFT JOIN
+                Point_Changes_Audit pca ON u.user_ID = pca.user_ID
+            WHERE 
+                o.org_Name = ? AND 
+                u.user_Type = ? AND
+                u.is_active = 1
+            GROUP BY
+                u.user_ID, u.first_Name, u.last_Name, u.email, uo.app_Status
+            `;
+
+        const [rows] = await connection.query(query, [org_name, user_type]);
 
 
         // Close the database connection
