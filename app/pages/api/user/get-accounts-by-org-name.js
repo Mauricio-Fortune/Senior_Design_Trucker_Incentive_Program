@@ -23,7 +23,7 @@ export default async function handler(req, res) {
         const org_name = req.query.org_name;
         const user_type = req.query.user_type; 
 
-        const [rows] = await connection.query('SELECT u.user_ID, u.user_Type, u.first_Name, u.last_Name FROM User u JOIN User_Org uo ON u.user_ID = uo.user_ID JOIN Org o ON uo.org_ID = o.org_ID WHERE o.org_Name = ? AND u.user_Type = ?', [org_name, user_type]);
+        const [rows] = await connection.query('SELECT u.user_ID, u.user_Type, u.first_Name, u.last_Name FROM User u JOIN User_Org uo ON u.user_ID = uo.user_ID JOIN Org o ON uo.org_ID = o.org_ID WHERE o.org_Name = ? AND u.user_Type = ? AND u.is_active = 1', [org_name, user_type]);
 
 
         // Close the database connection
