@@ -20,25 +20,22 @@ export default async function handler(req, res) {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const { user_ID, org_ID, driver_app_id } = req.body;
+        const { user_ID, org_ID, driver_app_id} = req.body;
+        console.log(user_ID);
+        console.log(org_ID);
 
         const query = 'UPDATE User_Org SET app_Status = ? WHERE user_ID = ? AND org_ID = ?'
-        const response = await connection.query(query,["ACCEPTED", user_ID, org_ID]);
+        const response = await connection.query(query,["REJECTED", user_ID, org_ID]);
 
         //UPDATE AUDIT LOG
-        const query2 = 'UPDATE Driver_App_Audit  SET app_status = ? WHERE driver_app_id = ?';
-        const response2 = await connection.query(query2,["ACCEPTED",driver_app_id]);
-
-        // add 0 points so they are in the audit table 
-        const query3 = 'INSERT INTO Point_Changes_Audit (user_ID, point_change_value, reason, org_ID, timestamp) VALUES (?,?,?,?,?)';
-        const response3 = await connection.query(query3, [user_ID, 0, 'Accepted', org_ID, 'timestamp']);
-
+        const query2 = 'UPDATE Driver_App_Audit  SET app_status = ? WHERE user_ID = ? AND org_ID = ?';
+        const response2 = await connection.query(query2,["REJECTED",user_ID, org_ID]);
 
         // Close the database connection
         await connection.end();
 
         // Send the data as JSON response
-        res.status(200).json({message: "Successfully accepted driver"});
+        res.status(200).json({message: "Successfully removed driver"});
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });
