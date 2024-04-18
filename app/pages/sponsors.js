@@ -20,15 +20,25 @@ import {
 import AddItemCatalog from "./catalog/org_catalog_add"
 import ManageCatalog from "./catalog/org_catalog_manager"
 import { fetchUserAttributes } from '@aws-amplify/auth';
+import { signUp } from 'aws-amplify/auth';
+
 
 export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
   const [value, setValue] = useState(0);
   const [catalogValue, setCatalogValue] = useState(0);
-  const [newDriverName, setNewDriverName] = useState('');
-  const [newDriverPoints, setNewDriverPoints] = useState('');
   const [user, setUser] = useState();
   const [orgID,setOrgID] = useState(0);
-  const [dialogOpen, setDialogOpen] = useState(false);
+
+  // for adding a new driver dialog
+  const [appDialogOpen, setAppDialogOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [birthday, setBirthday] = useState('');
+  const [password, setPassword] = useState('');
+  const [newUser, setNewUser] = useState('');
+
+// for changin points dialog
+  const [pointDialogOpen, setPointDialogOpen] = useState(false);
   const [pointsChange, setPointsChange] = useState(0);
   const [currentDriverId, setCurrentDriverId] = useState(null);
   const [applications, setApplications] = useState([
@@ -177,39 +187,124 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
   }, [user]); // Depend on user state
   
 
-
+  useEffect(() => {
+    async function addNewUser(userId){
+      try{
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        
+        const raw = JSON.stringify({
+          "user_ID": userId,
+          "org_ID": orgID,
+          "email": email,
+          "name": name
+        });
+        
+        const requestOptions1 = {
+          method: "POST",
+          headers: myHeaders,
+          body: raw,
+          redirect: "follow"
+        };
+        
+        fetch("/api/sponsor/post_add_driver", requestOptions1)
+          .then((response) => response.text())
+          .then((result) => console.log(result))
+         .catch((error) => console.error(error));
+        
+        
+      }catch(error){
+        console.error('Error during sign up:', error);
+      }
+    }
+    addNewUser(newUser);
+  }, [newUser]); // Depend on user state
   
+
 
   const handleCatalogChange = (event, newValue) => {
     setCatalogValue(newValue);
   };
 
-  const [mockDriverData, setMockDriverData] = useState([
-    { id: 1, name: 'John Doe', points: 150 },
-    { id: 2, name: 'Jane Smith', points: 120 },
-    { id: 3, name: 'Bob Johnson', points: 90 },
-  ]);
-
-  const mockStoreItems = [
-    { id: 1, name: 'Product 1', price: 20 },
-    { id: 2, name: 'Product 2', price: 30 },
-    { id: 3, name: 'Product 3', price: 15 },
-  ];
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
 
+  const handleRemoveDriver = (driverId) => {
+    // Implement logic to remove the selected driver
+    const requestOptions = {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        user_ID : driverId,
+        org_ID : orgID
+      })
+    };
+   
+    fetch('api/sponsor/post_remove_driver', requestOptions)
+      .then((response) => response.text())
+      .then((result) => console.log(result))
+      .catch((error) => console.error(error));
 
-  const handleManagePoints = (driverId) => {
+    console.log(`Removing driver with ID: ${driverId}`);
+  };
+
+
+  const handleAcceptApplication = (application) => {
+    // Implement logic to accept the driver application
+    console.log(`Accepting ${application.name}'s application`);
+    // Add the accepted driver to the sponsored drivers
+    const requestOptions = {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        user_ID : application.userID,
+        org_ID : orgID
+      })
+    };
+   
+    fetch('api/sponsor/post_accept_driver', requestOptions)
+      .then((response) => response.text())
+      .then((result) => console.log(result))
+      .catch((error) => console.error(error));
+
+    
+  };
+
+  const handleDenyApplication = (application) => {
+    
+    const requestOptions = {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        user_ID : application.userID,
+        org_ID : orgID,
+        driver_app_id: application.id
+      })
+    };
+   
+    fetch('api/sponsor/post_reject_driver', requestOptions)
+      .then((response) => response.text())
+      .then((result) => console.log(result))
+      .catch((error) => console.error(error));
+  };
+
+const handleManagePoints = (driverId) => {
     setCurrentDriverId(driverId);
     setPointsChange(0);  
-    setDialogOpen(true);
+    setPointDialogOpen(true);
 };
 
 const handleCloseDialog = () => {
-    setDialogOpen(false);
+  setPointDialogOpen(false);
 };
 
 const handleSubmit = () => {
@@ -233,83 +328,53 @@ const handleSubmit = () => {
     handleCloseDialog();
 };
 
-  const handleRemoveDriver = (driverId) => {
-    // Implement logic to remove the selected driver
-    const requestOptions = {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ 
-        user_ID : driverId,
-        org_ID : orgID
-      })
-    };
-   
-    fetch('api/sponsor/post_remove_driver', requestOptions)
-      .then((response) => response.text())
-      .then((result) => console.log(result))
-      .catch((error) => console.error(error));
-
-    console.log(`Removing driver with ID: ${driverId}`);
-  };
 
   const handleAddDriver = () => {
-    // Implement logic to add a new driver
-    const newDriver = {
-      id: mockDriverData.length + 1,
-      name: newDriverName,
-      points: parseInt(newDriverPoints, 10) || 0,
-    };
-
-    setMockDriverData((prevData) => [...prevData, newDriver]);
-    setNewDriverName('');
-    setNewDriverPoints('');
+    setAppDialogOpen(true);
+   
+  };
+  const handleAppCloseDialog = () => {
+    setAppDialogOpen(false);
   };
 
-  const handleAcceptApplication = (application) => {
-    // Implement logic to accept the driver application
-    console.log(`Accepting ${application.name}'s application`);
-    // Add the accepted driver to the sponsored drivers
-    const requestOptions = {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ 
-        user_ID : application.userID,
-        org_ID : orgID,
-        driver_app_id: application.id
-      })
-    };
-   
-    fetch('api/sponsor/post_accept_driver', requestOptions)
-      .then((response) => response.text())
-      .then((result) => console.log(result))
-      .catch((error) => console.error(error));
+  const handleAppSubmit = () => {
+    const userType = 'driver';
+    console.log(email);
+    console.log(password);
+    console.log(name);
+    console.log(birthday);
+    console.log(userType);
 
-    
-   // window.location.reload();
-  };
 
-  const handleDenyApplication = (application) => {
-    
-    const requestOptions = {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ 
-        user_ID : application.userID,
-        org_ID : orgID,
-        driver_app_id: application.id
-      })
-    };
+    async function handleSignUp(email, password, name, birthdate, userType) {
+      try {
+        
+          const {isSignUpComplete, userId, nextStep } = await signUp({
+              'username': email,
+              'password': password,
+              options: {
+                userAttributes: {
+                  'email': email,
+                  'name': name,      
+                  'birthdate': birthdate,  
+                  'custom:user_type': userType,  
+              },
+              autoSignIn: false
+              }
+            
+          });
+
+          
+          console.log(userId);
+          setNewUser(userId);
    
-    fetch('api/sponsor/post_reject_driver', requestOptions)
-      .then((response) => response.text())
-      .then((result) => console.log(result))
-      .catch((error) => console.error(error));
+      } catch (error) {
+          console.error('Error during sign up:', error);
+      }
+  }
+    handleSignUp(email,password,name,birthday,userType);
+    
+    setAppDialogOpen(false);
   };
 
   return (
@@ -365,7 +430,7 @@ const handleSubmit = () => {
             ))}
 
                 {/* Points Management Dialog */}
-                <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+                <Dialog open={pointDialogOpen} onClose={handleCloseDialog}>
                     <DialogTitle>Manage Points</DialogTitle>
                     <DialogContent>
                         <TextField
@@ -387,25 +452,9 @@ const handleSubmit = () => {
 
             {/* Form for adding new driver */}
             <Typography variant="h4" gutterBottom style={{ marginTop: '16px' }}>
-              Add Sponsored Driver
+              Add New Sponsored Driver
             </Typography>
             <form>
-              <TextField
-                label="Driver Name"
-                variant="outlined"
-                fullWidth
-                value={newDriverName}
-                onChange={(e) => setNewDriverName(e.target.value)}
-                style={{ marginBottom: '8px' }}
-              />
-              <TextField
-                label="email"
-                variant="outlined"
-                fullWidth
-                value={newDriverPoints}
-                onChange={(e) => setNewDriverPoints(e.target.value)}
-                style={{ marginBottom: '16px' }}
-              />
               <Button
                 variant="contained"
                 color="primary"
@@ -416,6 +465,65 @@ const handleSubmit = () => {
             </form>
           </div>
         )}
+        {/* Points Management Dialog */}
+        <Dialog 
+        open={appDialogOpen} 
+        onClose={handleAppCloseDialog}
+        fullWidth={true}
+        style={{ 
+          padding: '8px 24px'
+         }}
+        >
+                    <DialogTitle>Add a New Driver</DialogTitle>
+                    <DialogContent>
+                    <DialogContent>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            id="Email"
+                            label="Email"
+                            fullWidth
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                    </DialogContent>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            id="Name"
+                            label="Name"
+                            fullWidth
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                        />
+                    </DialogContent>            
+                    <DialogContent>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            id="Birthday"
+                            label="Birthday (yyyy-mm-dd)"
+                            fullWidth
+                            value={birthday}
+                            onChange={(e) => setBirthday(e.target.value)}
+                        />
+                          <DialogContent>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            id="Password"
+                            label="Password"
+                            fullWidth
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </DialogContent>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleAppCloseDialog}>Cancel</Button>
+                        <Button onClick={handleAppSubmit} color="primary">Submit</Button>
+                    </DialogActions>
+                </Dialog>
 
         {value === 1 && (
           <div>
@@ -474,3 +582,51 @@ const handleSubmit = () => {
     </>
   );
 }
+
+
+/*
+const myHeaders = new Headers();
+myHeaders.append("Content-Type", "application/json");
+
+const raw = JSON.stringify({
+  "user_ID": userId,
+  "org_ID": orgID,
+  "reason": "created by sponsor",
+  "timestamp": "2024-04-12"
+});
+
+const requestOptions1 = {
+  method: "POST",
+  headers: myHeaders,
+  body: raw,
+  redirect: "follow"
+};
+
+fetch("/api/driver/post_send_app_to_sponsor", requestOptions)
+  .then((response) => response.text())
+  .then((result) => console.log(result))
+  .catch((error) => console.error(error));
+
+
+  const myHeaders = new Headers();
+myHeaders.append("Content-Type", "application/json");
+
+const raw = JSON.stringify({
+  "user_ID": userId,
+  "org_ID": orgID,
+  "driver_app_id": 2
+});
+
+const requestOptions = {
+  method: "POST",
+  headers: myHeaders,
+  body: raw,
+  redirect: "follow"
+};
+
+fetch("/api/sponsor/post_accept_driver", requestOptions)
+  .then((response) => response.text())
+  .then((result) => console.log(result))
+  .catch((error) => console.error(error));
+
+*/
