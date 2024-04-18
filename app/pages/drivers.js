@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { fetchUserAttributes } from '@aws-amplify/auth';
-import ResponsiveAppBar from '../Components/appbar';
 import Application from './application';
+import Driver_Catalog from './catalog/driver_catalog';
+import Driver_Cart from './catalog/driver_cart';
 import {
   Container,
   Typography,
@@ -37,7 +38,9 @@ const useStyles = makeStyles(() => ({
 
 export default function Drivers() {
   const [user, setUser] = useState();
-  const [org_Name, setOrgName] = useState([]);
+  const [org_ID, setOrgID] = useState();
+  const [org_Name, setOrgName] = useState();
+  const [org_Names, setOrgNames] = useState([]);
   const [value, setValue] = useState(0);
   const [selectedCompany, setSelectedCompany] = useState('');
   const classes = useStyles();
@@ -54,6 +57,7 @@ export default function Drivers() {
   // Function to handle company selection
   const handleCompanySelect = (event) => {
     setSelectedCompany(event.target.value);
+    setOrgName(event.target.value);
   };
 
   // Function to handle registration button click
@@ -61,40 +65,99 @@ export default function Drivers() {
     router.push('/application');
   };
 
-  const getOrgNames = async () => {
-    try {
-        const requestOptions = {
-            method: "GET",
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        };
-        const response = await fetch(`/api/driver/get_all_orgIDs_for_driver?user_ID=${user.sub}`, requestOptions);
-        if (!response.ok) {
-            throw new Error('Failed to fetch organization IDs');
-        }
-        const result = await response.json();
-        setOrgName(result.org_Name); // Assuming result.org_IDs contains the IDs
-    } catch (error) {
-        console.error('Failed to fetch organization IDs:', error);
-    }
-};
-
 useEffect(() => {
-    async function currentAuthenticatedUser() {
-        try {
-            const user = await fetchUserAttributes(); // Assuming this correctly fetches the user
-            setUser(user);
-        } catch (err) {
-            console.log(err);
-        }
+  async function currentAuthenticatedUser() {
+    try {
+      const user = await fetchUserAttributes();
+      setUser(user.sub);
+    } catch (err) {
+      console.log(err);
     }
-    currentAuthenticatedUser();
+  }
+  currentAuthenticatedUser();
 }, []);
 
 useEffect(() => {
+  if (user) {
     getOrgNames(); // Fetch organization names when user is available
+  }
 }, [user]);
+
+useEffect(() => {
+  getOrgID();
+}, [org_Name]);
+
+useEffect(() => {
+  setCurrentOrg();
+}, [org_ID]);
+
+const setCurrentOrg = async () => {
+  try {
+    if (!user) return;
+
+    const requestOptions = {
+      method: "PUT",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({}) // Include an empty object in the request body
+    };
+
+    // Make the API call to update the current organization
+    const response = await fetch(`/api/driver/set_current_org?org_ID=${org_ID}&user_ID=${user}`, requestOptions);
+    if (!response.ok) {
+      throw new Error('Failed to set current org');
+    }
+
+  } catch (error) {
+    console.error('Failed to update organization:', error);
+  }
+};
+
+const getOrgID = async () => {
+  try {
+    const requestOptions = {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+    if (!user) return;
+    const response = await fetch(`/api/driver/get_orgID_using_name?org_Name=${org_Name}`, requestOptions);
+    if (!response.ok) {
+      console.log(response.body);
+      throw new Error('Failed to fetch organization ID');
+    }
+    const result = await response.json();
+    console.log(result)
+    setOrgID(result); // Assuming result.org_IDs contains the IDs
+  } catch (error) {
+    console.error('Failed to fetch organization ID:', error);
+  }
+};
+
+const getOrgNames = async () => {
+  console.log(user);
+  try {
+    const requestOptions = {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+    if (!user) return; // Check if user is available
+    const response = await fetch(`/api/driver/get_all_orgIDs_for_driver?user_ID=${user}`, requestOptions);
+    if (!response.ok) {
+      console.log(response.body);
+      throw new Error('Failed to fetch organization names');
+    }
+    const result = await response.json();
+    console.log(result)
+    setOrgNames(result); // Assuming result.org_IDs contains the IDs
+  } catch (error) {
+    console.error('Failed to fetch organization names:', error);
+  }
+};
 
   return (
     <>
@@ -118,46 +181,34 @@ useEffect(() => {
       <Container>
         {/* Tab Content */}
         {value === 0 && (
-          <div>
-            {/* Dashboard */}
-            <Typography variant="h3" gutterBottom style={{ marginTop: '16px' }}>
-              Driver Dashboard
-            </Typography>
-            <FormControl style={{ marginBottom: '16px' }}>
-              <Select
-                value={selectedCompany}
-                onChange={handleCompanySelect}
-                displayEmpty
-              >
-                <MenuItem value="" disabled>Select Company</MenuItem>
-                {org_Name.map((org_Name, index) => (
-                  <MenuItem key={index} value={org_Name}>{org_Name}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            {selectedCompany && (
-              <Card className={classes.card}>
-                <CardContent>
-                  <Typography variant="h5" gutterBottom>
-                    {selectedCompany}
-                  </Typography>
-                  {driverData.map((driver) => {
-                    if (driver.name === selectedCompany) {
-                      return (
-                        <div key={driver.id}>
-                          <Typography>Points: {driver.points}</Typography>
-                          <Typography>Goal: {driver.goal}</Typography>
-                        </div>
-                      );
-                    }
-                    return null;
-                  })}
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
-
+  <div>
+    {/* Dashboard */}
+    <Typography variant="h3" gutterBottom style={{ marginTop: '16px' }}>
+      Driver Dashboard
+    </Typography>
+    <FormControl style={{ marginBottom: '16px' }}>
+    <Select
+  value={selectedCompany}
+  onChange={handleCompanySelect}
+  displayEmpty
+>
+  <MenuItem value="" disabled>Select Company</MenuItem>
+  {org_Names && org_Names.map((org, index) => (
+    <MenuItem key={index} value={org}>{org}</MenuItem>
+  ))}
+</Select>
+    </FormControl>
+    {selectedCompany && (
+      <Card className={classes.card}>
+        <CardContent>
+          <Typography variant="h5" gutterBottom>
+            {selectedCompany}
+          </Typography>
+        </CardContent>
+      </Card>
+    )}
+  </div>
+)}
       {value === 1 && (
         <Grid container spacing={3}>
           {/* Register */}

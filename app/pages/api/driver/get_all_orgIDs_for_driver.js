@@ -20,7 +20,7 @@ export default async function handler(req, res) {
         const user_ID = req.query.user_ID;
 
         // Query organization IDs for the provided user_ID
-        const [rows] = await connection.query('SELECT org_ID FROM User_Org WHERE user_ID = ?', [user_ID]);
+        const [rows] = await connection.query('SELECT org_ID FROM User_Org WHERE user_ID = ? AND app_Status = ?', [user_ID, 'ACCEPTED']);
 
         // Extract organization IDs from the rows
         const orgIDs = rows.map(row => row.org_ID);
