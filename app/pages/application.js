@@ -81,6 +81,12 @@ export default function Application() {
     getOrgID();
   }, [org_Name]);
 
+  /*useEffect(() => {
+    if(submitted) {
+      window.location.reload();
+    }
+  }, [submitted]);*/
+
   const handleCompanyChange = (event) => {
     setCompany(event.target.value);
     const { company, value } = event.target;
@@ -113,9 +119,8 @@ export default function Application() {
       if (!response.ok) {
         throw new Error('Failed to send app to sponsor');
       }
-      setSubmitted(true); // Mark the form as submitted
-      // Refresh the page
-      window.location.reload();
+
+      setSubmitted(response);
     } catch (error) {
       console.error('Failed to send app to sponsor:', error);
     }
