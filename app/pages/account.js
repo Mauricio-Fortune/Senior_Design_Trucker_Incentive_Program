@@ -12,7 +12,6 @@ import {
   Button,
   Card,
   CardContent,
-  Box,
 } from '@mui/material';
 
 export default function Account() {

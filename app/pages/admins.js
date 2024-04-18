@@ -13,7 +13,6 @@ function Admin() {
   const [selectedOrgBool, setSelectOrgBool] = useState(false);
   const [newSponsorName, setNewSponsorName] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [isDropdownClicked, setIsDropdownClicked] = useState(false);
   
 
   useEffect(() => {

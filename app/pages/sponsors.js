@@ -1,7 +1,6 @@
 // pages/sponsors.js
 import React, { useState, useEffect} from 'react';
 import Head from 'next/head';
-import ProtectedLayout from '@/Components/ProtectedLayout';
 import {
   Container,
   Typography,
