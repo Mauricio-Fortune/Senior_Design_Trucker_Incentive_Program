@@ -14,7 +14,6 @@ function Home() {
       try {
         const user = await fetchUserAttributes(); // Adjusted to get the user object directly
         setUser(user);
-        console.log(user);
       } catch (err) {
         console.log(err);
       }

@@ -4,6 +4,8 @@ import Head from 'next/head';
 import ProtectedLayout from '@/Components/ProtectedLayout';
 import { updatePassword } from 'aws-amplify/auth';
 import { fetchUserAttributes } from '@aws-amplify/auth';
+import { signOut } from 'aws-amplify/auth';
+import { updateUserAttribute } from 'aws-amplify/auth';
 
 import {
   Container,
@@ -15,30 +17,23 @@ import {
 } from '@mui/material';
 
 export default function Account() {
-  const [username, setUsername] = useState('mockuser');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [profilePicture, setProfilePicture] = useState('');
-  const [name, setName] = useState('Mock User');
+  const [bio, setBio] = useState('');
   const [user, setUser] = useState(null);
 
   useEffect(() => {
     async function currentAuthenticatedUser() {
       try {
-        const user = await fetchUserAttributes(); // Adjusted to get the user object directly
+        const user = await fetchUserAttributes();
         setUser(user);
-        console.log(user);
       } catch (err) {
         console.log(err);
       }
     }
     currentAuthenticatedUser();
   }, []); // Empty dependency array means this runs once on component mount
-
-  const handleUsernameChange = () => {
-    // Implement logic to change the username
-    console.log(`Changing username to: ${username}`);
-  };
 
   const handlePasswordChange = () => {
     async function handleUpdatePassword(oldPassword, newPassword) {
@@ -48,7 +43,7 @@ export default function Account() {
         console.log(err);
       }
     }
-    async function passwordAudit() { // fetches all itemIDs in database
+    async function passwordAudit() {
       try {
         const requestOptions = {
           method: "POST",
@@ -71,7 +66,6 @@ export default function Account() {
       console.error('Failed to update password:', error);
     }
   }
-
     handleUpdatePassword(password,newPassword);
     console.log('Password Change triggered');
 
@@ -79,19 +73,111 @@ export default function Account() {
     console.log('Change documented');
   };
 
-  const handleProfilePictureChange = () => {
-    // Implement logic to change the profile picture
-    console.log('Changing profile picture');
+  const handleNameChange = () => {
+    async function updateCognitoName(attributeKey, value) {
+      try {
+        const output = await updateUserAttribute({
+          userAttribute: {
+            attributeKey,
+            value
+          }
+        });
+        console.log('Name changed in Cognito');
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    async function updateRdsName() {
+      try {
+        const requestOptions = {
+          method: "PATCH",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user_ID: user.sub,
+            name: name
+          })
+      };
+      const response = await fetch(`/api/user/patch_update_name`, requestOptions);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+      const result = await response.json();
+
+      } catch (error) {
+        console.error('Failed to update bio:', error);
+      }
+    }
+    updateCognitoName('name', name);
+
+    updateRdsName();
+    console.log('Name changed in RDS');
   };
 
-  const handleNameChange = () => {
-    // Implement logic to change the name
-    console.log(`Changing name to: ${name}`);
+  const handleBioChange = () => {
+    async function bioChange() {
+      try {
+        const requestOptions = {
+          method: "PATCH",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user_ID: user.sub,
+            bio: bio
+          })
+      };
+      const response = await fetch(`/api/user/patch_update_bio`, requestOptions);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+      const result = await response.json();
+
+      } catch (error) {
+        console.error('Failed to update bio:', error);
+      }
+    }
+    bioChange();
+    console.log('Bio changed');
   };
+
+  async function handleLogout() {
+    try {
+      await signOut();
+    } catch (error) {
+      console.log('error signing out: ', error);
+    }
+  }
 
   const handleAccountDeletion = () => {
-    // Implement logic to delete the account
-    console.log('Deleting account');
+    async function deleteAccount() {
+      try {
+        const requestOptions = {
+          method: "PATCH",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user_ID: user.sub,
+          })
+      };
+      const response = await fetch(`api/user/patch_deactivate_user`, requestOptions);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+      const result = await response.json();
+
+      } catch (error) {
+        console.error('Failed to deactivate account:', error);
+      }
+    }
+    deleteAccount();
+    console.log('Account Deactivated');
+    handleLogout();
   };
 
   return (
@@ -109,18 +195,37 @@ export default function Account() {
         <Card style={{ marginBottom: '16px' }}>
           <CardContent>
             <Typography variant="h5" gutterBottom>
-              Change Username
+              Change Name
             </Typography>
             <TextField
               label="New Username"
               variant="outlined"
               fullWidth
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               style={{ marginBottom: '8px' }}
             />
-            <Button variant="contained" color="primary" onClick={handleUsernameChange}>
-              Change Username
+            <Button variant="contained" color="primary" onClick={handleNameChange}>
+              Change Name
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card style={{ marginBottom: '16px' }}>
+          <CardContent>
+            <Typography variant="h5" gutterBottom>
+              Change Bio
+            </Typography>
+            <TextField
+              label="New Bio"
+              variant="outlined"
+              fullWidth
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              style={{ marginBottom: '8px' }}
+            />
+            <Button variant="contained" color="primary" onClick={handleBioChange}>
+              Change Bio
             </Button>
           </CardContent>
         </Card>
@@ -154,41 +259,13 @@ export default function Account() {
           </CardContent>
         </Card>
 
-        {/* <Card style={{ marginBottom: '16px' }}>
-  <CardContent>
-    <Typography variant="h5" gutterBottom>
-      Change Profile Picture
-    </Typography>
-    <TextField
-      label="New Profile Picture URL"
-      variant="outlined"
-      fullWidth
-      value={profilePicture}
-      onChange={(e) => setProfilePicture(e.target.value)}
-      style={{ marginBottom: '8px' }}
-    />
-    <Button variant="contained" color="primary" onClick={handleProfilePictureChange}>
-      Change Profile Picture
-    </Button>
-  </CardContent>
-</Card> */}
-
-
         <Card style={{ marginBottom: '16px' }}>
           <CardContent>
             <Typography variant="h5" gutterBottom>
-              Change Name
+              Sign Out
             </Typography>
-            <TextField
-              label="New Name"
-              variant="outlined"
-              fullWidth
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              style={{ marginBottom: '8px' }}
-            />
-            <Button variant="contained" color="primary" onClick={handleNameChange}>
-              Change Name
+            <Button variant="contained" color="secondary" onClick={handleLogout}>
+              Sign Out
             </Button>
           </CardContent>
         </Card>
@@ -198,7 +275,7 @@ export default function Account() {
             <Typography variant="h5" gutterBottom>
               Delete Account
             </Typography>
-            <Button variant="contained" color="secondary" onClick={handleAccountDeletion}>
+            <Button variant="contained" color="error" onClick={handleAccountDeletion}>
               Delete Account
             </Button>
           </CardContent>
