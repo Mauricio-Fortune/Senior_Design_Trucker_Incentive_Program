@@ -339,7 +339,7 @@ const getCartID = async () => {
     // This now depends on the user state. Once the user is fetched and set, this runs.
     if (user) {
       (async () => {
-        const driverPoints = await getDriverPoints();
+        await getDriverPoints();
         if (driverPoints != null) {
           setDriverPoints(driverPoints);
         }
