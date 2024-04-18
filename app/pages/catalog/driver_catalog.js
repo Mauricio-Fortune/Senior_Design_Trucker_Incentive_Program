@@ -140,7 +140,6 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       try {
         const user = await fetchUserAttributes(); // Assuming this correctly fetches the user
         setUser(user); // Once the user is set, it triggers the useEffect for getDriverPoints
-        console.log(user);
       } catch (err) {
         console.log(err);
       }
