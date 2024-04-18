@@ -4,7 +4,6 @@ import Box from '@mui/material/Box';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import styles from '@/styles/Home.module.css';
-import ResponsiveAppBar from '../Components/appbar';
 import Layout from '@/Components/Layout';
 
 export default function About() {
