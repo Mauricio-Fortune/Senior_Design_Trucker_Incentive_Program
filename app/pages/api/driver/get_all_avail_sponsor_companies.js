@@ -22,7 +22,7 @@ export default async function handler(req, res) {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const [rows] = await connection.query('SELECT org_Name FROM Org');
+        const [rows] = await connection.query('SELECT org_Name, org_ID FROM Org');
 
         // Close the database connection
         await connection.end();

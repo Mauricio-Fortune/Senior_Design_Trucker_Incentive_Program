@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { Container, Typography, Card, CardContent, Button, TextField, Box, CircularProgress, MenuItem, Snackbar } from '@mui/material';
+import { 
+  Container, 
+  Typography, 
+  Card, 
+  CardContent, 
+  Button, 
+  TextField, 
+  Box, 
+  CircularProgress, 
+  MenuItem, 
+  Snackbar,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from '@mui/material';
 import AdminPanel from './admin_panel';
 
 function Admin() {
@@ -10,10 +25,18 @@ function Admin() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedOrg, setSelectedOrg] = useState('');
+
   const [selectedUser, setSelectedUser] = useState('');
+  const [currentDriverId, setCurrentDriverId] = useState(null);
+
   const [selectedOrgBool, setSelectOrgBool] = useState(false);
+  const [orgID,setOrgID] = useState(0);
+
   const [newSponsorName, setNewSponsorName] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [pointsChange, setPointsChange] = useState(0);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isDropdownClicked, setIsDropdownClicked] = useState(false);
   
 
   useEffect(() => {
@@ -122,25 +145,28 @@ function Admin() {
     }
   };
 
-  // const handleRemoveSponsor = async (sponsorId) => {
-  //   try {
-  //     const response = await fetch('/api/admin/delete_org', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify({ org_ID: sponsorId }),
-  //     });
-  //     if (!response.ok) {
-  //       throw new Error('Failed to remove sponsor');
-  //     }
-  //     setSponsors(sponsors.filter((sponsor) => sponsor.id !== sponsorId));
-  //     setSuccessMessage('Sponsor removed successfully');
-  //   } catch (error) {
-  //     console.error('Error removing sponsor:', error);
-  //     setError('Failed to remove sponsor');
-  //   }
-  // };
+  const handleSubmit = async () => {
+    console.log(`Submitting points change: ${pointsChange} for driver ID: ${currentDriverId}`);
+    
+    const pointOptions = {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            user_ID : currentDriverId,
+            point_change_value : pointsChange,
+            reason: "Cause I said so", 
+            org_ID: sponsorOrgs[selectedOrg].org_ID,
+            timestamp: "timestamp"
+          })
+        };
+
+      fetch('/api/sponsor/edit_points', pointOptions);
+
+    // Here, add your logic to update the points backend or state
+    handleCloseDialog();
+  };
 
   const handleRemoveUser = async (userID) => {
     try {
@@ -168,6 +194,16 @@ function Admin() {
       console.error('Error removing sponsor:', error);
       setError('Failed to remove user');
     }
+  };
+
+  const handleManagePoints = (driverId) => {
+    setCurrentDriverId(driverId);
+    setPointsChange(0);  
+    setDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
   };
 
   return (
@@ -237,15 +273,43 @@ function Admin() {
               <Typography variant="body1">Status: {user.app_Status}</Typography>
               <Button
                 variant="contained"
+                color="primary"
+                onClick={() => handleManagePoints(user.user_ID)}
+                style={{ marginRight: '8px' }}
+              >
+                Manage Points
+              </Button>
+              <Button
+                variant="contained"
                 color="secondary"
                 onClick={() => handleRemoveUser(user.user_ID)}
-                style={{ marginTop: '8px' }}
+                style={{ marginRight: '8px' }}
               >
-                Remove
+                Remove User
               </Button>
             </CardContent>
           </Card>
         ))}
+          {/* Points Management Dialog */}
+          <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+              <DialogTitle>Manage Points</DialogTitle>
+              <DialogContent>
+                  <TextField
+                      autoFocus
+                      margin="dense"
+                      id="points"
+                      label="Change Points"
+                      type="number"
+                      fullWidth
+                      value={pointsChange}
+                      onChange={(e) => setPointsChange(e.target.value)}
+                  />
+              </DialogContent>
+              <DialogActions>
+                  <Button onClick={handleCloseDialog}>Cancel</Button>
+                  <Button onClick={handleSubmit} color="primary">Submit</Button>
+              </DialogActions>
+            </Dialog>
 
         {/* Commented elements can be uncommented if you decide to use them */}
         {/* <TextField
