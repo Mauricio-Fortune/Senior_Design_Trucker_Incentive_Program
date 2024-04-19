@@ -35,7 +35,6 @@ function Home() {
               user_ID: user.sub,
               email: user.email,
               first_Name: user.name,
-              last_Name: "Last Name", //update with new cognito instance
               user_type: "DRIVER" //update with new cognito instance
             })
           }

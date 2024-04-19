@@ -22,6 +22,7 @@ export default function Account() {
   const [newPassword, setNewPassword] = useState('');
   const [bio, setBio] = useState('');
   const [user, setUser] = useState(null);
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
     async function currentAuthenticatedUser() {
@@ -34,6 +35,32 @@ export default function Account() {
     }
     currentAuthenticatedUser();
   }, []); // Empty dependency array means this runs once on component mount
+
+  useEffect(() => {
+    if (user == null) {
+      return;
+    }
+    async function getUserData() {
+      try {
+        const requestOptions = {
+          method: "GET",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+        };
+        const response = await fetch(`/api/user/get_user_from_rds?user_ID=${user.sub}`, requestOptions);
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        const result = await response.json();
+        setUserData(result[0]);
+      } catch (error) {
+        console.error('Failed to update password:', error);
+      }
+    }
+    getUserData();
+  }, [user]);
 
   const handlePasswordChange = () => {
     async function handleUpdatePassword(oldPassword, newPassword) {
@@ -54,19 +81,19 @@ export default function Account() {
             user_ID: user.sub,
             change_type: 'Update Password'
           })
-      };
-      const response = await fetch(`/api/user/password_changes`, requestOptions);
+        };
+        const response = await fetch(`/api/user/password_changes`, requestOptions);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch data');
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        const result = await response.json();
+
+      } catch (error) {
+        console.error('Failed to update password:', error);
       }
-      const result = await response.json();
-
-    } catch (error) {
-      console.error('Failed to update password:', error);
     }
-  }
-    handleUpdatePassword(password,newPassword);
+    handleUpdatePassword(password, newPassword);
     console.log('Password Change triggered');
 
     passwordAudit();
@@ -98,13 +125,13 @@ export default function Account() {
             user_ID: user.sub,
             name: name
           })
-      };
-      const response = await fetch(`/api/user/patch_update_name`, requestOptions);
+        };
+        const response = await fetch(`/api/user/patch_update_name`, requestOptions);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch data');
-      }
-      const result = await response.json();
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        const result = await response.json();
 
       } catch (error) {
         console.error('Failed to update bio:', error);
@@ -128,13 +155,13 @@ export default function Account() {
             user_ID: user.sub,
             bio: bio
           })
-      };
-      const response = await fetch(`/api/user/patch_update_bio`, requestOptions);
+        };
+        const response = await fetch(`/api/user/patch_update_bio`, requestOptions);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch data');
-      }
-      const result = await response.json();
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        const result = await response.json();
 
       } catch (error) {
         console.error('Failed to update bio:', error);
@@ -163,13 +190,13 @@ export default function Account() {
           body: JSON.stringify({
             user_ID: user.sub,
           })
-      };
-      const response = await fetch(`api/user/patch_deactivate_user`, requestOptions);
+        };
+        const response = await fetch(`api/user/patch_deactivate_user`, requestOptions);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch data');
-      }
-      const result = await response.json();
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        const result = await response.json();
 
       } catch (error) {
         console.error('Failed to deactivate account:', error);
@@ -187,100 +214,100 @@ export default function Account() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <ProtectedLayout>
-      <Container>
-        <Typography variant="h3" gutterBottom style={{ marginTop: '16px' }}>
-          Account Settings
-        </Typography>
+        <Container>
+          <Typography variant="h3" gutterBottom style={{ marginTop: '16px' }}>
+            Account Settings
+          </Typography>
 
-        <Card style={{ marginBottom: '16px' }}>
-          <CardContent>
-            <Typography variant="h5" gutterBottom>
-              Change Name
-            </Typography>
-            <TextField
-              label="New Username"
-              variant="outlined"
-              fullWidth
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              style={{ marginBottom: '8px' }}
-            />
-            <Button variant="contained" color="primary" onClick={handleNameChange}>
-              Change Name
-            </Button>
-          </CardContent>
-        </Card>
+          <Card style={{ marginBottom: '16px' }}>
+            <CardContent>
+              <Typography variant="h5" gutterBottom>
+                {userData ? "Name: "+userData.first_Name : "Loading..."}
+              </Typography>
+              <TextField
+                label="New Username"
+                variant="outlined"
+                fullWidth
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                style={{ marginBottom: '8px' }}
+              />
+              <Button variant="contained" color="primary" onClick={handleNameChange}>
+                Change Name
+              </Button>
+            </CardContent>
+          </Card>
 
-        <Card style={{ marginBottom: '16px' }}>
-          <CardContent>
-            <Typography variant="h5" gutterBottom>
-              Change Bio
-            </Typography>
-            <TextField
-              label="New Bio"
-              variant="outlined"
-              fullWidth
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              style={{ marginBottom: '8px' }}
-            />
-            <Button variant="contained" color="primary" onClick={handleBioChange}>
-              Change Bio
-            </Button>
-          </CardContent>
-        </Card>
+          <Card style={{ marginBottom: '16px' }}>
+            <CardContent>
+              <Typography variant="h5" gutterBottom>
+                {userData ? "Bio: "+userData.bio : "Loading..."}
+              </Typography>
+              <TextField
+                label="New Bio"
+                variant="outlined"
+                fullWidth
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                style={{ marginBottom: '8px' }}
+              />
+              <Button variant="contained" color="primary" onClick={handleBioChange}>
+                Change Bio
+              </Button>
+            </CardContent>
+          </Card>
 
-        <Card style={{ marginBottom: '16px' }}>
-          <CardContent>
-            <Typography variant="h5" gutterBottom>
-              Change Password
-            </Typography>
-            <TextField
-              label="Current Password"
-              variant="outlined"
-              fullWidth
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{ marginBottom: '8px' }}
-            />
-            <TextField
-              label="New Password"
-              variant="outlined"
-              fullWidth
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              style={{ marginBottom: '8px' }}
-            />
-            <Button variant="contained" color="primary" onClick={handlePasswordChange}>
-              Change Password
-            </Button>
-          </CardContent>
-        </Card>
+          <Card style={{ marginBottom: '16px' }}>
+            <CardContent>
+              <Typography variant="h5" gutterBottom>
+                Change Password
+              </Typography>
+              <TextField
+                label="Current Password"
+                variant="outlined"
+                fullWidth
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{ marginBottom: '8px' }}
+              />
+              <TextField
+                label="New Password"
+                variant="outlined"
+                fullWidth
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                style={{ marginBottom: '8px' }}
+              />
+              <Button variant="contained" color="primary" onClick={handlePasswordChange}>
+                Change Password
+              </Button>
+            </CardContent>
+          </Card>
 
-        <Card style={{ marginBottom: '16px' }}>
-          <CardContent>
-            <Typography variant="h5" gutterBottom>
-              Sign Out
-            </Typography>
-            <Button variant="contained" color="secondary" onClick={handleLogout}>
-              Sign Out
-            </Button>
-          </CardContent>
-        </Card>
+          <Card style={{ marginBottom: '16px' }}>
+            <CardContent>
+              <Typography variant="h5" gutterBottom>
+                Sign Out
+              </Typography>
+              <Button variant="contained" color="secondary" onClick={handleLogout}>
+                Sign Out
+              </Button>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent>
-            <Typography variant="h5" gutterBottom>
-              Delete Account
-            </Typography>
-            <Button variant="contained" color="error" onClick={handleAccountDeletion}>
-              Delete Account
-            </Button>
-          </CardContent>
-        </Card>
-      </Container>
+          <Card>
+            <CardContent>
+              <Typography variant="h5" gutterBottom>
+                Delete Account
+              </Typography>
+              <Button variant="contained" color="error" onClick={handleAccountDeletion}>
+                Delete Account
+              </Button>
+            </CardContent>
+          </Card>
+        </Container>
       </ProtectedLayout>
     </>
   );
