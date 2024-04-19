@@ -37,7 +37,8 @@ export default async function viewAllApplications(req, res) {
                 Point_Changes_Audit ON User_Org.user_ID = Point_Changes_Audit.user_ID
             WHERE 
                 User_Org.org_ID = ? AND 
-                User_Org.app_Status = 'ACCEPTED'
+                User_Org.app_Status = 'ACCEPTED' AND
+                User.user_Type = 'DRIVER'
             GROUP BY
                 User_Org.user_ID, User.first_Name, User.email
             `;

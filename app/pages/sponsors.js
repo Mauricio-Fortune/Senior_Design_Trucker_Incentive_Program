@@ -36,6 +36,7 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
   const [birthday, setBirthday] = useState('');
   const [password, setPassword] = useState('');
   const [newUser, setNewUser] = useState('');
+  const [userType, setUserType] = useState('');
 
 // for changin points dialog
   const [pointDialogOpen, setPointDialogOpen] = useState(false);
@@ -196,7 +197,8 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
           "user_ID": userId,
           "org_ID": orgID,
           "email": email,
-          "name": name
+          "name": name,
+          'userType': userType
         });
         
         const requestOptions1 = {
@@ -205,18 +207,22 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
           body: raw,
           redirect: "follow"
         };
-        
-        fetch("/api/sponsor/post_add_driver", requestOptions1)
+  
+          fetch("/api/sponsor/post_add_driver", requestOptions1)
           .then((response) => response.text())
           .then((result) => console.log(result))
          .catch((error) => console.error(error));
+    
+      
+       
         
         
       }catch(error){
         console.error('Error during sign up:', error);
       }
     }
-    addNewUser(newUser);
+    if(newUser != '')
+      addNewUser(newUser);
   }, [newUser]); // Depend on user state
   
 
@@ -337,7 +343,7 @@ const handleSubmit = () => {
   };
 
   const handleAppSubmit = () => {
-    const userType = 'driver';
+    //const userType = 'driver';
     console.log(email);
     console.log(password);
     console.log(name);
@@ -365,6 +371,7 @@ const handleSubmit = () => {
 
           
           console.log(userId);
+          
           setNewUser(userId);
    
       } catch (error) {
@@ -457,11 +464,23 @@ const handleSubmit = () => {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={handleAddDriver}
+                onClick={() => {setUserType('driver');handleAddDriver();}}
               >
                 Add Driver
               </Button>
             </form>
+            <Typography variant="h4" gutterBottom style={{ marginTop: '16px' }}>
+              Add New Sponsor User
+            </Typography>
+            <form>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {setUserType('sponsor');handleAddDriver();}}
+              >
+                Add Sponsor
+              </Button>
+              </form>
           </div>
         )}
         {/* Points Management Dialog */}
@@ -473,7 +492,7 @@ const handleSubmit = () => {
           padding: '8px 24px'
          }}
         >
-                    <DialogTitle>Add a New Driver</DialogTitle>
+                    <DialogTitle>Add a New User</DialogTitle>
                     <DialogContent>
                     <DialogContent>
                         <TextField
@@ -520,7 +539,9 @@ const handleSubmit = () => {
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleAppCloseDialog}>Cancel</Button>
-                        <Button onClick={handleAppSubmit} color="primary">Submit</Button>
+                        <Button onClick={() => {setUserType('driver');handleAppSubmit();}} color="primary">
+                      Submit
+                    </Button>
                     </DialogActions>
                 </Dialog>
 
