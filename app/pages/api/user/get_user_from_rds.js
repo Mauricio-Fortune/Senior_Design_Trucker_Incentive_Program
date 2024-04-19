@@ -27,7 +27,6 @@ export default async function handler(req, res) {
 
         // Close the database connection
         await connection.end();
-        console.log(rows);
 
         // Send the data as JSON response
         res.status(200).json(rows);

@@ -241,7 +241,7 @@ export default function Account() {
           <Card style={{ marginBottom: '16px' }}>
             <CardContent>
               <Typography variant="h5" gutterBottom>
-                {userData ? "Bio: "+userData.bio : "Loading..."}
+                {userData ? (userData.bio ? ("Bio: "+userData.bio) : "Bio: Empty") : "Loading..."}
               </Typography>
               <TextField
                 label="New Bio"
