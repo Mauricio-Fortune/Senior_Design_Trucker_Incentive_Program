@@ -81,35 +81,23 @@ export default function Application() {
     getOrgID();
   }, [org_Name]);
 
-
-  useEffect(() => {
-    getOrgID();
-  }, [org_Name]);
+  /*useEffect(() => {
+    if(submitted) {
+      window.location.reload();
+    }
+  }, [submitted]);*/
 
   const handleCompanyChange = (event) => {
     setCompany(event.target.value);
     const { company, value } = event.target;
     setOrgName(event.target.value);
-    setOrgName(event.target.value);
   };
 
   const handleChange = (event) => {
     setReason(event.target.value);
-    setReason(event.target.value);
   };
 
   const handleSubmit = async (event) => {
-    event.preventDefault(); // Prevent default form submission behavior
-
-    // Check if all fields are filled in
-    if (!company || !name || !email || !phoneNumber || !reason) {
-      alert('Please fill in all fields.');
-      return;
-    }
-
-    try {
-      if (!user) return;
-      const requestOptions = {
     event.preventDefault(); // Prevent default form submission behavior
 
     // Check if all fields are filled in
@@ -128,18 +116,12 @@ export default function Application() {
         body: JSON.stringify({})
       };
       const response = await fetch(`/api/driver/post_send_app_to_sponsor?user_ID=${user}&org_ID=${org_ID}&reason=${reason}`, requestOptions);
-        body: JSON.stringify({})
-      };
-      const response = await fetch(`/api/driver/post_send_app_to_sponsor?user_ID=${user}&org_ID=${org_ID}&reason=${reason}`, requestOptions);
       if (!response.ok) {
         throw new Error('Failed to send app to sponsor');
-        throw new Error('Failed to send app to sponsor');
       }
-      setSubmitted(true); // Mark the form as submitted
-      // Refresh the page
-      window.location.reload();
+
+      setSubmitted(response);
     } catch (error) {
-      console.error('Failed to send app to sponsor:', error);
       console.error('Failed to send app to sponsor:', error);
     }
   };
@@ -150,82 +132,6 @@ export default function Application() {
         <title>Driver Application</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Container>
-        <Box mt={4}>
-          <Typography variant="h3" gutterBottom>
-            Driver Application
-          </Typography>
-        </Box>
-        {submitted ? (
-          <Typography variant="h4" gutterBottom>
-            Thank you for applying!
-          </Typography>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <FormControl fullWidth variant="outlined" margin="normal">
-              <InputLabel id="company-select-label">Select Company</InputLabel>
-              <Select
-                labelId="company-select-label"
-                id="company-select"
-                value={company}
-                onChange={handleCompanyChange}
-                label="Select Company"
-              >
-                <MenuItem value="" disabled>Select Company</MenuItem>
-                {org_Names && org_Names.map((org, index) => (
-                  <MenuItem key={index} value={org}>{org}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              name="name"
-              label="Name"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
-            <TextField
-              name="email"
-              label="Email"
-              type="email"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-            <TextField
-              name="phoneNumber"
-              label="Phone Number"
-              type="tel"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              value={phoneNumber}
-              onChange={(event) => setPhoneNumber(event.target.value)}
-            />
-            <TextField
-              name="reasonToJoin"
-              label="Why do you want to join our program?"
-              multiline
-              rows={4}
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              value={reason}
-              onChange={handleChange}
-            />
-            <Box mt={2}>
-              <Button type="submit" variant="contained" color="primary">
-                Submit Application
-              </Button>
-            </Box>
-          </form>
-        )}
-        <Box mt={2} />
-      </Container>
       <Container>
         <Box mt={4}>
           <Typography variant="h3" gutterBottom>

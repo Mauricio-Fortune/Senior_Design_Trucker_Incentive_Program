@@ -27,21 +27,17 @@ export default async function handler(req, res) {
         const user_ID = req.query.user_ID;
         const org_ID = req.query.org_ID;
         const reason = req.query.reason;
-        const currentTimestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
-
-        const user_ID = req.query.user_ID;
-        const org_ID = req.query.org_ID;
-        const reason = req.query.reason;
 
         const query = 'INSERT INTO User_Org (user_ID, org_ID)  VALUES (?,?)'
         const response = await connection.query(query,[user_ID, org_ID]);
 
         const query2 = 'INSERT INTO Driver_App_Audit (org_ID, user_ID, reason, timestamp, app_Status) VALUES (?,?,?,?,?)';
         const response2 = await connection.query(query2,[org_ID, user_ID, reason, currentTimestamp, "PENDING"]);
-        const response2 = await connection.query(query2,[org_ID, user_ID, reason, currentTimestamp, "PENDING"]);
 
         // Close the database connection
         await connection.end();
+
+        res.status(200).json(true);
 
     } catch (error) {
         console.error('Database connection or query failed', error);

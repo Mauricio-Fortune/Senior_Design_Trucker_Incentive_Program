@@ -24,6 +24,8 @@ export default async function handler(req, res) {
 
         await connection.end();
 
+        res.status(200).json({"Message": 'Successfully set current org'});
+
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

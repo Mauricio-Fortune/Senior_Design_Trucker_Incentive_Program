@@ -39,8 +39,10 @@ const useStyles = makeStyles(() => ({
 export default function Drivers() {
   const [user, setUser] = useState();
   const [org_ID, setOrgID] = useState();
+  const [current_Org, setCurrent_Org] = useState();
   const [org_Name, setOrgName] = useState();
   const [org_Names, setOrgNames] = useState([]);
+  const [point_changes, setPointChanges] = useState([]);
   const [value, setValue] = useState(0);
   const [selectedCompany, setSelectedCompany] = useState('');
   const classes = useStyles();
@@ -58,25 +60,14 @@ export default function Drivers() {
   const handleCompanySelect = (event) => {
     setSelectedCompany(event.target.value);
     setOrgName(event.target.value);
-    setOrgName(event.target.value);
   };
 
   // Function to handle registration button click
   const handleRegisterClick = (company) => {
     router.push('/application');
   };
-  };
 
 useEffect(() => {
-  async function currentAuthenticatedUser() {
-    try {
-      const user = await fetchUserAttributes();
-      setUser(user.sub);
-    } catch (err) {
-      console.log(err);
-    }
-  }
-  currentAuthenticatedUser();
   async function currentAuthenticatedUser() {
     try {
       const user = await fetchUserAttributes();
@@ -90,9 +81,7 @@ useEffect(() => {
 
 useEffect(() => {
   if (user) {
-  if (user) {
     getOrgNames(); // Fetch organization names when user is available
-  }
   }
 }, [user]);
 
@@ -103,6 +92,37 @@ useEffect(() => {
 useEffect(() => {
   setCurrentOrg();
 }, [org_ID]);
+
+useEffect(() => {
+  getPointChanges();
+}, [current_Org]);
+
+useEffect(() => {
+  console.log(point_changes)
+}, [point_changes]);
+
+const getPointChanges = async () => {
+  try {
+    if (!user) return;
+
+    const requestOptions = {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+    const response = await fetch(`/api/driver/get_all_point_changes?user_ID=${user}&org_ID=${org_ID}`, requestOptions);
+    if (!response.ok) {
+      throw new Error('Failed to get point changes');
+    }
+    const result = await response.json();
+    console.log("Point Changes Result:", result); // Log the result here
+    const rows = result.rows; // Access the "rows" property of the result object
+    setPointChanges(rows); // Set "rows" as the point_changes state
+  } catch (error) {
+    console.error('Failed to fetch point changes:', error);
+  }
+};
 
 const setCurrentOrg = async () => {
   try {
@@ -121,7 +141,8 @@ const setCurrentOrg = async () => {
     if (!response.ok) {
       throw new Error('Failed to set current org');
     }
-
+    const result = await response.json();
+    setCurrent_Org(result);
   } catch (error) {
     console.error('Failed to update organization:', error);
   }
@@ -211,15 +232,38 @@ const getOrgNames = async () => {
   ))}
 </Select>
     </FormControl>
-    {selectedCompany && (
-      <Card className={classes.card}>
-        <CardContent>
-          <Typography variant="h5" gutterBottom>
-            {selectedCompany}
-          </Typography>
-        </CardContent>
-      </Card>
-    )}
+    {selectedCompany && point_changes && (
+        <>
+          {point_changes.map((pointSet, index) => (
+            <Card key={index} className={classes.card}>
+              <CardContent>
+                {Object.entries(pointSet).map(([key, value]) => (
+                  <div key={key} className={classes.pointChange}>
+                    <Typography variant="subtitle1" gutterBottom>
+                      {key}:
+                    </Typography>
+                    {Array.isArray(value) ? (
+                      <List>
+                        {value.map((change, changeIndex) => (
+                          <ListItem key={changeIndex} disablePadding>
+                            <ListItemText
+                              primary={`Point Change Value: ${change.point_change_value}`}
+                              secondary={`Reason: ${change.reason} | Timestamp: ${change.timestamp}`}
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+                    ) : (
+                      <Typography>{value}</Typography>
+                    )}
+                    <Divider />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          ))}
+        </>
+      )}
   </div>
 )}
       {value === 1 && (

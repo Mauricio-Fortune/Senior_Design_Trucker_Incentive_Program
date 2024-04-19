@@ -30,13 +30,11 @@ function Admin() {
   const [currentDriverId, setCurrentDriverId] = useState(null);
 
   const [selectedOrgBool, setSelectOrgBool] = useState(false);
-  const [orgID,setOrgID] = useState(0);
 
   const [newSponsorName, setNewSponsorName] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [pointsChange, setPointsChange] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [isDropdownClicked, setIsDropdownClicked] = useState(false);
   
 
   useEffect(() => {
