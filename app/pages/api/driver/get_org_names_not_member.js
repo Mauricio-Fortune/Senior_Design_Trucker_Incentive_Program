@@ -22,21 +22,32 @@ export default async function handler(req, res) {
         // Query organization IDs for the provided user_ID
         const [rows] = await connection.query('SELECT org_ID FROM User_Org WHERE user_ID = ?', [user_ID]);
 
-        // Extract organization IDs from the rows
-        const orgIDs = rows.map(row => row.org_ID);
+        // Check if rows array is empty
+        if (rows.length === 0) {
+            
+            const [rows2] = await connection.query('SELECT org_Name FROM Org');
 
-        // Generate placeholders for the orgIDs in the SQL query
-        const placeholders = orgIDs.map(() => '?').join(',');
+            await connection.end();
+            // Send NULL response as there are no org_IDs
+            res.status(200).json(rows2.map(row => row.org_Name));
+        }
+        else {
+            // Extract organization IDs from the rows
+            const orgIDs = rows.map(row => row.org_ID);
 
-        // Query organization names for the provided orgIDs
-        const [rows2] = await connection.query(`SELECT org_Name FROM Org WHERE org_ID NOT IN (${placeholders})`, orgIDs);
+            // Generate placeholders for the orgIDs in the SQL query
+            const placeholders = orgIDs.map(() => '?').join(',');
 
-        // Close the database connection
-        await connection.end();
+            // Query organization names for the provided orgIDs
+            const [rows2] = await connection.query(`SELECT org_Name FROM Org WHERE org_ID NOT IN (${placeholders})`, orgIDs);
 
-        // Send the data as JSON response
-        res.status(200).json(rows2.map(row => row.org_Name));
+            // Close the database connection
+            await connection.end();
 
+            // Send the data as JSON response
+            res.status(200).json(rows2.map(row => row.org_Name));
+
+        }
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });
