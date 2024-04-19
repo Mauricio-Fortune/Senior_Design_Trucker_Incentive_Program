@@ -20,7 +20,7 @@ export default async function handler(req, res) {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const { user_ID, org_ID, email, name} = req.body;
+        const { user_ID, org_ID, email, name, user_Type} = req.body;
         console.log('API');
         console.log(user_ID);
         console.log(org_ID);
@@ -28,14 +28,14 @@ export default async function handler(req, res) {
         console.log(name);
 
         
-        const query1 = 'INSERT INTO User (user_ID, user_Type, email, first_Name,last_Name,is_active) VALUES (?,?,?,?,?,?)';
-        const response1 = await connection.query(query1,[user_ID,'DRIVER',email,name,'Last Name',1]);
+        const query1 = 'INSERT INTO User (user_ID, user_Type, email, first_Name,is_active) VALUES (?,?,?,?,?)';
+        const response1 = await connection.query(query1,[user_ID,user_Type,email,name,1]);
 
         const query = 'INSERT INTO User_Org (user_ID, org_ID, app_status,is_current) VALUES (?,?,?,?)';
         const response = await connection.query(query,[user_ID, org_ID,'ACCEPTED',1]);
 
         //UPDATE AUDIT LOG
-        const query2 = 'INSERT Driver_App_Audit  (org_ID, user_ID,reason,timestamp,app_status) VALUES (?,?,?,?,?)';
+        const query2 = 'INSERT INTO Driver_App_Audit (org_ID, user_ID,reason,timestamp,app_status) VALUES (?,?,?,?,?)';
         const response2 = await connection.query(query2,[org_ID,user_ID,'Created by Sponsor','Timestamp','ACCEPTED']);
 
         // add 0 points so they are in the audit table 
