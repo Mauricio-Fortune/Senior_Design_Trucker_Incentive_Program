@@ -30,7 +30,6 @@ export default function Application() {
         throw new Error('Failed to fetch organization names');
       }
       const result = await response.json();
-      console.log(result)
       setOrgNotNames(result); // Assuming result.org_IDs contains the IDs
     } catch (error) {
       console.error('Failed to fetch organization names:', error);
@@ -52,7 +51,6 @@ export default function Application() {
         throw new Error('Failed to fetch organization ID');
       }
       const result = await response.json();
-      console.log(result)
       setOrgID(result); // Assuming result.org_IDs contains the IDs
     } catch (error) {
       console.error('Failed to fetch organization ID:', error);

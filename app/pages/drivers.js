@@ -97,10 +97,6 @@ useEffect(() => {
   getPointChanges();
 }, [current_Org]);
 
-useEffect(() => {
-  console.log(point_changes)
-}, [point_changes]);
-
 const getPointChanges = async () => {
   try {
     if (!user) return;
@@ -116,7 +112,6 @@ const getPointChanges = async () => {
       throw new Error('Failed to get point changes');
     }
     const result = await response.json();
-    console.log("Point Changes Result:", result); // Log the result here
     const rows = result.rows; // Access the "rows" property of the result object
     setPointChanges(rows); // Set "rows" as the point_changes state
   } catch (error) {
@@ -163,7 +158,6 @@ const getOrgID = async () => {
       throw new Error('Failed to fetch organization ID');
     }
     const result = await response.json();
-    console.log(result)
     setOrgID(result); // Assuming result.org_IDs contains the IDs
   } catch (error) {
     console.error('Failed to fetch organization ID:', error);
@@ -171,7 +165,6 @@ const getOrgID = async () => {
 };
 
 const getOrgNames = async () => {
-  console.log(user);
   try {
     const requestOptions = {
       method: "GET",
@@ -186,7 +179,6 @@ const getOrgNames = async () => {
       throw new Error('Failed to fetch organization names');
     }
     const result = await response.json();
-    console.log(result)
     setOrgNames(result); // Assuming result.org_IDs contains the IDs
   } catch (error) {
     console.error('Failed to fetch organization names:', error);
