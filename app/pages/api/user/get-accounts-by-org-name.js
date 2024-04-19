@@ -26,8 +26,7 @@ export default async function handler(req, res) {
         const query = `
             SELECT 
                 u.user_ID, 
-                u.first_Name, 
-                u.last_Name,
+                u.first_Name,
                 u.user_Type,
                 u.email,
                 uo.app_Status,
@@ -45,7 +44,7 @@ export default async function handler(req, res) {
                 u.user_Type = ? AND
                 u.is_active = 1
             GROUP BY
-                u.user_ID, u.first_Name, u.last_Name, u.email, uo.app_Status
+                u.user_ID, u.first_Name, u.email, uo.app_Status
             `;
 
         const [rows] = await connection.query(query, [org_name, user_type]);
