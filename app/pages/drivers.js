@@ -48,6 +48,7 @@ export default function Drivers() {
   const classes = useStyles();
   const router = useRouter();
   const [catalogValue, setCatalogValue] = useState(0);
+  const [orders, setOrders] = useState([]);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -82,6 +83,7 @@ useEffect(() => {
 useEffect(() => {
   if (user) {
     getOrgNames(); // Fetch organization names when user is available
+    getOrders();
   }
 }, [user]);
 
@@ -96,6 +98,28 @@ useEffect(() => {
 useEffect(() => {
   getPointChanges();
 }, [current_Org]);
+
+const getOrders = async () => {
+  try {
+    if (!user) return;
+
+    const requestOptions = {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+
+    const response = await fetch(`/api/catalog/get_orders_for_driver?user_ID=${user}`, requestOptions);
+    if (!response.ok) {
+      throw new Error('Failed to get orders');
+    }
+    const result = await response.json();
+    setOrders(result); // Set "result" as the orders state
+  } catch (error) {
+    console.error('Failed to fetch orders:', error);
+  }
+};
 
 const getPointChanges = async () => {
   try {
@@ -277,6 +301,7 @@ const getOrgNames = async () => {
             <Tabs value={catalogValue} onChange={handleCatalogChange} aria-label="catalog tabs">
               <Tab label="Store" />
               <Tab label="Your Cart" />
+              <Tab label="Orders" />
             </Tabs>
 
             {/* Tab Panels */}
@@ -286,6 +311,30 @@ const getOrgNames = async () => {
             {catalogValue === 1 && (
               <Driver_Cart />
             )}
+    {catalogValue === 2 && orders && (
+      <div className="order-list">
+        {Object.entries(orders).map(([orderID, items]) => (
+          <Card key={orderID} className="order-card" sx={{ marginBottom: '20px' }}>
+            <CardContent>
+              <Typography variant="h5" component="h2">
+                Order ID: {orderID}
+              </Typography>
+              {items.map((item, index) => (
+                <div key={index}>
+                  <Typography variant="body1" component="p" sx={{ marginLeft: '16px' }}>
+                    Item: {item.itemName}
+                  </Typography>
+                  <Typography variant="body1" component="p" sx={{ marginLeft: '16px' }}>
+                    Quantity: {item.itemQuantity}
+                  </Typography>
+                  {index < items.length - 1 && <Divider sx={{ marginTop: '8px', marginBottom: '8px' }} />}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )}
           </>
 
         )}
