@@ -49,8 +49,6 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
         const result = await response.json();
         
         setOrgID(result.org_ID);
-        //console.log("result.org_ID = " + result.org_ID);
-        //console.log("orgID = " + orgID);
       } catch (error) {
         console.error('Failed to fetch data:', error);
         setOrgID([]);
@@ -106,30 +104,36 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
 
   useEffect(() => {
 
-const getCartID = async () => {
-  try {
-  const requestOptions = {
-      method: "GET",
-      headers: {
-      'Content-Type': 'application/json'
+    const getCartID = async () => {
+      try {
+        const requestOptions = {
+          method: "GET",
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+    
+        if (!user) {
+          setUser();
+          setCart(-1);
+          return -1; // Return -1 when user or user.sub is not available
+        }
+    
+        console.log("USER " + user.sub);
+        const response = await fetch(`/api/driver/get_cart_orderID?user_ID=${user.sub}`, requestOptions);
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        const result = await response.json();
+        setCart(result.order_ID);
+        return result.order_ID; // Return the new cart_ID
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+        setCart(-1);
+        return -1; // Return -1 on failure
       }
-  };
-  console.log("USER " + user.sub);
-  const response = await fetch(`/api/driver/get_cart_orderID?user_ID=${user.sub}`, requestOptions);
-  if (!response.ok) {
-      throw new Error('Failed to fetch data');
-  }
-  const result = await response.json();
-  setCart(result.order_ID);
-
-  return result.order_ID; // Return the new cart_ID
-  } catch (error) {
-      console.log(result.order_ID);
-      console.error('Failed to fetch data:', error);
-      setCart(-1);
-  return -1; // Return -1 on failure
-  }
-};
+    };
+    
 
 
 
@@ -143,17 +147,18 @@ const getCartID = async () => {
         };
   
         const cart_ID = await getCartID();
+
+          const response = await fetch(`/api/driver/get_items_from_cart?order_ID=${cart_ID}`, requestOptions);
   
-        const response = await fetch(`/api/driver/get_items_from_cart?order_ID=${cart_ID}`, requestOptions);
-  
-        if (!response.ok) {
-          throw new Error('Failed to fetch data');
-        }
-  
-        const result = await response.json();
-  
-        if (Array.isArray(result)) { // Assuming the API directly returns an array
-          setEntries(result);
+          if (!response.ok) {
+            throw new Error('Failed to fetch data');
+          }
+    
+          const result = await response.json();
+    
+          if (Array.isArray(result)) { // Assuming the API directly returns an array
+            setEntries(result);
+
         } else {
           console.error('Expected results to be an array but got:', result);
           setEntries([]);
@@ -163,8 +168,11 @@ const getCartID = async () => {
         setEntries([]);
       }
     };
-  
-    fetchData();
+
+   (async () => {
+  const x = await fetchData();
+  // You can use x here if fetchData is modified to return a value.
+})();
   }, [orgID]);
 
  
@@ -313,61 +321,6 @@ const getCartID = async () => {
   };
 
 
-  useEffect(() => {
-    async function currentAuthenticatedUser() {
-      if (isSpoof) {
-        setUser({
-          sub: spoofId
-        })
-        console.log("spoof id: ", spoofId);
-      }
-      else {
-      try {
-        const user = await fetchUserAttributes(); // Assuming this correctly fetches the user
-        setUser(user); // Once the user is set, it triggers the useEffect for getDriverPoints
-        console.log(user);
-      } catch (err) {
-        console.log(err);
-      }
-      }
-    }
-    currentAuthenticatedUser();
-  }, []);
-  
-  useEffect(() => {
-    // This now depends on the user state. Once the user is fetched and set, this runs.
-    if (user) {
-      (async () => {
-        await getDriverPoints();
-        if (driverPoints != null) {
-          setDriverPoints(driverPoints);
-        }
-      })();
-    }
-  }, [user]); // Depend on user state
-  
-  useEffect(() => {
-    const fetchItemDetails = async () => {
-      
-      const detailsPromises = entries.map(entry => getItemData(entry.item_ID)); 
-      const detailsResults = await Promise.all(detailsPromises);
-  
-      const detailsObject = detailsResults.reduce((acc, detail, index) => {
-        if (detail) { 
-          const itemID = entries[index].item_ID;
-          acc[itemID] = detail;
-        }
-        return acc;
-      }, {});
-  
-      setDetailedItemData(detailsObject);
-    };
-  
-    if (entries.length > 0) {
-      fetchItemDetails();
-    }
-  }, [entries]); // Depends on `entries`
-  
 
 
 
