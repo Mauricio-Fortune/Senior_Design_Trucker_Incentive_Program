@@ -15,6 +15,7 @@ import {
   DialogActions,
   DialogContent,
   MenuItem,
+  Select,
   DialogTitle,
 } from '@mui/material';
 
@@ -32,6 +33,11 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
   const [user, setUser] = useState();
   const [orgID,setOrgID] = useState(0);
   const [drivers, setDrivers] = useState([]);
+  const [selectedDriver, setSelectedDriver] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [pointChanges, setPointChanges] = useState([]);
+  const [submitted, setSubmitted] = useState(false);
 
   // for adding a new driver dialog
   const [appDialogOpen, setAppDialogOpen] = useState(false);
@@ -251,10 +257,13 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
     setReportValue(newValue);
   }
 
-
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
+
+  const handleSubmitPoints = () => {
+    setSubmitted(true);
+  }
 
   const handleRemoveDriver = (driverId) => {
     // Implement logic to remove the selected driver
@@ -332,26 +341,6 @@ const handleCloseDialog = () => {
   setPointDialogOpen(false);
 };
 
-const getDrivers = async () => {
-  try {
-    const requestOptions = {
-      method: "GET",
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    };
-
-    const response = await fetch(`/api/sponsor/get_all_drivers_for_sponsor?org_ID=${orgID}`, requestOptions);
-    if (!response.ok) {
-      throw new Error('Failed to get drivers');
-    }
-    const result = await response.json();
-    setDrivers(result); // Set "result" as the orders state
-  } catch (error) {
-    console.error('Failed to fetch drivers:', error);
-  }
-};
-
 const handleSubmit = () => {
     console.log(`Submitting points change: ${pointsChange} for driver ID: ${currentDriverId}`);
     const pointOptions = {
@@ -380,6 +369,72 @@ const handleSubmit = () => {
   };
   const handleAppCloseDialog = () => {
     setAppDialogOpen(false);
+  };
+
+  const handleDriverSelect = (event) => {
+    setSelectedDriver(event.target.value);
+  }
+
+  const handleStartDateChange = (event) => {
+    const formattedDate = formatDate(event.target.value);
+    setStartDate(formattedDate);
+  };
+
+  const handleEndDateChange = (event) => {
+    const formattedDate = formatDate(event.target.value);
+    setEndDate(formattedDate);
+  };
+
+  useEffect(() => {
+    getPointChanges();
+  }, [submitted]);
+
+  const getPointChanges = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+
+      const response = await fetch(`/api/sponsor/get_point_changes?org_ID=${orgID}&selectedDriver=${selectedDriver}&startDate=${startDate}&endDate${endDate}`, requestOptions);
+      if (!response.ok) {
+        throw new Error('Failed to get point changes');
+      }
+      const result = await response.json();
+      setPointChanges(result);
+    } catch (error) {
+      console.error('Failed to fetch point changes:', error);
+    }
+  }
+
+  const getDrivers = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+  
+      const response = await fetch(`/api/sponsor/get_all_drivers_for_sponsor?org_ID=${orgID}`, requestOptions);
+      if (!response.ok) {
+        throw new Error('Failed to get drivers');
+      }
+      const result = await response.json();
+      setDrivers(result); // Set "result" as the orders state
+    } catch (error) {
+      console.error('Failed to fetch drivers:', error);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const dateObject = new Date(dateString);
+    const year = dateObject.getFullYear();
+    const month = String(dateObject.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObject.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const handleAppSubmit = () => {
@@ -651,9 +706,46 @@ const handleSubmit = () => {
             {/* Tab Panels */}
             {reportValue === 0 && (
               <>
-                <MenuItem value="" disabled>Select Driver</MenuItem>
-                {drivers && drivers.map((driver, index) => (
-                  <MenuItem key={index} value={driver}>{driver}</MenuItem>
+                <Select
+                  value={selectedDriver}
+                  onChange={handleDriverSelect}
+                  displayEmpty
+                >
+                  <MenuItem value="" disabled>Select Driver</MenuItem>
+                  {drivers && drivers.map((driver, index) => (
+                    <MenuItem key={index} value={driver}>{driver}</MenuItem>
+                  ))}
+                </Select>
+                <TextField
+                  label="Start Date"
+                  type="date"
+                  value={startDate}
+                  onChange={handleStartDateChange}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                />
+                <TextField
+                  label="End Date"
+                  type="date"
+                  value={endDate}
+                  onChange={handleEndDateChange}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                />
+                <Button variant="contained" color="primary" onClick={handleSubmitPoints}>
+                  Submit
+                </Button>
+                {pointChanges.map((pointChange, index) => (
+                  <div key={index}>
+                    <p>Point Change ID: {pointChange.point_change_id}</p>
+                    <p>User ID: {pointChange.user_ID}</p>
+                    <p>First Name: {pointChange.first_Name}</p>
+                    <p>Point Change Value: {pointChange.point_change_value}</p>
+                    <p>Reason: {pointChange.reason}</p>
+                    <p>Timestamp: {pointChange.timestamp}</p>
+                  </div>
                 ))}
               </>
             )}
