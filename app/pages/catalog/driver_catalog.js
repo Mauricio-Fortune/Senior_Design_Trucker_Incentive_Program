@@ -137,12 +137,13 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
         console.log("spoof id: ", spoofId);
       }
       else {
-      try {
-        const user = await fetchUserAttributes(); // Assuming this correctly fetches the user
-        setUser(user); // Once the user is set, it triggers the useEffect for getDriverPoints
-      } catch (err) {
-        console.log(err);
-      }
+        try {
+          const user = await fetchUserAttributes();
+          setUser(user);
+          console.log("driver catalog");
+        } catch (err) {
+          console.log(err);
+        }
       }
     }
     currentAuthenticatedUser();

@@ -21,11 +21,19 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
    
   useEffect(() => {
     async function currentAuthenticatedUser() {
-      try {
-        const user = await fetchUserAttributes(); // Assuming this correctly fetches the user
-        setUser(user); // Once the user is set, it triggers the useEffect for getDriverPoints
-      } catch (err) {
-        console.log(err);
+      if (isSpoof) {
+        setUser({
+          sub: spoofId
+        })
+        console.log("spoof id: ", spoofId);
+      }
+      else {
+        try {
+          const user = await fetchUserAttributes();
+          setUser(user);
+        } catch (err) {
+          console.log(err);
+        }
       }
     }
     currentAuthenticatedUser();

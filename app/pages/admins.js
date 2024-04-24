@@ -329,18 +329,6 @@ function Admin() {
               </DialogActions>
             </Dialog>
 
-        {/* Commented elements can be uncommented if you decide to use them */}
-        {/* <TextField
-          label="New Sponsor Name"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          value={newSponsorName}
-          onChange={(e) => setNewSponsorName(e.target.value)}
-        />
-        <Button variant="contained" color="primary" onClick={handleAddSponsor}>
-          Add Sponsor
-        </Button> */}
 
         <Snackbar
           open={!!successMessage}

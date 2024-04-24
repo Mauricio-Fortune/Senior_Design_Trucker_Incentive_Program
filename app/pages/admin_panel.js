@@ -67,6 +67,7 @@ const AdminPanel = () => {
     console.log('driver change: '+ event.target.value);
     console.log(allDrivers);
     setDriver(event.target.value);
+    console.log(event.target.value);
   };
   const handleSponsorChange = (event) => {
     setSponsor(event.target.value);

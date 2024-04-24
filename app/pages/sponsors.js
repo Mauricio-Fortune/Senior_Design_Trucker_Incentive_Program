@@ -23,7 +23,7 @@ import { fetchUserAttributes } from '@aws-amplify/auth';
 import { signUp } from 'aws-amplify/auth';
 
 
-export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
+export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
   const [value, setValue] = useState(0);
   const [catalogValue, setCatalogValue] = useState(0);
   const [user, setUser] = useState();
@@ -142,11 +142,17 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
 
   useEffect(() => {
     async function currentAuthenticatedUser() {
-      try {
-        const user = await fetchUserAttributes(); // Assuming this correctly fetches the user
-        setUser(user); // Once the user is set, it triggers the useEffect for getDriverPoints
-      } catch (err) {
-        console.log(err);
+      if (isSpoofing) {
+        setUser(sponsorSpoofID);
+        console.log("spoof id for sponsor: ", sponsorSpoofID);
+      }
+      else {
+        try {
+          const user = await fetchUserAttributes();
+          setUser(user);
+        } catch (err) {
+          console.log(err);
+        }
       }
     }
     currentAuthenticatedUser();
@@ -162,8 +168,8 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
             'Content-Type': 'application/json'
           }
         };
-        console.log("USER " + user.sub);
-        const response = await fetch(`/api/driver/get_current_sponsor?user_ID=${user.sub}`, requestOptions);
+        console.log("USER " + user);
+        const response = await fetch(`/api/driver/get_current_sponsor?user_ID=${user}`, requestOptions);
   
         if (!response.ok) {
           throw new Error('Failed to fetch data');

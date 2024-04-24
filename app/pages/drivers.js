@@ -36,7 +36,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-export default function Drivers() {
+export default function Drivers({isSpoofing = false, driverSpoofID = ''}) {
   const [user, setUser] = useState();
   const [org_ID, setOrgID] = useState();
   const [current_Org, setCurrent_Org] = useState();
@@ -70,11 +70,17 @@ export default function Drivers() {
 
 useEffect(() => {
   async function currentAuthenticatedUser() {
-    try {
-      const user = await fetchUserAttributes();
-      setUser(user.sub);
-    } catch (err) {
-      console.log(err);
+    if (isSpoofing) {
+      setUser(driverSpoofID);
+      console.log("spoof id for driver: ", driverSpoofID);
+    }
+    else {
+      try {
+        const user = await fetchUserAttributes();
+        setUser(user.sub);
+      } catch (err) {
+        console.log(err);
+      }
     }
   }
   currentAuthenticatedUser();
@@ -306,8 +312,8 @@ const getOrgNames = async () => {
 
             {org_ID && (  // Check if org_ID is not null
               <div>
-                {catalogValue === 0 && <Driver_Catalog />}
-                {catalogValue === 1 && <Driver_Cart />}
+                {catalogValue === 0 && <Driver_Catalog isSpoof={isSpoofing} spoofId={driverSpoofID}/>}
+                {catalogValue === 1 && <Driver_Cart isSpoof={isSpoofing} spoofId={driverSpoofID}/>}
               </div>
             )}
     {catalogValue === 2 && orders && (
