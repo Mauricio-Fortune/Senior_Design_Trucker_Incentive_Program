@@ -304,12 +304,11 @@ const getOrgNames = async () => {
               <Tab label="Orders" />
             </Tabs>
 
-            {/* Tab Panels */}
-            {catalogValue === 0 && (
-              <Driver_Catalog />
-            )}
-            {catalogValue === 1 && (
-              <Driver_Cart />
+            {org_ID && (  // Check if org_ID is not null
+              <div>
+                {catalogValue === 0 && <Driver_Catalog />}
+                {catalogValue === 1 && <Driver_Cart />}
+              </div>
             )}
     {catalogValue === 2 && orders && (
       <div className="order-list">
