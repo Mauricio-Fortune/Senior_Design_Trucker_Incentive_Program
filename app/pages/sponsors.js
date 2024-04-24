@@ -14,6 +14,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  MenuItem,
   DialogTitle,
 } from '@mui/material';
 
@@ -27,8 +28,10 @@ import { unstable_createStyleFunctionSx } from '@mui/system';
 export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
   const [value, setValue] = useState(0);
   const [catalogValue, setCatalogValue] = useState(0);
+  const [reportValue, setReportValue] = useState(0);
   const [user, setUser] = useState();
   const [orgID,setOrgID] = useState(0);
+  const [drivers, setDrivers] = useState([]);
 
   // for adding a new driver dialog
   const [appDialogOpen, setAppDialogOpen] = useState(false);
@@ -139,6 +142,7 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
 
     fetchAppData()
     fetchDriverData()
+    getDrivers();
   }, [orgID]);
 
   useEffect(() => {
@@ -238,18 +242,19 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
     if(newUser != '')
       addNewUser(newUser);
   }, [newUser]); // Depend on user state
-  
-
 
   const handleCatalogChange = (event, newValue) => {
     setCatalogValue(newValue);
   };
 
+  const handleReportChange = (event, newValue) => {
+    setReportValue(newValue);
+  }
+
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
-
 
   const handleRemoveDriver = (driverId) => {
     // Implement logic to remove the selected driver
@@ -325,6 +330,26 @@ const handleManagePoints = (driverId) => {
 
 const handleCloseDialog = () => {
   setPointDialogOpen(false);
+};
+
+const getDrivers = async () => {
+  try {
+    const requestOptions = {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+
+    const response = await fetch(`/api/sponsor/get_all_drivers_for_sponsor?org_ID=${orgID}`, requestOptions);
+    if (!response.ok) {
+      throw new Error('Failed to get drivers');
+    }
+    const result = await response.json();
+    setDrivers(result); // Set "result" as the orders state
+  } catch (error) {
+    console.error('Failed to fetch drivers:', error);
+  }
 };
 
 const handleSubmit = () => {
@@ -408,6 +433,7 @@ const handleSubmit = () => {
           <Tab label="Dashboard" />
           <Tab label="Applications" />
           <Tab label="Catalog" />
+          <Tab label="Reports" />
         </Tabs>
       </Box>
 
@@ -615,7 +641,32 @@ const handleSubmit = () => {
           </>
         )}
 
+        {value === 3 && (
+          <>
+            <Tabs value={reportValue} onChange={handleReportChange} aria-label="catalog tabs">
+              <Tab label="Point Tracking" />
+              <Tab label="Audit Log" />
+            </Tabs>
 
+            {/* Tab Panels */}
+            {reportValue === 0 && (
+              <>
+                <MenuItem value="" disabled>Select Driver</MenuItem>
+                {drivers && drivers.map((driver, index) => (
+                  <MenuItem key={index} value={driver}>{driver}</MenuItem>
+                ))}
+              </>
+            )}
+            {reportValue === 1 && (
+              <>
+                <MenuItem value="" disabled>Select Driver</MenuItem>
+                {drivers && drivers.map((driver, index) => (
+                  <MenuItem key={index} value={driver}>{driver}</MenuItem>
+                ))}
+              </>
+            )}
+          </>
+        )}
 
       </Container>
     </>
