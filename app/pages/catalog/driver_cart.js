@@ -70,7 +70,10 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
         }
       })();
     }
+  }, [user]); // Depend on user state
+  
 
+  useEffect(() => {
     const getDriverPoints = async () => {
       try {
         const requestOptions = {
@@ -83,7 +86,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
           currentAuthenticatedUser();
         }
    
-        const response = await fetch(`/api/driver/get_driver_points?user_ID=${user.sub}`, requestOptions);
+        const response = await fetch(`/api/driver/get_driver_points?user_ID=${user.sub}&org_ID=${orgID}`, requestOptions);
         if (!response.ok) throw new Error('Failed to fetch item data');
         
     
@@ -107,10 +110,6 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
         }
       })();
     }
-  }, [user]); // Depend on user state
-  
-
-  useEffect(() => {
 
     const getCartID = async () => {
       try {

@@ -28,28 +28,19 @@ export default async function handler(req, res) {
         console.log(email);
         console.log(name);
 
-   
-
-        const query1 = 'INSERT INTO User (user_ID, user_Type, email, first_Name,is_active) VALUES (?,?,?,?,?)';
-        const response1 = await connection.query(query1,[user_ID,'DRIVER',email,name,1]);
-
-        const query = 'INSERT INTO User_Org (user_ID, org_ID, app_status,is_current) VALUES (?,?,?,?)';
-        const response = await connection.query(query,[user_ID, org_ID,'ACCEPTED',1]);
-
-
-        const query2 = 'INSERT INTO Driver_App_Audit (org_ID, user_ID,reason,timestamp,app_status) VALUES (?,?,?,?,?)';
-        const response2 = await connection.query(query2,[org_ID,user_ID,'Created by Sponsor',currentTimestamp,'ACCEPTED']);
-    
-        // add 0 points so they are in the audit table 
-        const query3 = 'INSERT INTO Point_Changes_Audit (user_ID, point_change_value, reason, org_ID, timestamp) VALUES (?,?,?,?,?)';
-        const response3 = await connection.query(query3, [user_ID, 0, 'created by sponsor', org_ID, currentTimestamp]);
         
+            const query1 = 'INSERT INTO User (user_ID, user_Type, email, first_Name,is_active) VALUES (?,?,?,?,?)';
+            const response1 = await connection.query(query1,[user_ID,'SPONSOR',email,name,1]);
+    
+            const query = 'INSERT INTO User_Org (user_ID, org_ID, app_status, is_current) VALUES (?,?,?,?)';
+            const response = await connection.query(query,[user_ID, org_ID,'ACCEPTED',1]);
+         
 
         // Close the database connection
         await connection.end();
 
         // Send the data as JSON response
-        res.status(200).json({message: "Successfully added driver user"});
+        res.status(200).json({message: "Successfully added Sponsor User"});
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });
