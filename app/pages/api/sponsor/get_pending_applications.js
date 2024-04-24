@@ -43,6 +43,8 @@ export default async function viewAllApplications(req, res) {
         // Execute the query
         const [applications] = await connection.query(query, [org_ID,"PENDING"]);
 
+        await connection.end();
+
         // Send the data as JSON response
         res.status(200).json(applications);
     } catch (error) {

@@ -19,6 +19,7 @@ export default async function handler(req, res) {
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
+        const currentTimestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
         const { point_change_id, user_ID, point_change_value, reason, org_ID, timestamp } = req.body;
         console.log(user_ID);
@@ -28,7 +29,7 @@ export default async function handler(req, res) {
         console.log(timestamp);
 
         const query = 'INSERT INTO Point_Changes_Audit (point_change_id, user_ID, point_change_value, reason, org_ID, timestamp) VALUES (?,?,?,?,?,?)';
-        const response = await connection.query(query, [point_change_id, user_ID, point_change_value, reason, org_ID, timestamp]);
+        const response = await connection.query(query, [point_change_id, user_ID, point_change_value, reason, org_ID, currentTimestamp]);
 
         // Close the database connection
         await connection.end();

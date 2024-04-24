@@ -19,6 +19,7 @@ export default async function handler(req, res) {
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
+        const currentTimestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
         const { user_ID, org_ID, email, name, user_Type} = req.body;
         console.log('API');
@@ -36,11 +37,11 @@ export default async function handler(req, res) {
 
         //UPDATE AUDIT LOG
         const query2 = 'INSERT INTO Driver_App_Audit (org_ID, user_ID,reason,timestamp,app_status) VALUES (?,?,?,?,?)';
-        const response2 = await connection.query(query2,[org_ID,user_ID,'Created by Sponsor','Timestamp','ACCEPTED']);
+        const response2 = await connection.query(query2,[org_ID,user_ID,'Created by Sponsor',currentTimestamp,'ACCEPTED']);
 
         // add 0 points so they are in the audit table 
         const query3 = 'INSERT INTO Point_Changes_Audit (user_ID, point_change_value, reason, org_ID, timestamp) VALUES (?,?,?,?,?)';
-        const response3 = await connection.query(query3, [user_ID, 0, 'created by sponsor', org_ID, 'timestamp']);
+        const response3 = await connection.query(query3, [user_ID, 0, 'created by sponsor', org_ID, currentTimestamp]);
         
 
         // Close the database connection
