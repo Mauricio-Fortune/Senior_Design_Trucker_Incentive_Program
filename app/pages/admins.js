@@ -34,6 +34,8 @@ function Admin() {
   const [newSponsorName, setNewSponsorName] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [pointsChange, setPointsChange] = useState(0);
+  const [behaviorText, setBehaviorText] = useState('');
+
   const [dialogOpen, setDialogOpen] = useState(false);
   
 
@@ -144,7 +146,7 @@ function Admin() {
   };
 
   const handleSubmit = async () => {
-    console.log(`Submitting points change: ${pointsChange} for driver ID: ${currentDriverId}`);
+    console.log(`Submitting points change: ${pointsChange} and behavior ${behaviorText} for driver ID: ${currentDriverId}`);
     
     const pointOptions = {
           method: "POST",
@@ -154,7 +156,7 @@ function Admin() {
           body: JSON.stringify({ 
             user_ID : currentDriverId,
             point_change_value : pointsChange,
-            reason: "Cause I said so", 
+            reason: behaviorText, 
             org_ID: sponsorOrgs[selectedOrg].org_ID,
             timestamp: "timestamp"
           })
@@ -197,6 +199,7 @@ function Admin() {
   const handleManagePoints = (driverId) => {
     setCurrentDriverId(driverId);
     setPointsChange(0);  
+    setBehaviorText('');
     setDialogOpen(true);
   };
 
@@ -285,6 +288,14 @@ function Admin() {
               >
                 Remove User
               </Button>
+              {/* <Button
+                variant="contained"
+                style={{ marginRight: '8px', backgroundColor: 'green', color: 'white' }}
+                onClick={() => handleRemoveUser(user.user_ID)}
+                //style={{ marginRight: '8px' }}
+              >
+                Edit Sponsor Organization(s)
+              </Button> */}
             </CardContent>
           </Card>
         ))}
@@ -301,6 +312,15 @@ function Admin() {
                       fullWidth
                       value={pointsChange}
                       onChange={(e) => setPointsChange(e.target.value)}
+                  />
+                  <TextField
+                    margin="dense"
+                    id="behaviorText" // Unique ID
+                    label="Behavior"
+                    type="text"
+                    fullWidth
+                    value={behaviorText}
+                    onChange={(e) => setBehaviorText(e.target.value)}
                   />
               </DialogContent>
               <DialogActions>
