@@ -48,8 +48,6 @@ export default async function viewAllApplications(req, res) {
         // Execute the query
         const [userInfo] = await connection.query(query, [org_ID,'ACCEPTED']);
 
-        await connection.end();
-
         // Send the data as JSON response
         res.status(200).json(userInfo);
     } catch (error) {

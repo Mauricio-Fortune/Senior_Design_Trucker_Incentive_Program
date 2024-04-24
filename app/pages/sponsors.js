@@ -41,7 +41,6 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
 // for changin points dialog
   const [pointDialogOpen, setPointDialogOpen] = useState(false);
   const [pointsChange, setPointsChange] = useState(0);
-  const [pointChangeReason, setPointChangeReason] = useState('');
   const [currentDriverId, setCurrentDriverId] = useState(null);
   const [applications, setApplications] = useState([
     {
@@ -214,6 +213,9 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
           .then((result) => console.log(result))
          .catch((error) => console.error(error));
     
+      
+       
+        
         
       }catch(error){
         console.error('Error during sign up:', error);
@@ -303,7 +305,6 @@ export default function Sponsors({ isSpoofing, sponsorSpoofID = '' }) {
 const handleManagePoints = (driverId) => {
     setCurrentDriverId(driverId);
     setPointsChange(0);  
-    setPointChangeReason('');
     setPointDialogOpen(true);
 };
 
@@ -447,15 +448,6 @@ const handleSubmit = () => {
                             fullWidth
                             value={pointsChange}
                             onChange={(e) => setPointsChange(e.target.value)}
-                        />
-                         <TextField
-                            autoFocus
-                            margin="dense"
-                            id="reason"
-                            label="Reason"                        
-                            fullWidth
-                            value={pointChangeReason}
-                            onChange={(e) => setPointChangeReason(e.target.value)}
                         />
                     </DialogContent>
                     <DialogActions>

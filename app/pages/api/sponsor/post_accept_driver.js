@@ -19,7 +19,6 @@ export default async function handler(req, res) {
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
-        
 
         const { user_ID, org_ID} = req.body;
 
