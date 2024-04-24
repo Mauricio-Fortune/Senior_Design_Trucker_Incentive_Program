@@ -39,9 +39,9 @@ export default function About() {
           onChange={handleChange}
           aria-label="basic tabs example"
         >
+          <Tab label="Version" />
           <Tab label="Overview" />
           <Tab label="Mission" />
-          <Tab label="Team" />
         </Tabs>
       </Box>
 
@@ -92,20 +92,6 @@ export default function About() {
                 for both sponsors and drivers, promoting a collaborative environment that values and recognizes
                 the importance of good driving practices.
               </p>
-            </section>
-          )}
-
-          {value === 3 && (
-            <section>
-              <header>
-                <h2>Meet the Team</h2>
-              </header>
-              <p>
-                Behind the scenes, our dedicated team works tirelessly to innovate and deliver a platform that
-                truly makes a difference. We are passionate about driving positive change within the industry and
-                are united in our vision for safer roads and more responsible driving habits.
-              </p>
-              {/* Add team member details or images if desired */}
             </section>
           )}
         </div>

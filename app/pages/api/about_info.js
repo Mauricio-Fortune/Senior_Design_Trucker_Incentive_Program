@@ -20,7 +20,7 @@ export default async function handler(req, res) {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const [rows] = await connection.query('SELECT * FROM About');
+        const [rows] = await connection.query('SELECT * FROM About ORDER BY sprint_id DESC LIMIT 1;');
 
         // Close the database connection
         await connection.end();
