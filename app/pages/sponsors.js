@@ -161,7 +161,8 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
 
 
   useEffect(() => {
-    const getOrgID = async () => { // fetches all itemIDs in database
+
+    const getOrgID = async () => { 
       try {
         const requestOptions = {
           method: "GET",
@@ -169,8 +170,8 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
             'Content-Type': 'application/json'
           }
         };
-        console.log("USER " + user);
-        const response = await fetch(`/api/driver/get_current_sponsor?user_ID=${user}`, requestOptions);
+      
+        const response = await fetch(`/api/driver/get_current_sponsor?user_ID=${user.sub}`, requestOptions);
   
         if (!response.ok) {
           throw new Error('Failed to fetch data');
@@ -201,9 +202,6 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
         try{
           const myHeaders = new Headers();
           myHeaders.append("Content-Type", "application/json");
-          console.log(email);
-          console.log(name);
-          console.log(user_Type);
           
           const raw = JSON.stringify({
             "user_ID": userId,
@@ -235,9 +233,7 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
         }
       }
     
-      console.log("USER_TYPE: " + userType)
- 
-      const user_Type = userType;
+  
      
     if(newUser != '')
       addNewUser(newUser);
