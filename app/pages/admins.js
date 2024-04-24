@@ -242,9 +242,11 @@ function Admin() {
             {error}
           </Typography>
         )}
-        <Typography variant="h4" gutterBottom>
-          Sponsors:
-        </Typography>
+        {selectedOrgBool && (
+          <Typography variant="h4" gutterBottom>
+            Sponsors:
+          </Typography>
+        )}
         {selectedOrgBool && sponsorUsers.map((user) => (
           <Card key={user.user_ID} style={{ marginBottom: '16px' }}>
             <CardContent>
@@ -262,9 +264,11 @@ function Admin() {
           </Card>
         ))}
 
-        <Typography variant="h4" gutterBottom>
-          Drivers:
-        </Typography>
+        {selectedOrgBool && (
+          <Typography variant="h4" gutterBottom>
+            Drivers:
+          </Typography>
+        )}
         {selectedOrgBool && driverUsers.map((user) => (
           <Card key={user.user_ID} style={{ marginBottom: '16px' }}>
             <CardContent>

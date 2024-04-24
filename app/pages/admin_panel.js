@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Select, Box, FormControl, MenuItem, InputLabel, Container } from '@mui/material';
+import { Select, Box, FormControl, MenuItem, InputLabel, Divider } from '@mui/material';
 import DriversPage from './drivers';
 import SponsorsPage from './sponsors';
+import { height } from "@mui/system";
 
 const AdminPanel = () => {
   const [selectedDriver, setDriver] = useState('');
@@ -75,11 +76,11 @@ const AdminPanel = () => {
 
 
   return (
-    <div>
-      <h1>Admin Panel</h1>
-      <Box sx={{ minWidth: 120 }}>
+    <div style={{ marginTop: '40px' }}>
+      <h1>View Other Accounts</h1>
+      <Box sx={{ minWidth: 120 }} style={{ marginTop: '5px' }}>
         <FormControl fullWidth>
-          <InputLabel>View driver</InputLabel>
+          <InputLabel>Drivers</InputLabel>
           <Select
             value={selectedDriver}
             label="selectedDriver"
@@ -92,9 +93,9 @@ const AdminPanel = () => {
         </FormControl>
       </Box>
 
-      <Box sx={{ minWidth: 120 }}>
+      <Box sx={{ minWidth: 120 }} style={{ marginTop: '8px' }}>
         <FormControl fullWidth>
-          <InputLabel>View sponsor</InputLabel>
+          <InputLabel>Sponsors</InputLabel>
           <Select
             value={selectedSponsor}
             label="selectedSponsor"
@@ -109,17 +110,21 @@ const AdminPanel = () => {
 
       {selectedDriver && (
         <>
-          <div style={{ marginBottom: '40px' }}></div>
+          <div style={{ marginTop: '40px' }}></div>
+          <Divider sx={{ borderBottomWidth: 5, borderColor: 'primary.main' }}/>
           <DriversPage isSpoofing={true} driverSpoofID={selectedDriver} />
+          <div style={{ marginTop: '50px' }}></div>
         </>
       )}
 
       {selectedSponsor && (
         <>
-          <div style={{ marginBottom: '40px' }}></div>
+          <div style={{ marginTop: '40px' }}></div>
+          <Divider sx={{ borderBottomWidth: 5, borderColor: 'primary.main' }}/>
           <SponsorsPage isSpoofing={true} sponsorSpoofID={selectedSponsor} />
         </>
       )}
+      <div style={{ marginTop: '100px' }}></div>
     </div>
   );
 }

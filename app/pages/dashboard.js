@@ -106,7 +106,6 @@ function Dashboard() {
       {userType === "ADMIN" && (
         <>
           <AdminsPage />
-          <div style={{ marginBottom: '40px' }}></div>
         </>
       )}
     </ProtectedLayout>
