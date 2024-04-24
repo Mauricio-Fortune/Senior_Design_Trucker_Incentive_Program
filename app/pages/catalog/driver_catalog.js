@@ -20,6 +20,34 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
 
 
   useEffect(() => {
+    const getDriverPoints = async () => {
+      try {
+        const requestOptions = {
+          method: "GET",
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+        if(user == null){
+          currentAuthenticatedUser();
+        }
+        
+        const response = await fetch(`/api/driver/get_driver_points?user_ID=${user.sub}&org_ID=${orgID}`, requestOptions);
+        if (!response.ok) throw new Error('Failed to fetch item data');
+        
+    
+        
+        const data = await response.json();
+        console.log(data.totalPoints);
+   
+        return data.totalPoints; 
+      } catch (error) {
+        console.error('Failed to fetch item data:', error);
+        console.log(user);
+        return 0; 
+      }
+  };
+   
     const fetchData = async () => { // fetches all itemIDs in database
       try {
         const requestOptions = {
@@ -49,6 +77,14 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       }
     };
     fetchData();
+    if (user) {
+      (async () => {
+        const driverPoints = await getDriverPoints();
+        if (driverPoints != null) {
+          setDriverPoints(driverPoints);
+        }
+      })();
+    }
   }, [orgID]);
 
 
@@ -149,45 +185,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
     currentAuthenticatedUser();
   }, []);
   
-  useEffect(() => {
-    const getDriverPoints = async () => {
-      try {
-        const requestOptions = {
-          method: "GET",
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        };
-        if(user == null){
-          currentAuthenticatedUser();
-        }
-   
-        const response = await fetch(`/api/driver/get_driver_points?user_ID=${user.sub}`, requestOptions);
-        if (!response.ok) throw new Error('Failed to fetch item data');
-        
-    
-        
-        const data = await response.json();
-        console.log(data.totalPoints);
-   
-        return data.totalPoints; 
-      } catch (error) {
-        console.error('Failed to fetch item data:', error);
-        console.log(user);
-        return 0; 
-      }
-  };
-    // This now depends on the user state. Once the user is fetched and set, this runs.
-    if (user) {
-      (async () => {
-        const driverPoints = await getDriverPoints();
-        if (driverPoints != null) {
-          setDriverPoints(driverPoints);
-        }
-      })();
-    }
-  }, [user]); // Depend on user state
-  
+
   useEffect(() => {
     const getItemData = async (itemID) => { // gets item data from iTunes
       try {

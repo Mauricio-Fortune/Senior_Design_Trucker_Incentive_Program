@@ -21,6 +21,7 @@ import AddItemCatalog from "./catalog/org_catalog_add"
 import ManageCatalog from "./catalog/org_catalog_manager"
 import { fetchUserAttributes } from '@aws-amplify/auth';
 import { signUp } from 'aws-amplify/auth';
+import { unstable_createStyleFunctionSx } from '@mui/system';
 
 
 export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
@@ -196,35 +197,48 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
 
   useEffect(() => {
     async function addNewUser(userId){
-      try{
-        const myHeaders = new Headers();
-        myHeaders.append("Content-Type", "application/json");
-        
-        const raw = JSON.stringify({
-          "user_ID": userId,
-          "org_ID": orgID,
-          "email": email,
-          "name": name,
-          'userType': userType
-        });
-        
-        const requestOptions1 = {
-          method: "POST",
-          headers: myHeaders,
-          body: raw,
-          redirect: "follow"
-        };
-  
-          fetch("/api/sponsor/post_add_driver", requestOptions1)
-          .then((response) => response.text())
-          .then((result) => console.log(result))
-         .catch((error) => console.error(error));
-    
-        
-      }catch(error){
-        console.error('Error during sign up:', error);
+
+        try{
+          const myHeaders = new Headers();
+          myHeaders.append("Content-Type", "application/json");
+          console.log(email);
+          console.log(name);
+          console.log(user_Type);
+          
+          const raw = JSON.stringify({
+            "user_ID": userId,
+            "org_ID": orgID,
+            "email": email,
+            "name": name
+          });
+          
+          const requestOptions1 = {
+            method: "POST",
+            headers: myHeaders,
+            body: raw,
+            redirect: "follow"
+          };
+          if(userType == 'driver'){
+            fetch("/api/sponsor/post_add_driver", requestOptions1)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+           .catch((error) => console.error(error));
+          }
+          else{
+            fetch("/api/sponsor/post_add_sponsor", requestOptions1)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+           .catch((error) => console.error(error));
+          }
+        }catch(error){
+          console.error('Error during sign up:', error);
+        }
       }
-    }
+    
+      console.log("USER_TYPE: " + userType)
+ 
+      const user_Type = userType;
+     
     if(newUser != '')
       addNewUser(newUser);
   }, [newUser]); // Depend on user state
@@ -339,7 +353,7 @@ const handleSubmit = () => {
 };
 
 
-  const handleAddDriver = () => {
+  const handleAddDriver = (userType) => {
     setAppDialogOpen(true);
    
   };
@@ -348,16 +362,10 @@ const handleSubmit = () => {
   };
 
   const handleAppSubmit = () => {
-    //const userType = 'driver';
-    console.log(email);
-    console.log(password);
-    console.log(name);
-    console.log(birthday);
-    console.log(userType);
-
 
     async function handleSignUp(email, password, name, birthdate, userType) {
       try {
+       
         
           const {isSignUpComplete, userId, nextStep } = await signUp({
               'username': email,
@@ -376,6 +384,7 @@ const handleSubmit = () => {
 
           
           console.log(userId);
+          // setUserType(userType);
           
           setNewUser(userId);
    
@@ -506,57 +515,57 @@ const handleSubmit = () => {
           padding: '8px 24px'
          }}
         >
-                    <DialogTitle>Add a New User</DialogTitle>
-                    <DialogContent>
-                    <DialogContent>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            id="Email"
-                            label="Email"
-                            fullWidth
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </DialogContent>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            id="Name"
-                            label="Name"
-                            fullWidth
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                        />
-                    </DialogContent>            
-                    <DialogContent>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            id="Birthday"
-                            label="Birthday (yyyy-mm-dd)"
-                            fullWidth
-                            value={birthday}
-                            onChange={(e) => setBirthday(e.target.value)}
-                        />
-                          <DialogContent>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            id="Password"
-                            label="Password"
-                            fullWidth
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </DialogContent>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={handleAppCloseDialog}>Cancel</Button>
-                        <Button onClick={() => {setUserType('driver');handleAppSubmit();}} color="primary">
-                      Submit
-                    </Button>
-                    </DialogActions>
+            <DialogTitle>Add a New User</DialogTitle>
+            <DialogContent>
+            <DialogContent>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    id="Email"
+                    label="Email"
+                    fullWidth
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+            </DialogContent>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    id="Name"
+                    label="Name"
+                    fullWidth
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                />
+            </DialogContent>            
+            <DialogContent>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    id="Birthday"
+                    label="Birthday (yyyy-mm-dd)"
+                    fullWidth
+                    value={birthday}
+                    onChange={(e) => setBirthday(e.target.value)}
+                />
+                  <DialogContent>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    id="Password"
+                    label="Password"
+                    fullWidth
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+            </DialogContent>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={handleAppCloseDialog}>Cancel</Button>
+                <Button onClick={() => {handleAppSubmit();}} color="primary">
+              Submit
+            </Button>
+            </DialogActions>
                 </Dialog>
 
         {value === 1 && (
