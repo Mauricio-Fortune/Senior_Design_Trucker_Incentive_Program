@@ -37,7 +37,12 @@ function Admin() {
   const [behaviorText, setBehaviorText] = useState('');
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  
+
+
+  const [orgsDialogOpen, setOrgsDialogOpen] = useState(false);
+  const [actionType, setActionType] = useState('');
+  const [orgsList, setOrgsList] = useState([]);
+  const [orgAddOrDelUser, setorgAddOrDelUser] = useState('');
 
   useEffect(() => {
     setIsLoading(true);
@@ -64,10 +69,15 @@ function Admin() {
   useEffect(() => {
     setIsLoading(true);
     if(sponsorOrgs.length > 0){
-      handleRemoveUser();
+      handleRemoveUserFromOrg();
     }
     setIsLoading(false);
   }, [selectedUser]);
+
+  // Idk if this is updating anything
+  useEffect(() => {
+    console.log("Updated orgs list: ", orgsList);
+  }, [orgsList]);
 
 
   const fetchSponsorOrgs = async () => {
@@ -101,6 +111,8 @@ function Admin() {
     }
   }; 
   
+  // Only return drivers who are currently in this org and
+  // Have an ACCEPTED app status
   const fetchDriversInSameOrg = async () => {
     try {
       console.log("Org Name:", sponsorOrgs[selectedOrg].org_Name);
@@ -145,7 +157,123 @@ function Admin() {
     }
   };
 
-  const handleSubmit = async () => {
+  // Remove user from org
+  const handleRemoveUserFromOrg  = async (userID, orgID) => {
+    try {
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_ID: userID,
+          org_ID : orgID
+        })
+      };
+
+      // If it is a remove operation
+      const response = await fetch(`/api/sponsor/remove_from_org`, requestOptions);
+
+      if (!response.ok) {
+        throw new Error('Failed to remove sponsor');
+      }
+      const updatedSponsorUsers = sponsorUsers.filter(user => user.user_ID !== userID);
+      const updatedDriverUsers = driverUsers.filter(user => user.user_ID !== userID);
+      setSponsorUsers(updatedSponsorUsers);
+      setDriverUsers(updatedDriverUsers);
+      setSuccessMessage('User removed successfully');
+    } catch (error) {
+      console.error('Error removing sponsor:', error);
+      setError('Failed to remove user');
+    }
+  }
+
+/***************************************************** */
+
+
+
+  const handleEditSponsorOrgs = async (userID) => {
+    setSelectedUser(userID);
+    setOrgsDialogOpen(true);
+
+  }
+
+  const handleActionChange = async (selectedAction) => {
+    console.log("Handling action change");
+    setActionType(selectedAction);
+    if (selectedAction === 'Add') {
+      console.log("Selected Add");
+      console.log("User is: ", selectedUser);
+        // Fetch organizations that the driver is not a part of
+        const response = await fetch(`/api/user/get-orgs-not-part-of?user_ID=${selectedUser}`);
+        const data = await response.json();
+        console.log("API Response: ", data);
+        setOrgsList(data);
+    } else if (selectedAction === 'Remove') {
+      console.log("Selected Remove");
+      console.log("User is: ", selectedUser);
+        // Fetch organizations that the driver is a part of
+        const response = await fetch(`/api/user/get-orgs-part-of?user_ID=${selectedUser}`);
+        const data = await response.json();
+        console.log("API Response: ", data);
+        setOrgsList(data);
+    }
+};
+
+const handleOrgAction = async (orgName) => {
+  let orgID;
+  try {
+    const response = await fetch(`/api/driver/get_orgID_using_name?org_Name=${orgName}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch orgID');
+    }
+    const data = await response.json();
+    console.log("Data: ", data);
+    orgID = data[0].org_ID;
+    console.log('orgID:', orgID);
+  } catch (error) {
+    console.error('Error fetching org_ID:', error);
+    setError('Failed to fetch org_ID');
+  }
+
+  
+  if (actionType === 'Add') {
+      // API call to add the user to the org
+      try {
+          const response = await fetch('/api/user/post_add_to_org', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                  user_ID: selectedUser,
+                  org_ID: orgID
+              })
+          });
+          const result = await response.json();
+          if (response.ok) {
+              setSuccessMessage('User added to org successfully');
+              // Remove the org from the list
+              setOrgsList(prevOrgs => prevOrgs.filter(org => org.org_ID !== orgID));
+          } else {
+              throw new Error(result.message || 'Failed to add user to org');
+          }
+      } catch (error) {
+          console.error('Error adding user to org:', error);
+          setError(error.message);
+      }
+  } else if (actionType === 'Remove') {
+      // Similar handling for removing a user from an org
+      await handleRemoveUserFromOrg(selectedUser, orgID);
+  }
+};
+
+
+
+/***************************************************** */
+
+
+  const handlePointSubmit = async () => {
     console.log(`Submitting points change: ${pointsChange} and behavior ${behaviorText} for driver ID: ${currentDriverId}`);
     
     const pointOptions = {
@@ -168,7 +296,38 @@ function Admin() {
     handleCloseDialog();
   };
 
-  const handleRemoveUser = async (userID) => {
+  const handleAlterOrgs = async (userID, orgID) => {
+    try {
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_ID: userID,
+          org_ID : orgID
+        })
+      };
+      //console.log("User Deleted" + userID);
+      // If it is a remove operation
+      const response = await fetch(`/api/sponsor/remove_from_org`, requestOptions);
+      
+      if (!response.ok) {
+        throw new Error('Failed to remove sponsor');
+      }
+      const updatedSponsorUsers = sponsorUsers.filter(user => user.user_ID !== userID);
+      const updatedDriverUsers = driverUsers.filter(user => user.user_ID !== userID);
+      setSponsorUsers(updatedSponsorUsers);
+      setDriverUsers(updatedDriverUsers);
+      setSuccessMessage('User removed successfully');
+    } catch (error) {
+      console.error('Error removing sponsor:', error);
+      setError('Failed to remove user');
+    }
+  }
+
+  // Delete entire account
+  const handleDeleteUser = async (userID) => {
     try {
       const requestOptions = {
         method: "POST",
@@ -179,7 +338,7 @@ function Admin() {
           user_ID: userID
         })
       };
-      console.log("User Deleted" + userID);
+      //console.log("User Deleted" + userID);
       const response = await fetch(`/api/user/delete_user`, requestOptions);
       
       if (!response.ok) {
@@ -206,6 +365,9 @@ function Admin() {
   const handleCloseDialog = () => {
     setDialogOpen(false);
   };
+  const handleCloseOrgsDialog = () => {
+    setOrgsDialogOpen(false);
+  }
 
   return (
     <React.Fragment>
@@ -250,16 +412,23 @@ function Admin() {
         {selectedOrgBool && sponsorUsers.map((user) => (
           <Card key={user.user_ID} style={{ marginBottom: '16px' }}>
             <CardContent>
-              <Typography variant="h6">ID: {user.user_Type}</Typography>
+              <Typography variant="h6">Type: {user.user_Type}</Typography>
               <Typography variant="body1">Name: {user.first_Name}</Typography>
               <Button
                 variant="contained"
                 color="secondary"
-                onClick={() => handleRemoveUser(user.user_ID)}
-                style={{ marginTop: '8px' }}
+                onClick={() => handleRemoveUserFromOrg(user.user_ID, sponsorOrgs[selectedOrg].org_ID)}
+                style={{ marginRight: '8px' }}
               >
-                Remove
+                Remove From Org
               </Button>
+              <Button
+                variant="contained"
+                style={{ marginRight: '8px', backgroundColor: 'red', color: 'white' }}
+                onClick={() => handleDeleteUser(user.user_ID)}
+              >
+                Delete User
+                </Button>
             </CardContent>
           </Card>
         ))}
@@ -272,7 +441,7 @@ function Admin() {
         {selectedOrgBool && driverUsers.map((user) => (
           <Card key={user.user_ID} style={{ marginBottom: '16px' }}>
             <CardContent>
-              <Typography variant="h6">ID: {user.user_Type}</Typography>
+              <Typography variant="h6">Type: {user.user_Type}</Typography>
               <Typography variant="body1">Name: {user.first_Name}</Typography>
               <Typography variant="body1">Points: {user.total_points}</Typography>
               <Typography variant="body1">Status: {user.app_Status}</Typography>
@@ -287,19 +456,26 @@ function Admin() {
               <Button
                 variant="contained"
                 color="secondary"
-                onClick={() => handleRemoveUser(user.user_ID)}
+                onClick={() => handleRemoveUserFromOrg(user.user_ID, sponsorOrgs[selectedOrg].org_ID)}
                 style={{ marginRight: '8px' }}
               >
-                Remove User
+                Remove From Org
               </Button>
-              {/* <Button
+              <Button
                 variant="contained"
                 style={{ marginRight: '8px', backgroundColor: 'green', color: 'white' }}
-                onClick={() => handleRemoveUser(user.user_ID)}
+                onClick={() => handleEditSponsorOrgs(user.user_ID)}
                 //style={{ marginRight: '8px' }}
               >
                 Edit Sponsor Organization(s)
-              </Button> */}
+              </Button>
+              <Button
+                variant="contained"
+                style={{ marginRight: '8px', backgroundColor: 'red', color: 'white' }}
+                onClick={() => handleDeleteUser(user.user_ID)}
+              >
+                Delete User
+              </Button>
             </CardContent>
           </Card>
         ))}
@@ -329,7 +505,46 @@ function Admin() {
               </DialogContent>
               <DialogActions>
                   <Button onClick={handleCloseDialog}>Cancel</Button>
-                  <Button onClick={handleSubmit} color="primary">Submit</Button>
+                  <Button onClick={handlePointSubmit} color="primary">Submit</Button>
+              </DialogActions>
+            </Dialog>
+          {/* Alter orgs Dialog */}
+            <Dialog open ={orgsDialogOpen} onClose={handleCloseOrgsDialog}
+            sx={{
+                  '& .MuiDialog-paper': { // This targets the inner Paper component
+                    minWidth: '500px', // Set a minimum width
+                    maxWidth: '90%', // Set a maximum width relative to the viewport
+                    width: 'auto', // Auto-adjust to content
+                    maxHeight: '80vh' // Set a maximum height relative to the viewport
+                  }
+                }}>
+                <DialogTitle>Manage Orgs</DialogTitle>
+                <DialogContent>
+                <TextField
+              select
+              autoFocus
+              margin="dense"
+              id="action-select"
+              label="Action"
+              fullWidth
+              value={actionType}
+              onChange={(e) => handleActionChange(e.target.value)}
+            >
+                <MenuItem value="Add">Add</MenuItem>
+                <MenuItem value="Remove">Remove</MenuItem>
+                </TextField>
+                  {orgsList.map((org, index) => (
+                      <div key={index}>
+                          <Typography>{org.org_Name}</Typography>
+                          <Button variant="contained" onClick={() => handleOrgAction(org.org_Name)}>
+                              {actionType === 'Add' ? 'Add to Org' : 'Remove from Org'}
+                          </Button>
+                      </div>
+                  ))}
+              </DialogContent>
+              <DialogActions>
+                  <Button onClick={handleCloseOrgsDialog}>Cancel</Button>
+                  {/* Need to handleOrgSubmit funct<Button onClick={handleSubmit} color="primary">Submit</Button> */}
               </DialogActions>
             </Dialog>
 

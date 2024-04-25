@@ -22,7 +22,7 @@ export default async function handler(req, res) {
 
         const org_name = req.query.org_name;
         const user_type = req.query.user_type; 
-
+        
         const query = `
             SELECT 
                 u.user_ID, 
@@ -42,9 +42,11 @@ export default async function handler(req, res) {
             WHERE 
                 o.org_Name = ? AND 
                 u.user_Type = ? AND
-                u.is_active = 1
+                u.is_active = 1 AND
+                uo.app_status = "ACCEPTED" AND
+                uo.is_current = 1  -- Added condition to check if is_current is 1
             GROUP BY
-                u.user_ID, u.first_Name, u.email, uo.app_Status
+                u.user_ID, u.first_Name, u.email, uo.app_Status;
             `;
 
         const [rows] = await connection.query(query, [org_name, user_type]);
