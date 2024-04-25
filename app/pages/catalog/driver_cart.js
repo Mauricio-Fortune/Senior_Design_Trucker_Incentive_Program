@@ -12,10 +12,9 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
   const [order_ID, setOrderID] = useState();
   const [cart_ID, setCart] = useState(-1);
   const [cartPoints, setCartPoints] = useState(0);
+  const [pointRatio, setPointRatio] = useState(0);
 
-  // const handleLimitTypeChange = (event) => {
-  //   setQuantityType(Number(event.target.value)); // Convert to number if it's ensured to be numeric
-  // };
+ 
 
  
    
@@ -101,6 +100,29 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
         return 0; 
       }
   };
+  const getPointRatio = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        redirect: "follow"
+      };
+  
+      const response = await fetch(`api/sponsor/get_point_ratio?org_ID=${orgID}`, requestOptions);
+      if (!response.ok) {
+        throw new Error('Network response was not ok.');
+      }
+      
+      const data = await response.json(); // Convert response to JSON
+      setPointRatio(data.point_Ratio); // Assuming the data is in the format you need; otherwise, you might need data.someProperty
+  
+    } catch (error) {
+      console.error('Error Getting Point Ratio', error);
+      setPointRatio(0); // Set to 0 or another default value in case of error
+    }
+  };
+  if(orgID != null)
+  getPointRatio();
+
     // This now depends on the user state. Once the user is fetched and set, this runs.
     if (user) {
       (async () => {
@@ -205,7 +227,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
     };
 
     const addCartPoints =  async (item) => {
-      const points = (Math.round(getPoints(item))* 10);
+      const points = (Math.round(getPoints(item))* pointRatio);
       setCartPoints(cartPoints => cartPoints + points)
   
     };
@@ -251,7 +273,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
   const order_cart = async () => {
 
     if( cartPoints > driverPoints){
-      throw new Error('Not Enough Points!');
+      alert('Not Enough Points!');
      
     }else {
 
@@ -265,7 +287,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
           point_change_value : -cartPoints,
           reason: "cart order", 
           org_ID: orgID,
-          timestamp: "04/02/2024"
+          timestamp: ""
         })
       };
         const pointchange = await fetch('/api/sponsor/edit_points', pointOptions);
@@ -304,18 +326,12 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
               item_ID : itemID
             })
           };
-
-          console.log("ORDER_ID: "+ cart_ID);
-          console.log("ITEM_ID: "+ itemID);
-      
+          
           const response = await fetch('/api/driver/delete_item_from_cart', requestOptions) 
             .then((response) => response.text())
             .then((result) => console.log(result))
             .catch((error) => console.error(error));
-      
-          if (!response.ok) {
-            throw new Error('Failed to add items to database');
-          }
+          
       
         } catch (error) {
           console.error('Error Deleting items to database:', error);
@@ -340,7 +356,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
         <div>Artist: {song.artistName}</div>
         <div>Album: {song.collectionName}</div>
         <div>Genre: {song.primaryGenreName}</div>
-        <div>Points: {Math.round(song.trackPrice) * 10}</div>
+        <div>Points: {Math.round(song.trackPrice) * pointRatio}</div>
       </div>
     );
   const AlbumItem = ({ album }) => (
@@ -349,9 +365,9 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       <img src={album.artworkUrl100} alt="Album Artwork" style={{ width: 100, height: 100 }} />
       <div>Album: {album.collectionName}</div>
       <div>Artist: {album.artistName}</div>
-      <div>track Count: {album.trackCount}</div>
+      <div>Track Count: {album.trackCount}</div>
       <div>Genre: {album.primaryGenreName}</div>
-      <div>Points: {Math.round(album.collectionPrice)*10}</div>
+      <div>Points: {Math.round(album.collectionPrice)* pointRatio}</div>
     </div>
   );
   
@@ -362,7 +378,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       <div>Podcast: {podcast.collectionName}</div>
       <div>Artist: {podcast.artistName}</div>
       <div>Genre: {podcast.primaryGenreName}</div>
-      <div>Points: {Math.round(podcast.trackPrice)*10}</div>
+      <div>Points: {Math.round(podcast.trackPrice)* pointRatio}</div>
     </div>
   );
   
@@ -373,7 +389,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       <div>Title: {audiobook.collectionName}</div>
       <div>Author: {audiobook.artistName}</div>
       <div>Genre: {audiobook.primaryGenreName}</div>
-      <div>Points: {Math.round(audiobook.collectionPrice)*10}</div>
+      <div>Points: {Math.round(audiobook.collectionPrice)* pointRatio}</div>
     </div>
   );
   
@@ -385,7 +401,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       <div>Director: {movie.artistName}</div>
       <div>Genre: {movie.primaryGenreName}</div>
       <div>Rating: {movie.contentAdvisoryRating}</div>
-      <div>Points: {Math.round(movie.trackPrice)*10}</div>
+      <div>Points: {Math.round(movie.trackPrice)* pointRatio}</div>
     </div>
   );
   const EbookItem = ({ ebook }) => (
@@ -394,7 +410,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       <img src={ebook.artworkUrl100} alt="Audiobook Artwork" style={{ width: 100, height: 100 }} />
       <div>Title: {ebook.trackName}</div>
       <div>Author: {ebook.artistName}</div>
-      <div>Points: {Math.round(ebook.price)*10}</div>
+      <div>Points: {Math.round(ebook.price)* pointRatio}</div>
   </div>
   );
   

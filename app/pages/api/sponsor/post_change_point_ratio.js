@@ -1,12 +1,9 @@
-// USED FOR TESTING
-
 import mysql from 'mysql2/promise';
 import { config } from 'dotenv';
 
 config(); // This loads the .env variables
 
 export default async function handler(req, res) {
-
     // Database connection configuration
     const dbConfig = {
         host: process.env.DB_HOST,
@@ -16,29 +13,21 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
-  
-
     try {
-        // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
-        const {order_ID, item_ID} = req.body;
-       
-        
-        // make query
-        const query = 'DELETE FROM Order_Item WHERE order_ID = ? AND item_ID = ?';
-        
-        // send query
-        const [rows] = await connection.query(query,[order_ID, item_ID]);
+        const { org_ID, point_Ratio } = req.body; 
+
+        const query = `UPDATE Org SET point_Ratio = ? WHERE org_ID = ?`;
+
+
+        await connection.execute(query, [point_Ratio, org_ID]);
 
       
-
-        // Close the database connection
         await connection.end();
 
-        // Send the data as JSON response
-        res.status(200).json(rows);
+        res.status(200).json({ message: "Point Ratio updated successfully" });
     } catch (error) {
         console.error('Database connection or query failed', error);
-        res.status(500).json({ message: 'Internal Server Error' });
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 }
