@@ -38,6 +38,7 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
   const [endDate, setEndDate] = useState('');
   const [pointChanges, setPointChanges] = useState([]);
   const [submitted, setSubmitted] = useState(false);
+  const [sponsor, setSponsor] = useState();
 
   // for adding a new driver dialog
   const [appDialogOpen, setAppDialogOpen] = useState(false);
@@ -70,6 +71,14 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
       userName: '',
       userEmail: '',
       points: 0
+    }
+  ])
+
+  const [sponsorInfo, setSponsorInfo] = useState([
+    {
+      userID: '',
+      name: '',
+      email: '',
     }
   ])
   
@@ -146,6 +155,38 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
 
     };
 
+    const fetchSponsorData = async () => {
+      try {
+        const requestOptions = {
+          method: "GET",
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+
+        const response = await fetch(`/api/sponsor/get_sponsor_info?org_ID=${orgID}`, requestOptions);
+  
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        
+        const result = await response.json();
+
+        const updatedSponsor = result.map(sponsor => ({
+          userID: sponsor.user_ID,
+          name: sponsor.first_Name,
+          email: sponsor.email
+        }));
+  
+        setSponsorInfo(updatedSponsor);
+      
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      }
+
+    };
+
+    fetchSponsorData();
     fetchAppData()
     fetchDriverData()
     getDrivers();
@@ -429,6 +470,8 @@ const handleSubmit = () => {
     }
   };
 
+  
+
   const formatDate = (dateString) => {
     const dateObject = new Date(dateString);
     const year = dateObject.getFullYear();
@@ -499,7 +542,7 @@ const handleSubmit = () => {
               Sponsor Dashboard
             </Typography>
             <Typography variant="h4" gutterBottom>
-              Sponsored Drivers
+              Drivers
             </Typography>
             {userInfo.map((driver) => (
               <Card key={driver.userID} style={{ marginBottom: '16px' }}>
@@ -525,6 +568,19 @@ const handleSubmit = () => {
                 </CardContent>
               </Card>
             ))}
+            <div>
+            <Typography variant="h4" gutterBottom>
+              Sponsors
+            </Typography>
+            {sponsorInfo.map((sponsor) => (
+              <Card key={sponsor.userID} style={{ marginBottom: '16px' }}>
+                <CardContent>
+                  <Typography variant="h5">{sponsor.name}</Typography>
+                  <Typography variant="body1">{sponsor.email}</Typography>
+                </CardContent>
+              </Card>
+            ))}
+            </div>
 
                 {/* Points Management Dialog */}
                 <Dialog open={pointDialogOpen} onClose={handleCloseDialog}>
@@ -582,7 +638,9 @@ const handleSubmit = () => {
               </Button>
               </form>
           </div>
+
         )}
+        
         {/* Points Management Dialog */}
         <Dialog 
         open={appDialogOpen} 
@@ -643,7 +701,7 @@ const handleSubmit = () => {
               Submit
             </Button>
             </DialogActions>
-                </Dialog>
+        </Dialog>
 
         {value === 1 && (
           <div>
