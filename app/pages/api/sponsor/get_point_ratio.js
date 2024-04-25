@@ -1,4 +1,4 @@
-// USED FOR TESTING
+// View all pending driver application for a specific org
 
 import mysql from 'mysql2/promise';
 import { config } from 'dotenv';
@@ -6,8 +6,7 @@ import { config } from 'dotenv';
 config(); // This loads the .env variables
 
 export default async function handler(req, res) {
-
-    // Database connection configuration
+    
     const dbConfig = {
         host: process.env.DB_HOST,
         port: process.env.DB_PORT,
@@ -16,27 +15,23 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
-  
-
     try {
-        // Create a connection to the database
-        const connection = await mysql.createConnection(dbConfig);
-        const {order_ID, item_ID} = req.body;
        
-        
-        // make query
-        const query = 'DELETE FROM Order_Item WHERE order_ID = ? AND item_ID = ?';
-        
-        // send query
-        const [rows] = await connection.query(query,[order_ID, item_ID]);
+        const connection = await mysql.createConnection(dbConfig);
 
-      
+        
+        const org_ID = req.query.org_ID;
 
-        // Close the database connection
+       
+        const query = `SELECT point_Ratio FROM Org WHERE org_ID = ?`;
+
+       
+        const [pointRatio] = await connection.query(query, [org_ID]);
+    
+
         await connection.end();
 
-        // Send the data as JSON response
-        res.status(200).json(rows);
+        res.status(200).json(pointRatio[0]);
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

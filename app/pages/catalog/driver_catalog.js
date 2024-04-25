@@ -14,8 +14,9 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
   const [orgID,setOrgID] = useState();
   const [order_ID, setOrderID] = useState();
   const [cart_ID, setCart] = useState(-1);
+  const [pointRatio, setPointRatio] = useState(0);
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 
 
 
@@ -47,6 +48,26 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
         return 0; 
       }
   };
+  const getPointRatio = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        redirect: "follow"
+      };
+  
+      const response = await fetch(`api/sponsor/get_point_ratio?org_ID=${orgID}`, requestOptions);
+      if (!response.ok) {
+        throw new Error('Network response was not ok.');
+      }
+      
+      const data = await response.json(); // Convert response to JSON
+      setPointRatio(data.point_Ratio); // Assuming the data is in the format you need; otherwise, you might need data.someProperty
+  
+    } catch (error) {
+      console.error('Error Getting Point Ratio', error);
+      setPointRatio(0); // Set to 0 or another default value in case of error
+    }
+  };
    
     const fetchData = async () => { // fetches all itemIDs in database
       try {
@@ -77,6 +98,10 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       }
     };
     fetchData();
+
+    if(orgID != null)
+    getPointRatio();
+
     if (user) {
       (async () => {
         const driverPoints = await getDriverPoints();
@@ -308,7 +333,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
 
       const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
       
-      const points = (-Math.round(getPoints(item))* 10 * quantityType);
+      const points = (-Math.round(getPoints(item))* pointRatio * quantityType);
       if(points > driverPoints){
         throw new Error('Not Enough Points!');
       }
@@ -416,7 +441,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
         <div>Artist: {song.artistName}</div>
         <div>Album: {song.collectionName}</div>
         <div>Genre: {song.primaryGenreName}</div>
-        <div>Points: {Math.round(song.trackPrice) * 10}</div>
+        <div>Points: {Math.round(song.trackPrice) * pointRatio}</div>
       </div>
     );
   const AlbumItem = ({ album }) => (
@@ -427,7 +452,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       <div>Artist: {album.artistName}</div>
       <div>track Count: {album.trackCount}</div>
       <div>Genre: {album.primaryGenreName}</div>
-      <div>Points: {Math.round(album.collectionPrice)*10}</div>
+      <div>Points: {Math.round(album.collectionPrice)* pointRatio}</div>
     </div>
   );
   
@@ -438,7 +463,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       <div>Podcast: {podcast.collectionName}</div>
       <div>Artist: {podcast.artistName}</div>
       <div>Genre: {podcast.primaryGenreName}</div>
-      <div>Points: {Math.round(podcast.trackPrice)*10}</div>
+      <div>Points: {Math.round(podcast.trackPrice)* pointRatio}</div>
     </div>
   );
   
@@ -449,7 +474,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       <div>Title: {audiobook.collectionName}</div>
       <div>Author: {audiobook.artistName}</div>
       <div>Genre: {audiobook.primaryGenreName}</div>
-      <div>Points: {Math.round(audiobook.collectionPrice)*10}</div>
+      <div>Points: {Math.round(audiobook.collectionPrice)* pointRatio}</div>
     </div>
   );
   
@@ -461,7 +486,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       <div>Director: {movie.artistName}</div>
       <div>Genre: {movie.primaryGenreName}</div>
       <div>Rating: {movie.contentAdvisoryRating}</div>
-      <div>Points: {Math.round(movie.trackPrice)*10}</div>
+      <div>Points: {Math.round(movie.trackPrice)* pointRatio}</div>
     </div>
   );
   const EbookItem = ({ ebook }) => (
@@ -470,7 +495,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       <img src={ebook.artworkUrl100} alt="Audiobook Artwork" style={{ width: 100, height: 100 }} />
       <div>Title: {ebook.trackName}</div>
       <div>Author: {ebook.artistName}</div>
-      <div>Points: {Math.round(ebook.price)*10}</div>
+      <div>Points: {Math.round(ebook.price)* pointRatio}</div>
   </div>
   );
   
