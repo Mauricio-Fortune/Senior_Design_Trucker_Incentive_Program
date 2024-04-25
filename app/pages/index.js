@@ -8,6 +8,7 @@ import Layout from '@/Components/Layout';
 
 function Home() {
   const [user, setUser] = useState(null);
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
     async function currentAuthenticatedUser() {
@@ -46,6 +47,27 @@ function Home() {
         }
       }
       cognitoToRDS();
+
+      async function getUserData() {
+        try {
+          const requestOptions = {
+            method: "GET",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+          };
+          const response = await fetch(`/api/user/get_user_from_rds?user_ID=${user.sub}`, requestOptions);
+  
+          if (!response.ok) {
+            throw new Error('Failed to fetch data');
+          }
+          const result = await response.json();
+          setUserData(result[0]);
+        } catch (error) {
+          console.error('Failed to update password:', error);
+        }
+      }
+      getUserData();
     }
   }, [user]);
 
@@ -58,7 +80,7 @@ function Home() {
       <Layout>
       <main>
         <div style={{ textAlign: 'center' }}>
-          {user && (
+          {userData && (
             <p
               style={{
                 fontSize: '2em', // Increase font size
@@ -67,7 +89,7 @@ function Home() {
                 paddingBottom: '20px', // Increase bottom padding
               }}
             >
-              Welcome back, {user.name}
+              Welcome back, {userData.first_Name}
             </p>
           )}
         </div>
