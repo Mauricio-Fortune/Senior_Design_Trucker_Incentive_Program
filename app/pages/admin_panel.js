@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Select, Box, FormControl, MenuItem, InputLabel, Divider } from '@mui/material';
+import { Select, Box, FormControl, MenuItem, InputLabel, Divider, Button, Typography } from '@mui/material';
 import DriversPage from './drivers';
 import SponsorsPage from './sponsors';
-import { height } from "@mui/system";
+import Account from "./account";
 
 const AdminPanel = () => {
   const [selectedDriver, setDriver] = useState('');
@@ -12,6 +12,8 @@ const AdminPanel = () => {
   const [allSponsors, setAllSponsors] = useState([]);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [updateDriver, setUpdateDriver] = useState(false);
+  const [updateSponsor, setUpdateSponsor] = useState(false);
 
   useEffect(() => {
     const getDrivers = async () => {
@@ -65,19 +67,24 @@ const AdminPanel = () => {
   }, []);
 
   const handleDriverChange = (event) => {
-    console.log('driver change: '+ event.target.value);
-    console.log(allDrivers);
     setDriver(event.target.value);
-    console.log(event.target.value);
   };
   const handleSponsorChange = (event) => {
     setSponsor(event.target.value);
   };
 
+  const handleDriverAccountClick = () => {
+    setUpdateDriver(true);
+  }
+
+  const handleSponsorAccountClick = () => {
+    setUpdateSponsor(true);
+  }
+
 
   return (
     <div style={{ marginTop: '40px' }}>
-      <h1>View Other Accounts</h1>
+      <h1>Modify Users</h1>
       <Box sx={{ minWidth: 120 }} style={{ marginTop: '5px' }}>
         <FormControl fullWidth>
           <InputLabel>Drivers</InputLabel>
@@ -111,20 +118,30 @@ const AdminPanel = () => {
       {selectedDriver && (
         <>
           <div style={{ marginTop: '40px' }}></div>
-          <Divider sx={{ borderBottomWidth: 5, borderColor: 'primary.main' }}/>
+          <Divider sx={{ borderBottomWidth: 5, borderColor: 'primary.main' }} />
           <DriversPage isSpoofing={true} driverSpoofID={selectedDriver} />
+          <hr />
+          <Button onClick={handleDriverAccountClick}>Update Credentials</Button>
           <div style={{ marginTop: '50px' }}></div>
         </>
+      )}
+      {updateDriver && (
+        <Account isSpoof={true} spoofId={selectedDriver} />
       )}
 
       {selectedSponsor && (
         <>
           <div style={{ marginTop: '40px' }}></div>
-          <Divider sx={{ borderBottomWidth: 5, borderColor: 'primary.main' }}/>
+          <Divider sx={{ borderBottomWidth: 5, borderColor: 'primary.main' }} />
           <SponsorsPage isSpoofing={true} sponsorSpoofID={selectedSponsor} />
+          <hr />
+          <Button onClick={handleSponsorAccountClick}>Update Credentials</Button>
+          <div style={{ marginTop: '50px' }}></div>
         </>
       )}
-      <div style={{ marginTop: '100px' }}></div>
+      {updateSponsor && (
+        <Account isSpoof={true} spoofId={selectedSponsor} />
+      )}
     </div>
   );
 }

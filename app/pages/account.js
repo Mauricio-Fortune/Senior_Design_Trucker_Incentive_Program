@@ -6,6 +6,7 @@ import { updatePassword } from 'aws-amplify/auth';
 import { fetchUserAttributes } from '@aws-amplify/auth';
 import { signOut } from 'aws-amplify/auth';
 import { updateUserAttribute } from 'aws-amplify/auth';
+import { useRouter } from 'next/router';
 
 import {
   Container,
@@ -16,7 +17,7 @@ import {
   CardContent,
 } from '@mui/material';
 
-export default function Account() {
+export default function Account({isSpoof = false, spoofId = null}) {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -24,17 +25,26 @@ export default function Account() {
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
 
+
   useEffect(() => {
     async function currentAuthenticatedUser() {
-      try {
-        const user = await fetchUserAttributes();
-        setUser(user);
-      } catch (err) {
-        console.log(err);
+      if (isSpoof) {
+        setUser({
+          sub: spoofId
+        })
+        console.log("spoof")
+      }
+      else {
+        try {
+          const user = await fetchUserAttributes();
+          setUser(user);
+        } catch (err) {
+          console.log(err);
+        }
       }
     }
     currentAuthenticatedUser();
-  }, []); // Empty dependency array means this runs once on component mount
+  }, []);
 
   useEffect(() => {
     if (user == null) {
@@ -137,10 +147,13 @@ export default function Account() {
         console.error('Failed to update bio:', error);
       }
     }
-    updateCognitoName('name', name);
+    if (!isSpoof) {
+      updateCognitoName('name', name);
+      console.log('Name changed in Cognito');
+    }
 
     updateRdsName();
-    console.log('Name changed in RDS');
+    console.log('Name changed in RDS' + name);
   };
 
   const handleBioChange = () => {
@@ -213,6 +226,8 @@ export default function Account() {
         <title>Account</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
+
+      {!spoofId && (
       <ProtectedLayout>
         <Container>
           <Typography variant="h3" gutterBottom style={{ marginTop: '16px' }}>
@@ -257,31 +272,82 @@ export default function Account() {
             </CardContent>
           </Card>
 
+          {!isSpoof && (
+            <Card style={{ marginBottom: '16px' }}>
+              <CardContent>
+                <Typography variant="h5" gutterBottom>
+                  Change Password
+                </Typography>
+                <TextField
+                  label="Current Password"
+                  variant="outlined"
+                  fullWidth
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={{ marginBottom: '8px' }}
+                />
+                <TextField
+                  label="New Password"
+                  variant="outlined"
+                  fullWidth
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  style={{ marginBottom: '8px' }}
+                />
+                <Button variant="contained" color="primary" onClick={handlePasswordChange}>
+                  Change Password
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {!isSpoof && (
+            <Card style={{ marginBottom: '16px' }}>
+              <CardContent>
+                <Typography variant="h5" gutterBottom>
+                  Sign Out
+                </Typography>
+                <Button variant="contained" color="secondary" onClick={handleLogout}>
+                  Sign Out
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardContent>
+              <Typography variant="h5" gutterBottom>
+                Delete Account
+              </Typography>
+              <Button variant="contained" color="error" onClick={handleAccountDeletion}>
+                Delete Account
+              </Button>
+            </CardContent>
+          </Card>
+        </Container>
+      </ProtectedLayout>
+      )}
+
+      {spoofId && (
+        <Container>
+
           <Card style={{ marginBottom: '16px' }}>
             <CardContent>
               <Typography variant="h5" gutterBottom>
-                Change Password
+                {userData ? "Name: "+userData.first_Name : "Loading..."}
               </Typography>
               <TextField
-                label="Current Password"
+                label="New Username"
                 variant="outlined"
                 fullWidth
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 style={{ marginBottom: '8px' }}
               />
-              <TextField
-                label="New Password"
-                variant="outlined"
-                fullWidth
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                style={{ marginBottom: '8px' }}
-              />
-              <Button variant="contained" color="primary" onClick={handlePasswordChange}>
-                Change Password
+              <Button variant="contained" color="primary" onClick={handleNameChange}>
+                Change Name
               </Button>
             </CardContent>
           </Card>
@@ -289,10 +355,18 @@ export default function Account() {
           <Card style={{ marginBottom: '16px' }}>
             <CardContent>
               <Typography variant="h5" gutterBottom>
-                Sign Out
+                {userData ? (userData.bio ? ("Bio: "+userData.bio) : "Bio: Empty") : "Loading..."}
               </Typography>
-              <Button variant="contained" color="secondary" onClick={handleLogout}>
-                Sign Out
+              <TextField
+                label="New Bio"
+                variant="outlined"
+                fullWidth
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                style={{ marginBottom: '8px' }}
+              />
+              <Button variant="contained" color="primary" onClick={handleBioChange}>
+                Change Bio
               </Button>
             </CardContent>
           </Card>
@@ -308,7 +382,7 @@ export default function Account() {
             </CardContent>
           </Card>
         </Container>
-      </ProtectedLayout>
+      )}
     </>
   );
 }
