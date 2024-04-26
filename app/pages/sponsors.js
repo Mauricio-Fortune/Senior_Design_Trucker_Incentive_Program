@@ -210,7 +210,7 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
   useEffect(() => {
     async function currentAuthenticatedUser() {
       if (isSpoofing) {
-        setUser(sponsorSpoofID);
+        setUser({sub: sponsorSpoofID});
         console.log("spoof id for sponsor: ", sponsorSpoofID);
       }
       else {

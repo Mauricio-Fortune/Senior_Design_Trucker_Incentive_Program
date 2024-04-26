@@ -38,8 +38,6 @@ function Admin() {
   const [behaviorText, setBehaviorText] = useState('');
 
   const [dialogOpen, setDialogOpen] = useState(false);
-
-
   const [orgsDialogOpen, setOrgsDialogOpen] = useState(false);
   const [actionType, setActionType] = useState('');
   const [orgsList, setOrgsList] = useState([]);
@@ -47,6 +45,8 @@ function Admin() {
 
   const [selectedUserUpdate, setUserUpdate] = useState('');
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [createOrgName, setCreateOrgName] = useState('');
+  const [createOrgDialogOpen, setCreateOrgDialogOpen] =  useState(false);
 
   useEffect(() => {
     setIsLoading(true);
@@ -308,36 +308,6 @@ const handleOrgAction = async (orgName) => {
     handleCloseDialog();
   };
 
-  // const handleAlterOrgs = async (userID, orgID) => {
-  //   try {
-  //     const requestOptions = {
-  //       method: "POST",
-  //       headers: {
-  //         'Content-Type': 'application/json'
-  //       },
-  //       body: JSON.stringify({
-  //         user_ID: userID,
-  //         org_ID : orgID
-  //       })
-  //     };
-  //     //console.log("User Deleted" + userID);
-  //     // If it is a remove operation
-  //     const response = await fetch(`/api/sponsor/remove_from_org`, requestOptions);
-      
-  //     if (!response.ok) {
-  //       throw new Error('Failed to remove sponsor');
-  //     }
-  //     const updatedSponsorUsers = sponsorUsers.filter(user => user.user_ID !== userID);
-  //     const updatedDriverUsers = driverUsers.filter(user => user.user_ID !== userID);
-  //     setSponsorUsers(updatedSponsorUsers);
-  //     setDriverUsers(updatedDriverUsers);
-  //     setSuccessMessage('User removed successfully');
-  //   } catch (error) {
-  //     console.error('Error removing sponsor:', error);
-  //     setError('Failed to remove user');
-  //   }
-  // }
-
   // Delete entire account
   const handleDeleteUser = async (userID) => {
     try {
@@ -389,6 +359,36 @@ const handleOrgAction = async (orgName) => {
   };
   const handleCloseUpdateDialog = () => {
     setUpdateDialogOpen(false);
+  }
+
+
+  const handleCreateOrg = async () => {
+    try {
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          org_Name: createOrgName
+        })
+      };
+      //console.log("User Deleted" + userID);
+      const response = await fetch(`/api/admin/post_create_org`, requestOptions);
+      
+      if (!response.ok) {
+        throw new Error('Failed to create org');
+      }
+      console.log("Successfully created org");
+      setSuccessMessage('Successfully create org');
+    } catch (error) {
+      console.error('Error creating org:', error);
+      setError('Failed to create org');
+    }
+  }
+
+  const handleOrgDialogClose = () => {
+    setCreateOrgDialogOpen(false);
   }
 
   return (
@@ -609,6 +609,28 @@ const handleOrgAction = async (orgName) => {
           </Typography>
         )}
         <AdminPanel />
+        <div style={{ marginTop: '40px' }}/>
+        <Button variant="contained" onClick={() => setCreateOrgDialogOpen(true)}> Create New Organization</Button>
+        <div style={{ marginTop: '40px' }}/>
+
+        <Dialog open={createOrgDialogOpen} onClose={handleOrgDialogClose}>
+          <DialogContent>
+            <Typography variant="h5" gutterBottom>
+                Organization Name
+            </Typography>
+            <TextField
+              label="Enter Org Name"
+              variant="outlined"
+              value={createOrgName}
+              fullWidth
+              onChange={(e) => setCreateOrgName(e.target.value)}
+              style={{ marginBottom: '8px' }}
+            />
+            <Button variant="contained" color="primary" onClick={handleCreateOrg}>
+              Create
+            </Button>
+          </DialogContent>
+        </Dialog>
       </Container>
     </React.Fragment>
   );
