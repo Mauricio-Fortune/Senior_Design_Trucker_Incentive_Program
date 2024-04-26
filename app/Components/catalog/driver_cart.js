@@ -151,13 +151,13 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
         console.log("USER " + user.sub);
         const response = await fetch(`/api/driver/get_cart_orderID?user_ID=${user.sub}`, requestOptions);
         if (!response.ok) {
-          throw new Error('Failed to fetch data');
-        }
+          console.log("No cart yet!");
+        }        
         const result = await response.json();
         setCart(result.order_ID);
         return result.order_ID; // Return the new cart_ID
       } catch (error) {
-        console.error('Failed to fetch data:', error);
+        console.log("No cart yet!");
         setCart(-1);
         return -1; // Return -1 on failure
       }

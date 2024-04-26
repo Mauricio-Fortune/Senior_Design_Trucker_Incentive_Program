@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { fetchUserAttributes } from '@aws-amplify/auth';
-import Application from './application';
-import Driver_Catalog from './catalog/driver_catalog';
-import Driver_Cart from './catalog/driver_cart';
+import Application from '../Components/application';
+import Driver_Catalog from '../Components/catalog/driver_catalog';
+import Driver_Cart from '../Components/catalog/driver_cart';
 import {
   Container,
   Typography,
@@ -20,6 +20,8 @@ import {
 } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { useRouter } from 'next/router';
+
+import OrderManager from "../Components/driver_orders_manager"
 
 const useStyles = makeStyles(() => ({
   card: {
@@ -307,7 +309,7 @@ const getOrgNames = async () => {
             <Tabs value={catalogValue} onChange={handleCatalogChange} aria-label="catalog tabs">
               <Tab label="Store" />
               <Tab label="Your Cart" />
-              <Tab label="Orders" />
+              <Tab label="Your Orders" />
             </Tabs>
 
             {org_ID && (  // Check if org_ID is not null
@@ -316,7 +318,22 @@ const getOrgNames = async () => {
                 {catalogValue === 1 && <Driver_Cart isSpoof={isSpoofing} spoofId={driverSpoofID}/>}
               </div>
             )}
-    {catalogValue === 2 && orders && (
+ 
+     {catalogValue === 2 && (
+            <OrderManager isSpoof={isSpoofing} spoofId={driverSpoofID} />
+        )}
+          </>
+
+        )}
+      </Container>
+
+
+    </>
+  );
+}
+
+/*
+   {catalogValue === 2 && orders && (
       <div className="order-list">
         {Object.entries(orders).map(([orderID, items]) => (
           <Card key={orderID} className="order-card" sx={{ marginBottom: '20px' }}>
@@ -340,11 +357,5 @@ const getOrgNames = async () => {
         ))}
       </div>
     )}
-          </>
 
-        )}
-      </Container>
-
-    </>
-  );
-}
+*/
