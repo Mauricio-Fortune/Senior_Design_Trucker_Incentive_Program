@@ -17,6 +17,8 @@ import {
   MenuItem,
   Select,
   DialogTitle,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 
 import AddItemCatalog from "./catalog/org_catalog_add"
@@ -24,6 +26,8 @@ import ManageCatalog from "./catalog/org_catalog_manager"
 import { fetchUserAttributes } from '@aws-amplify/auth';
 import { signUp } from 'aws-amplify/auth';
 import { unstable_createStyleFunctionSx } from '@mui/system';
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 import Orders from "./sponsor_orders_manager"
 
 
@@ -39,7 +43,6 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
   const [endDate, setEndDate] = useState('');
   const [pointChanges, setPointChanges] = useState([]);
   const [submitted, setSubmitted] = useState(false);
-  const [sponsor, setSponsor] = useState();
 
   // for adding a new driver dialog
   const [appDialogOpen, setAppDialogOpen] = useState(false);
@@ -308,8 +311,41 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
     setValue(newValue);
   };
 
+  const handleSelectAllAudits = (event) => {
+    setAllAudits(event.target.checked);
+  }
+
+  const handleSelectedAudit = (event) => {
+    setSelectedAudit(event.target.value);
+    setAuditLog([]);
+  }
+
   const handleSubmitPoints = () => {
-    setSubmitted(true);
+    if(anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+    }
+    if(startDate == 'NaN-NaN-NaN') {
+      setStartDate('');
+    }
+    if(endDate == 'NaN-NaN-NaN') {
+      setEndDate('');
+    }
+    setSubmitted(submitted + 1);
+  }
+
+  const handleSubmitAudits = () => {
+    if(anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+    }
+    if(startDate == 'NaN-NaN-NaN') {
+      setStartDate('');
+    }
+    if(endDate == 'NaN-NaN-NaN') {
+      setEndDate('');
+    }
+    setSubmittedAudit(submittedAudit + 1);
   }
 
   const handleRemoveDriver = (driverId) => {
@@ -424,13 +460,34 @@ const handleSubmit = () => {
   const handleStartDateChange = (event) => {
     const formattedDate = formatDate(event.target.value);
     setStartDate(formattedDate);
+    if(anyTime == true) {
+      setStartDate('');
+    }
   };
 
   const handleEndDateChange = (event) => {
     const formattedDate = formatDate(event.target.value);
     setEndDate(formattedDate);
+    if(anyTime == true) {
+      setEndDate('');
+    }
   };
 
+  const handleSelectAllDrivers = (event) => {
+    setSelectAllDrivers(event.target.checked);
+  }
+
+  const handleAnyTime = (event) => {
+    setAnyTime(event.target.checked);
+    if(anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+    }
+  }
+
+  useEffect(() => {
+    getPointChanges();
+  }, [submitted]);
 
   const getPointChanges = async () => {
     try {
@@ -441,7 +498,7 @@ const handleSubmit = () => {
         }
       };
 
-      const response = await fetch(`/api/sponsor/get_point_changes?org_ID=${orgID}&selectedDriver=${selectedDriver}&startDate=${startDate}&endDate${endDate}`, requestOptions);
+      const response = await fetch(`/api/sponsor/get_point_changes?org_ID=${orgID}&selectedDriver=${selectedDriver}&startDate=${startDate}&endDate=${endDate}`, requestOptions);
       if (!response.ok) {
         throw new Error('Failed to get point changes');
       }
@@ -480,6 +537,38 @@ const handleSubmit = () => {
     const day = String(dateObject.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
+
+    useEffect(() => {
+      const createPieChart = (auditLog) => {
+        const labels = ['Pending', 'Accepted', 'Rejected'];
+        const data = [
+          auditLog.filter(audit => audit.app_Status === 'Pending').length,
+          auditLog.filter(audit => audit.app_Status === 'Accepted').length,
+          auditLog.filter(audit => audit.app_Status === 'Rejected').length
+        ];
+  
+        const ctx = document.getElementById('myChart').getContext('2d');
+  
+        new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'My Pie Chart',
+              data: data,
+              backgroundColor: ['red', 'green', 'blue'] // Add color for 'Rejected'
+            }]
+          },
+          options: {
+            // Custom options (e.g., legend, title, etc.)
+          }
+        });
+      };
+  
+      if (auditLog.length > 0) {
+        createPieChart(auditLog);
+      }
+    }, [auditLog]);
 
   const handleAppSubmit = () => {
 
@@ -764,17 +853,93 @@ const handleSubmit = () => {
 
             {/* Tab Panels */}
             {reportValue === 0 && (
-              <>
+  <>
+    <FormControlLabel
+      control={<Checkbox checked={selectAllDrivers} onChange={handleSelectAllDrivers} />}
+      label="All Drivers"
+    />
+    <Select
+      value={selectedDriver}
+      onChange={handleDriverSelect}
+      displayEmpty
+      disabled={selectAllDrivers} // Disable the select if "All Drivers" or "Any Time" is checked
+    >
+      <MenuItem value="" disabled={selectAllDrivers}>Select Driver</MenuItem>
+      {drivers && drivers.map((driver, index) => (
+        <MenuItem key={index} value={driver}>{driver}</MenuItem>
+      ))}
+    </Select>
+    {/* Add Checkbox for "Any Time" */}
+    <FormControlLabel
+      control={<Checkbox checked={anyTime} onChange={handleAnyTime} />}
+      label="Any Time"
+    />
+    <TextField
+      label="Start Date"
+      type="date"
+      value={startDate}
+      onChange={handleStartDateChange}
+      InputLabelProps={{
+        shrink: true,
+      }}
+      disabled={anyTime} // Disable the Start Date TextField if "Any Time" is checked
+    />
+    <TextField
+      label="End Date"
+      type="date"
+      value={endDate}
+      onChange={handleEndDateChange}
+      InputLabelProps={{
+        shrink: true,
+      }}
+      disabled={anyTime} // Disable the End Date TextField if "Any Time" is checked
+    />
+    <Button variant="contained" color="primary" onClick={handleSubmitPoints}>
+      Submit
+    </Button>
+    {pointChanges.map((pointChange, index) => (
+  <Card key={index} style={{ marginBottom: '10px' }}>
+    <CardContent>
+      <Typography variant="h6" component="h2">
+        Point Change ID: {pointChange.point_change_id}
+      </Typography>
+      <Typography variant="body1" component="p">
+        User ID: {pointChange.user_ID}
+      </Typography>
+      <Typography variant="body1" component="p">
+        Name: {pointChange.first_Name}
+      </Typography>
+      <Typography variant="body1" component="p">
+        Point Change Value: {pointChange.point_change_value}
+      </Typography>
+      <Typography variant="body1" component="p">
+        Reason: {pointChange.reason}
+      </Typography>
+      <Typography variant="body1" component="p">
+        Timestamp: {pointChange.timestamp}
+      </Typography>
+    </CardContent>
+  </Card>
+))}
+  </>
+)}
+            {reportValue === 1 && (
+              <>  
                 <Select
-                  value={selectedDriver}
-                  onChange={handleDriverSelect}
+                  value={selectedAudit}
+                  onChange={handleSelectedAudit}
                   displayEmpty
                 >
-                  <MenuItem value="" disabled>Select Driver</MenuItem>
-                  {drivers && drivers.map((driver, index) => (
-                    <MenuItem key={index} value={driver}>{driver}</MenuItem>
-                  ))}
+                  <MenuItem value="">Select Audit</MenuItem>
+                  <MenuItem value="Driver_App_Audit">Driver App Audit</MenuItem>
+                  <MenuItem value="Login_Attempts_Audit">Login Attempts Audit</MenuItem>
+                  <MenuItem value="Password_Changes_Audit">Password Changes Audit</MenuItem>
+                  <MenuItem value="Point_Changes_Audit">Point Changes Audit</MenuItem>
                 </Select>
+                <FormControlLabel
+                  control={<Checkbox checked={anyTime} onChange={handleAnyTime} />}
+                  label="Any Time"
+                />
                 <TextField
                   label="Start Date"
                   type="date"
@@ -783,6 +948,7 @@ const handleSubmit = () => {
                   InputLabelProps={{
                     shrink: true,
                   }}
+                  disabled={anyTime} // Disable the Start Date TextField if "Any Time" is checked
                 />
                 <TextField
                   label="End Date"
@@ -792,28 +958,109 @@ const handleSubmit = () => {
                   InputLabelProps={{
                     shrink: true,
                   }}
+                  disabled={anyTime} // Disable the End Date TextField if "Any Time" is checked
                 />
-                <Button variant="contained" color="primary" onClick={handleSubmitPoints}>
+                <Button variant="contained" color="primary" onClick={handleSubmitAudits}>
                   Submit
                 </Button>
-                {pointChanges.map((pointChange, index) => (
-                  <div key={index}>
-                    <p>Point Change ID: {pointChange.point_change_id}</p>
-                    <p>User ID: {pointChange.user_ID}</p>
-                    <p>First Name: {pointChange.first_Name}</p>
-                    <p>Point Change Value: {pointChange.point_change_value}</p>
-                    <p>Reason: {pointChange.reason}</p>
-                    <p>Timestamp: {pointChange.timestamp}</p>
-                  </div>
-                ))}
-              </>
-            )}
-            {reportValue === 1 && (
-              <>
-                <MenuItem value="" disabled>Select Driver</MenuItem>
-                {drivers && drivers.map((driver, index) => (
-                  <MenuItem key={index} value={driver}>{driver}</MenuItem>
-                ))}
+                {
+                  selectedAudit === 'Driver_App_Audit' ? (
+                    <canvas id="myChart" width="400" height="400"></canvas>
+                    /*auditLog.map((audit, index) => (
+                      <Card key={index} style={{ marginBottom: '10px' }}>
+                        <CardContent>
+                          <Typography variant="h6" component="h2">
+                            Driver App ID: {audit.driver_app_id}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            User ID: {audit.user_ID}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Name: {audit.first_Name}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Reason: {audit.reason}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Timestamp: {audit.timestamp}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            App Status: {audit.app_Status}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    ))*/
+                  ) : selectedAudit === 'Login_Attempts_Audit' ? (
+                    auditLog.map((audit, index) => (
+                      <Card key={index} style={{ marginBottom: '10px' }}>
+                        <CardContent>
+                          <Typography variant="h6" component="h2">
+                            Login Attempts ID: {audit.login_attempts_id}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            User ID: {audit.user_ID}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Name: {audit.first_Name}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Status: {audit.status}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Timestamp: {audit.timestamp}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : selectedAudit === 'Password_Changes_Audit' ? (
+                    auditLog.map((audit, index) => (
+                      <Card key={index} style={{ marginBottom: '10px' }}>
+                        <CardContent>
+                          <Typography variant="h6" component="h2">
+                            Password Change ID: {audit.password_change_id}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            User ID: {audit.user_ID}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Name: {audit.first_Name}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Change Type: {audit.change_type}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Timestamp: {audit.timestamp}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : selectedAudit === 'Point_Changes_Audit' && (
+                    auditLog.map((audit, index) => (
+                      <Card key={index} style={{ marginBottom: '10px' }}>
+                        <CardContent>
+                          <Typography variant="h6" component="h2">
+                            Point Change ID: {audit.point_change_id}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            User ID: {audit.user_ID}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Name: {audit.first_Name}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Point Change Value: {audit.point_change_value}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Reason: {audit.reason}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Timestamp: {audit.timestamp}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )
+                }
               </>
             )}
           </>
@@ -833,4 +1080,3 @@ const handleSubmit = () => {
     </>
   );
 }
-
