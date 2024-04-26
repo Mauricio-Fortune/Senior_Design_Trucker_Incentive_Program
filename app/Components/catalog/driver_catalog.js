@@ -13,7 +13,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
   const [user, setUser] = useState();
   const [orgID,setOrgID] = useState();
   const [order_ID, setOrderID] = useState();
-  const [cart_ID, setCart] = useState(-1);
+  const [cart_ID, setCart] = useState(0);
   const [pointRatio, setPointRatio] = useState(0);
   
 
@@ -49,6 +49,29 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
 
 
   useEffect(() => {
+    const createCartOrder = async () => {
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_ID: user.sub,
+          is_cart: 1,
+          org_ID: orgID
+        })
+    };
+    const response = await fetch(`/api/driver/post_new_order`, requestOptions);
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch data');
+    }
+    const result = await response.json();
+    
+  
+    setCart(result.order_ID);
+
+    }
     const getCartID = async () => {
       try {
         const requestOptions = {
@@ -66,13 +89,15 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
         setCart(result.order_ID);
         return result.order_ID; // Return the new cart_ID
       } catch (error) {
-        console.error('Failed to fetch data:', error);
-        setCart(-1);
+        //console.error('Failed to fetch data:', error);
+        createCartOrder();
         return -1; // Return -1 on failure
       }
     };
       
     if(user != null && cartItem != null){
+      if(cart_ID == -1)
+        createCartOrder();
       getCartID();
     }
   }, [cartItem]);

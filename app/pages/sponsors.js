@@ -21,13 +21,13 @@ import {
   Checkbox,
 } from '@mui/material';
 
-import AddItemCatalog from "./catalog/org_catalog_add"
-import ManageCatalog from "./catalog/org_catalog_manager"
+import AddItemCatalog from "../Components/catalog/org_catalog_add"
+import ManageCatalog from "../Components/catalog/org_catalog_manager"
 import { fetchUserAttributes } from '@aws-amplify/auth';
 import { signUp } from 'aws-amplify/auth';
 import DriversPage from './drivers';
 import Account from './account';
-import OrderManager from "./sponsor_orders_manager"
+import OrderManager from "../Components/sponsor_orders_manager"
 
 
 export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {

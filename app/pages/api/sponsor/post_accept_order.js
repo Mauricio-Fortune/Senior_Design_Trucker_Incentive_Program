@@ -1,9 +1,11 @@
+// View all pending driver application for a specific org
+
 import mysql from 'mysql2/promise';
 import { config } from 'dotenv';
 
 config(); // This loads the .env variables
 
-export default async function handler(req, res) {
+export default async function viewAllApplications(req, res) {
     // Database connection configuration
     const dbConfig = {
         host: process.env.DB_HOST,
@@ -17,21 +19,19 @@ export default async function handler(req, res) {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const user_ID = req.query.user_ID;
+        // Extract org_ID from the request body or query parameters
+        const {order_ID}= req.body;
 
-        const [result] = await connection.query('SELECT order_ID FROM Orders WHERE is_cart = true AND user_ID = ?', [user_ID]);
+        // Prepare the SELECT query
+        const query = `UPDATE Orders SET order_Status = ? WHERE order_ID = ?`;
 
-        // Close the database connection
+        // Execute the query
+        const [orders] = await connection.query(query, ["ACCEPTED",order_ID]);
+
         await connection.end();
 
-        if (result.length > 0) {
-            // Entry found, send back the order_ID
-            res.status(200).json({ order_ID: result[0].order_ID });
-        } else {
-            // No entry found that matches the criteria
-            res.status(200).json({order_ID : -1});
-        }
-
+        // Send the data as JSON response
+        res.status(200).json(orders);
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });
