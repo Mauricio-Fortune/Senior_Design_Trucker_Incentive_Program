@@ -6,7 +6,6 @@ import { updatePassword } from 'aws-amplify/auth';
 import { fetchUserAttributes } from '@aws-amplify/auth';
 import { signOut } from 'aws-amplify/auth';
 import { updateUserAttribute } from 'aws-amplify/auth';
-import { useRouter } from 'next/router';
 
 import {
   Container,

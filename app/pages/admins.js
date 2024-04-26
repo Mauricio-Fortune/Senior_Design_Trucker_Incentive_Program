@@ -16,7 +16,7 @@ import {
   DialogContent,
   DialogTitle,
 } from '@mui/material';
-import AdminPanel from './admin_panel';
+import AdminPanel from '../Components/admin_panel';
 import Account from './account';
 
 function Admin() {

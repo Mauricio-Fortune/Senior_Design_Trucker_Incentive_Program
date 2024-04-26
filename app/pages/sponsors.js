@@ -25,8 +25,8 @@ import AddItemCatalog from "./catalog/org_catalog_add"
 import ManageCatalog from "./catalog/org_catalog_manager"
 import { fetchUserAttributes } from '@aws-amplify/auth';
 import { signUp } from 'aws-amplify/auth';
-import { unstable_createStyleFunctionSx } from '@mui/system';
-
+import DriversPage from './drivers';
+import Account from './account';
 import OrderManager from "./sponsor_orders_manager"
 
 
@@ -49,6 +49,9 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
   const [selectedAudit, setSelectedAudit] = useState('');
   const [auditLog, setAuditLog] = useState([]);
   const [csvContent, setCSVContent] = useState('');
+  const [openDriverDialog, setOpenDriverDialog] = useState(false);
+  const [driverSpoofId, setDriverSpoofId] = useState('');
+  const [openAccountModal, setOpenAccountModal] = useState(false);
 
 
   // for adding a new driver dialog
@@ -708,9 +711,27 @@ const handleSubmit = () => {
       }
   }
     handleSignUp(email,password,name,birthday,userType);
-    
     setAppDialogOpen(false);
   };
+
+  const handleDriverDialogClose = () => {
+    setOpenDriverDialog(false);
+  }
+
+  const handleSetSpoofId = (spoofId) => {
+    setDriverSpoofId(spoofId);
+    setOpenDriverDialog(true);
+  }
+
+
+  const handleDriverAccountClick = () => {
+    setOpenDriverDialog(false);
+    setOpenAccountModal(true);
+  }
+
+  const handleAccountClose = () => {
+    setOpenAccountModal(false);
+  }
 
   return (
     <>
@@ -759,8 +780,16 @@ const handleSubmit = () => {
                     variant="contained"
                     color="secondary"
                     onClick={() => handleRemoveDriver(driver.userID)}
+                    style={{ marginRight: '8px' }}
                   >
                     Remove Driver
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleSetSpoofId(driver.userID)}
+                    style={{ backgroundColor: 'green' }}
+                  >
+                    Driver View
                   </Button>
                 </CardContent>
               </Card>
@@ -1192,6 +1221,19 @@ const handleSubmit = () => {
         {value === 4 && (
             <OrderManager isSpoof={isSpoofing} spoofId={sponsorSpoofID} />
         )}
+
+        <Dialog open={openDriverDialog} onClose={handleDriverDialogClose}>
+          <Button onClick={handleDriverAccountClick}>Update Account</Button>
+          <DialogContent>
+            <DriversPage isSpoofing={true} driverSpoofID={driverSpoofId} />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={openAccountModal} onClose={handleAccountClose}>
+        <DialogContent>
+          <Account isSpoof={true} spoofId={driverSpoofId} />
+        </DialogContent>
+      </Dialog>
 
       </Container>
     </>

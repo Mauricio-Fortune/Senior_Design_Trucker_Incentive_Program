@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Select, Box, FormControl, MenuItem, InputLabel, Divider, Button, Dialog, DialogTitle, DialogContent, Typography } from '@mui/material';
-import DriversPage from './drivers';
-import SponsorsPage from './sponsors';
-import Account from "./account";
+import DriversPage from '../pages/drivers';
+import SponsorsPage from '../pages/sponsors';
+import Account from "../pages/account";
 
 const AdminPanel = () => {
   const [selectedDriver, setDriver] = useState('');
@@ -106,7 +106,7 @@ const AdminPanel = () => {
   return (
     <div style={{ marginTop: '40px' }}>
       <Typography variant="h4" gutterBottom>
-          View Users
+          User View
         </Typography>
       <Box sx={{ minWidth: 120 }} style={{ marginTop: '5px' }}>
         <FormControl fullWidth>
