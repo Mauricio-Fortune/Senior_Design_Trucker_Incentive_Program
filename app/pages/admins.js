@@ -285,7 +285,7 @@ const handleOrgAction = async (orgName) => {
               point_change_value : pointsChange,
               reason: behaviorText, 
               org_ID: sponsorOrgs[selectedOrg].org_ID,
-              timestamp: "timestamp"
+              timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
             })
       };
 
