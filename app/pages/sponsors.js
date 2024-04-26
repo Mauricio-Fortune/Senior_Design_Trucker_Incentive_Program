@@ -46,6 +46,7 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
   const [selectAllAudits, setAllAudits] = useState(false);
   const [selectedAudit, setSelectedAudit] = useState('');
   const [auditLog, setAuditLog] = useState([]);
+  const [csvContent, setCSVContent] = useState('');
 
 
   // for adding a new driver dialog
@@ -584,51 +585,60 @@ const handleSubmit = () => {
   };
 
   const formatDate = (dateString) => {
-    const dateObject = new Date(dateString);
+    let dateObject = new Date(dateString);
+    
+    // Adjust date for timezone offset
+    dateObject.setDate(dateObject.getDate() + 1);
+    
     const year = dateObject.getFullYear();
     const month = String(dateObject.getMonth() + 1).padStart(2, '0');
     const day = String(dateObject.getDate()).padStart(2, '0');
+    
     return `${year}-${month}-${day}`;
   };
 
-    /*useEffect(() => {
-      const createPieChart = (auditLog) => {
-        const labels = ['Pending', 'Accepted', 'Rejected'];
-        const data = [
-          auditLog.filter(audit => audit.app_Status === 'Pending').length,
-          auditLog.filter(audit => audit.app_Status === 'Accepted').length,
-          auditLog.filter(audit => audit.app_Status === 'Rejected').length
-        ];
-  
-        const ctx = document.getElementById('myChart').getContext('2d');
-  
-        new Chart(ctx, {
-          type: 'pie',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'My Pie Chart',
-              data: data,
-              backgroundColor: ['red', 'green', 'blue'] // Add color for 'Rejected'
-            }]
-          },
-          options: {
-            // Custom options (e.g., legend, title, etc.)
-          }
-        });
-      };
-  
-      if (auditLog.length > 0) {
-        createPieChart(auditLog);
-      }
-    }, [auditLog]);*/
+  useEffect(() => {
+    createCSV();
+  }, [auditLog]);
+
+  useEffect(() => {
+    createCSV2();
+  }, [pointChanges]);
+
+  const createCSV = () => {
+    setCSVContent("data:text/csv;charset=utf-8," + auditLog.map(audit => Object.values(audit).join(",")).join("\n"));
+  }
+
+  const createCSV2 = () => {
+    setCSVContent("data:text/csv;charset=utf-8," + pointChanges.map(point => Object.values(point).join(",")).join("\n"));
+  }
+
+  const handleDownload = () => {
+    // Prepare CSV content
+    const encodedURI = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedURI);
+    link.setAttribute("download", "audit_logs.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDownload2 = () => {
+    // Prepare CSV content
+    const encodedURI = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedURI);
+    link.setAttribute("download", "point_changes.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleAppSubmit = () => {
 
     async function handleSignUp(email, password, name, birthdate, userType) {
       try {
-       
-        
           const {isSignUpComplete, userId, nextStep } = await signUp({
               'username': email,
               'password': password,
@@ -884,7 +894,12 @@ const handleSubmit = () => {
 
         {value === 3 && (
           <>
-            <Tabs value={reportValue} onChange={handleReportChange} aria-label="catalog tabs">
+            <Tabs
+              value={reportValue}
+              onChange={handleReportChange}
+              aria-label="catalog tabs"
+              style={{ marginBottom: '20px' }} // Add margin-bottom for spacing
+            >
               <Tab label="Point Tracking" />
               <Tab label="Audit Log" />
             </Tabs>
@@ -895,12 +910,14 @@ const handleSubmit = () => {
     <FormControlLabel
       control={<Checkbox checked={selectAllDrivers} onChange={handleSelectAllDrivers} />}
       label="All Drivers"
+      style={{marginRight: '10px'}}
     />
     <Select
       value={selectedDriver}
       onChange={handleDriverSelect}
       displayEmpty
       disabled={selectAllDrivers} // Disable the select if "All Drivers" or "Any Time" is checked
+      style={{ marginBottom: '20px', marginRight: '10px'}}
     >
       <MenuItem value="" disabled={selectAllDrivers}>Select Driver</MenuItem>
       {drivers && drivers.map((driver, index) => (
@@ -911,6 +928,7 @@ const handleSubmit = () => {
     <FormControlLabel
       control={<Checkbox checked={anyTime} onChange={handleAnyTime} />}
       label="Any Time"
+      style={{marginRight: '10px'}}
     />
     <TextField
       label="Start Date"
@@ -921,6 +939,7 @@ const handleSubmit = () => {
         shrink: true,
       }}
       disabled={anyTime} // Disable the Start Date TextField if "Any Time" is checked
+      style={{marginRight: '10px'}}
     />
     <TextField
       label="End Date"
@@ -931,9 +950,13 @@ const handleSubmit = () => {
         shrink: true,
       }}
       disabled={anyTime} // Disable the End Date TextField if "Any Time" is checked
+      style={{marginRight: '10px'}}
     />
-    <Button variant="contained" color="primary" onClick={handleSubmitPoints}>
+    <Button variant="contained" color="primary" onClick={handleSubmitPoints} style={{marginRight: '10px'}}>
       Submit
+    </Button>
+    <Button variant="contained" color="primary" onClick={handleDownload2} style={{marginRight: '10px'}}>
+      Download CSV
     </Button>
     {pointChanges.map((pointChange, index) => (
   <Card key={index} style={{ marginBottom: '10px' }}>
@@ -967,6 +990,7 @@ const handleSubmit = () => {
                   value={selectedAudit}
                   onChange={handleSelectedAudit}
                   displayEmpty
+                  style={{marginRight: '10px'}}
                 >
                   <MenuItem value="">Select Audit</MenuItem>
                   <MenuItem value="Driver_App_Audit">Driver App Audit</MenuItem>
@@ -977,6 +1001,7 @@ const handleSubmit = () => {
                 <FormControlLabel
                   control={<Checkbox checked={anyTime} onChange={handleAnyTime} />}
                   label="Any Time"
+                  style={{marginRight: '10px'}}
                 />
                 <TextField
                   label="Start Date"
@@ -987,6 +1012,7 @@ const handleSubmit = () => {
                     shrink: true,
                   }}
                   disabled={anyTime} // Disable the Start Date TextField if "Any Time" is checked
+                  style={{marginRight: '10px'}}
                 />
                 <TextField
                   label="End Date"
@@ -997,9 +1023,13 @@ const handleSubmit = () => {
                     shrink: true,
                   }}
                   disabled={anyTime} // Disable the End Date TextField if "Any Time" is checked
+                  style={{marginRight: '10px'}}
                 />
-                <Button variant="contained" color="primary" onClick={handleSubmitAudits}>
+                <Button variant="contained" color="primary" onClick={handleSubmitAudits} style={{marginRight: '10px'}}>
                   Submit
+                </Button>
+                <Button variant="contained" color="primary" onClick={handleDownload} style={{marginRight: '10px'}}>
+                  Download CSV
                 </Button>
                 {
                   selectedAudit === 'Driver_App_Audit' ? (
