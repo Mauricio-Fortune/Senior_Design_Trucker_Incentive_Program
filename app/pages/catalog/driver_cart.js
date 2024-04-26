@@ -332,6 +332,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
             .then((result) => console.log(result))
             .catch((error) => console.error(error));
           
+          alert("Removed item from your cart!");
       
         } catch (error) {
           console.error('Error Deleting items to database:', error);

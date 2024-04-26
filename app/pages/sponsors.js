@@ -24,6 +24,7 @@ import ManageCatalog from "./catalog/org_catalog_manager"
 import { fetchUserAttributes } from '@aws-amplify/auth';
 import { signUp } from 'aws-amplify/auth';
 import { unstable_createStyleFunctionSx } from '@mui/system';
+import Orders from "./sponsor_orders_manager"
 
 
 export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
@@ -290,6 +291,11 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
       addNewUser(newUser);
   }, [newUser]); // Depend on user state
 
+  useEffect(() => {
+    getPointChanges();
+  }, [submitted]);
+
+
   const handleCatalogChange = (event, newValue) => {
     setCatalogValue(newValue);
   };
@@ -392,7 +398,7 @@ const handleSubmit = () => {
           body: JSON.stringify({ 
             user_ID : currentDriverId,
             point_change_value : pointsChange,
-            reason: "Cause I said so", 
+            reason: pointChangeReason, 
             org_ID: orgID,
             timestamp: "timestamp"
           })
@@ -402,7 +408,6 @@ const handleSubmit = () => {
     // Here, add your logic to update the points backend or state
     handleCloseDialog();
 };
-
 
   const handleAddDriver = (userType) => {
     setAppDialogOpen(true);
@@ -426,9 +431,6 @@ const handleSubmit = () => {
     setEndDate(formattedDate);
   };
 
-  useEffect(() => {
-    getPointChanges();
-  }, [submitted]);
 
   const getPointChanges = async () => {
     try {
@@ -470,7 +472,6 @@ const handleSubmit = () => {
     }
   };
 
-  
 
   const formatDate = (dateString) => {
     const dateObject = new Date(dateString);
@@ -532,6 +533,7 @@ const handleSubmit = () => {
           <Tab label="Applications" />
           <Tab label="Catalog" />
           <Tab label="Reports" />
+          <Tab label="Orders" />
         </Tabs>
       </Box>
 
@@ -640,7 +642,6 @@ const handleSubmit = () => {
           </div>
 
         )}
-        
         {/* Points Management Dialog */}
         <Dialog 
         open={appDialogOpen} 
@@ -815,6 +816,16 @@ const handleSubmit = () => {
                 ))}
               </>
             )}
+          </>
+        )}
+        {value === 4 && (
+          <>
+            <div>
+            <Orders isSpoof={isSpoofing} spoofId={sponsorSpoofID} />
+
+
+            </div>
+
           </>
         )}
 
