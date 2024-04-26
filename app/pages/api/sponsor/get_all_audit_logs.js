@@ -18,24 +18,14 @@ export default async function handler(req, res) {
         const connection = await mysql.createConnection(dbConfig);
 
         const org_ID = req.query.org_ID;
-        const selectedDriver = req.query.selectedDriver;
         const startDate = req.query.startDate || '0000-00-00'; // Default to '0000-00-00' if null
         const endDate = req.query.endDate || '9999-12-31'; // Default to '9999-12-31' if null
 
         console.log(startDate);
         console.log(endDate);
 
-        // Fetch user_ID for the selected driver
-        const [selectedDriverRows] = await connection.query('SELECT user_ID FROM User WHERE first_Name = ? AND user_Type = ?', [selectedDriver, 'DRIVER']);
-        if (!selectedDriverRows || selectedDriverRows.length === 0) {
-            await connection.end();
-            return res.status(404).json({ message: 'Selected driver not found.' });
-        }
-
-        const selectedDriverID = selectedDriverRows[0].user_ID;
-
         // Query point changes for the selected driver within the provided date range
-        const [rows] = await connection.query('SELECT p.point_change_id, p.user_ID, u.first_Name, p.point_change_value, p.reason, p.timestamp FROM Point_Changes_Audit p JOIN User u ON p.user_ID = u.user_ID WHERE p.user_ID = ? AND p.org_ID = ? AND p.timestamp >= ? AND p.timestamp <= ? ORDER BY p.timestamp DESC', [selectedDriverID, org_ID, startDate, endDate]);
+        const [rows] = await connection.query('SELECT p.point_change_id, p.user_ID, u.first_Name, p.point_change_value, p.reason, p.timestamp FROM Point_Changes_Audit p JOIN User u ON p.user_ID = u.user_ID WHERE p.org_ID = ? AND p.timestamp >= ? AND p.timestamp <= ? ORDER BY p.timestamp DESC', [org_ID, startDate, endDate]);
 
         // Close the database connection
         await connection.end();

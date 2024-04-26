@@ -17,6 +17,8 @@ import {
   MenuItem,
   Select,
   DialogTitle,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 
 import AddItemCatalog from "./catalog/org_catalog_add"
@@ -24,7 +26,6 @@ import ManageCatalog from "./catalog/org_catalog_manager"
 import { fetchUserAttributes } from '@aws-amplify/auth';
 import { signUp } from 'aws-amplify/auth';
 import { unstable_createStyleFunctionSx } from '@mui/system';
-import Orders from "./sponsor_orders_manager"
 
 
 export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
@@ -38,8 +39,15 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [pointChanges, setPointChanges] = useState([]);
-  const [submitted, setSubmitted] = useState(false);
-  const [sponsor, setSponsor] = useState();
+  const [submitted, setSubmitted] = useState(0);
+  const [submittedAudit, setSubmittedAudit] = useState(0);
+  const [selectAllDrivers, setSelectAllDrivers] = useState(false);
+  const [anyTime, setAnyTime] = useState(false);
+  const [selectAllAudits, setAllAudits] = useState(false);
+  const [selectedAudit, setSelectedAudit] = useState('');
+  const [auditLog, setAuditLog] = useState([]);
+  const [csvContent, setCSVContent] = useState('');
+
 
   // for adding a new driver dialog
   const [appDialogOpen, setAppDialogOpen] = useState(false);
@@ -72,14 +80,6 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
       userName: '',
       userEmail: '',
       points: 0
-    }
-  ])
-
-  const [sponsorInfo, setSponsorInfo] = useState([
-    {
-      userID: '',
-      name: '',
-      email: '',
     }
   ])
   
@@ -156,38 +156,6 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
 
     };
 
-    const fetchSponsorData = async () => {
-      try {
-        const requestOptions = {
-          method: "GET",
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        };
-
-        const response = await fetch(`/api/sponsor/get_sponsor_info?org_ID=${orgID}`, requestOptions);
-  
-        if (!response.ok) {
-          throw new Error('Failed to fetch data');
-        }
-        
-        const result = await response.json();
-
-        const updatedSponsor = result.map(sponsor => ({
-          userID: sponsor.user_ID,
-          name: sponsor.first_Name,
-          email: sponsor.email
-        }));
-  
-        setSponsorInfo(updatedSponsor);
-      
-      } catch (error) {
-        console.error('Failed to fetch data:', error);
-      }
-
-    };
-
-    fetchSponsorData();
     fetchAppData()
     fetchDriverData()
     getDrivers();
@@ -291,11 +259,6 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
       addNewUser(newUser);
   }, [newUser]); // Depend on user state
 
-  useEffect(() => {
-    getPointChanges();
-  }, [submitted]);
-
-
   const handleCatalogChange = (event, newValue) => {
     setCatalogValue(newValue);
   };
@@ -308,8 +271,41 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
     setValue(newValue);
   };
 
+  const handleSelectAllAudits = (event) => {
+    setAllAudits(event.target.checked);
+  }
+
+  const handleSelectedAudit = (event) => {
+    setSelectedAudit(event.target.value);
+    setAuditLog([]);
+  }
+
   const handleSubmitPoints = () => {
-    setSubmitted(true);
+    if(anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+    }
+    if(startDate == 'NaN-NaN-NaN') {
+      setStartDate('');
+    }
+    if(endDate == 'NaN-NaN-NaN') {
+      setEndDate('');
+    }
+    setSubmitted(submitted + 1);
+  }
+
+  const handleSubmitAudits = () => {
+    if(anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+    }
+    if(startDate == 'NaN-NaN-NaN') {
+      setStartDate('');
+    }
+    if(endDate == 'NaN-NaN-NaN') {
+      setEndDate('');
+    }
+    setSubmittedAudit(submittedAudit + 1);
   }
 
   const handleRemoveDriver = (driverId) => {
@@ -398,7 +394,7 @@ const handleSubmit = () => {
           body: JSON.stringify({ 
             user_ID : currentDriverId,
             point_change_value : pointsChange,
-            reason: pointChangeReason, 
+            reason: "Cause I said so", 
             org_ID: orgID,
             timestamp: "timestamp"
           })
@@ -408,6 +404,7 @@ const handleSubmit = () => {
     // Here, add your logic to update the points backend or state
     handleCloseDialog();
 };
+
 
   const handleAddDriver = (userType) => {
     setAppDialogOpen(true);
@@ -424,13 +421,128 @@ const handleSubmit = () => {
   const handleStartDateChange = (event) => {
     const formattedDate = formatDate(event.target.value);
     setStartDate(formattedDate);
+    if(anyTime == true) {
+      setStartDate('');
+    }
   };
 
   const handleEndDateChange = (event) => {
     const formattedDate = formatDate(event.target.value);
     setEndDate(formattedDate);
+    if(anyTime == true) {
+      setEndDate('');
+    }
   };
 
+  const handleSelectAllDrivers = (event) => {
+    setSelectAllDrivers(event.target.checked);
+  }
+
+  const handleAnyTime = (event) => {
+    setAnyTime(event.target.checked);
+    if(anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+    }
+  }
+
+  useEffect(() => {
+    if(submitted > 0 && selectAllDrivers != true && anyTime != true) {
+      getPointChanges();
+    }
+    else if(submitted > 0 && selectAllDrivers == true && anyTime != true) {
+      getPointChangesAllDrivers();
+    }
+    else if (submitted > 0 && selectAllDrivers == true && anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+      getPointChangesAllDrivers();
+    }
+    else if (submitted > 0 && selectAllDrivers != true && anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+      getPointChanges();
+    }
+  }, [submitted]);
+
+  useEffect(() => {
+    if(submittedAudit > 0 && selectAllAudits != true && anyTime != true) {
+      getAuditLog();
+    }
+    else if(submittedAudit > 0 && selectAllAudits == true && anyTime != true) {
+      getAllAuditLogs();
+    }
+    else if (submittedAudit > 0 && selectAllAudits == true && anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+      getAllAuditLogs();
+    }
+    else if (submittedAudit > 0 && selectAllAudits != true && anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+      getAuditLog();
+    }
+  }, [submittedAudit]);
+
+  const getAuditLog = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+
+      const response = await fetch(`/api/sponsor/get_audit_log?org_ID=${orgID}&selectedAudit=${selectedAudit}&startDate=${startDate}&endDate=${endDate}`, requestOptions);
+      if (!response.ok) {
+        throw new Error('Failed to get audit log');
+      }
+      const result = await response.json();
+      setAuditLog(result);
+    } catch (error) {
+      console.error('Failed to fetch audit log:', error);
+    }
+  };
+
+  const getAllAuditLogs = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+
+      const response = await fetch(`/api/sponsor/get_all_audit_logs?org_ID=${orgID}&startDate=${startDate}&endDate=${endDate}`, requestOptions);
+      if (!response.ok) {
+        throw new Error('Failed to get all audit logs');
+      }
+      const result = await response.json();
+      setAuditLog(result);
+    } catch (error) {
+      console.error('Failed to fetch all audit logs:', error);
+    }
+  };
+
+  const getPointChangesAllDrivers = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+
+      const response = await fetch(`/api/sponsor/get_point_changes_all_drivers?org_ID=${orgID}&startDate=${startDate}&endDate=${endDate}`, requestOptions);
+      if (!response.ok) {
+        throw new Error('Failed to get point changes');
+      }
+      const result = await response.json();
+      setPointChanges(result);
+    } catch (error) {
+      console.error('Failed to fetch point changes:', error);
+    }
+  }
 
   const getPointChanges = async () => {
     try {
@@ -441,7 +553,7 @@ const handleSubmit = () => {
         }
       };
 
-      const response = await fetch(`/api/sponsor/get_point_changes?org_ID=${orgID}&selectedDriver=${selectedDriver}&startDate=${startDate}&endDate${endDate}`, requestOptions);
+      const response = await fetch(`/api/sponsor/get_point_changes?org_ID=${orgID}&selectedDriver=${selectedDriver}&startDate=${startDate}&endDate=${endDate}`, requestOptions);
       if (!response.ok) {
         throw new Error('Failed to get point changes');
       }
@@ -472,21 +584,61 @@ const handleSubmit = () => {
     }
   };
 
-
   const formatDate = (dateString) => {
-    const dateObject = new Date(dateString);
+    let dateObject = new Date(dateString);
+    
+    // Adjust date for timezone offset
+    dateObject.setDate(dateObject.getDate() + 1);
+    
     const year = dateObject.getFullYear();
     const month = String(dateObject.getMonth() + 1).padStart(2, '0');
     const day = String(dateObject.getDate()).padStart(2, '0');
+    
     return `${year}-${month}-${day}`;
+  };
+
+  useEffect(() => {
+    createCSV();
+  }, [auditLog]);
+
+  useEffect(() => {
+    createCSV2();
+  }, [pointChanges]);
+
+  const createCSV = () => {
+    setCSVContent("data:text/csv;charset=utf-8," + auditLog.map(audit => Object.values(audit).join(",")).join("\n"));
+  }
+
+  const createCSV2 = () => {
+    setCSVContent("data:text/csv;charset=utf-8," + pointChanges.map(point => Object.values(point).join(",")).join("\n"));
+  }
+
+  const handleDownload = () => {
+    // Prepare CSV content
+    const encodedURI = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedURI);
+    link.setAttribute("download", "audit_logs.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDownload2 = () => {
+    // Prepare CSV content
+    const encodedURI = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedURI);
+    link.setAttribute("download", "point_changes.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleAppSubmit = () => {
 
     async function handleSignUp(email, password, name, birthdate, userType) {
       try {
-       
-        
           const {isSignUpComplete, userId, nextStep } = await signUp({
               'username': email,
               'password': password,
@@ -533,7 +685,6 @@ const handleSubmit = () => {
           <Tab label="Applications" />
           <Tab label="Catalog" />
           <Tab label="Reports" />
-          <Tab label="Orders" />
         </Tabs>
       </Box>
 
@@ -544,7 +695,7 @@ const handleSubmit = () => {
               Sponsor Dashboard
             </Typography>
             <Typography variant="h4" gutterBottom>
-              Drivers
+              Sponsored Drivers
             </Typography>
             {userInfo.map((driver) => (
               <Card key={driver.userID} style={{ marginBottom: '16px' }}>
@@ -570,19 +721,6 @@ const handleSubmit = () => {
                 </CardContent>
               </Card>
             ))}
-            <div>
-            <Typography variant="h4" gutterBottom>
-              Sponsors
-            </Typography>
-            {sponsorInfo.map((sponsor) => (
-              <Card key={sponsor.userID} style={{ marginBottom: '16px' }}>
-                <CardContent>
-                  <Typography variant="h5">{sponsor.name}</Typography>
-                  <Typography variant="body1">{sponsor.email}</Typography>
-                </CardContent>
-              </Card>
-            ))}
-            </div>
 
                 {/* Points Management Dialog */}
                 <Dialog open={pointDialogOpen} onClose={handleCloseDialog}>
@@ -640,7 +778,6 @@ const handleSubmit = () => {
               </Button>
               </form>
           </div>
-
         )}
         {/* Points Management Dialog */}
         <Dialog 
@@ -702,7 +839,7 @@ const handleSubmit = () => {
               Submit
             </Button>
             </DialogActions>
-        </Dialog>
+                </Dialog>
 
         {value === 1 && (
           <div>
@@ -757,24 +894,115 @@ const handleSubmit = () => {
 
         {value === 3 && (
           <>
-            <Tabs value={reportValue} onChange={handleReportChange} aria-label="catalog tabs">
+            <Tabs
+              value={reportValue}
+              onChange={handleReportChange}
+              aria-label="catalog tabs"
+              style={{ marginBottom: '20px' }} // Add margin-bottom for spacing
+            >
               <Tab label="Point Tracking" />
               <Tab label="Audit Log" />
             </Tabs>
 
             {/* Tab Panels */}
             {reportValue === 0 && (
-              <>
+  <>
+    <FormControlLabel
+      control={<Checkbox checked={selectAllDrivers} onChange={handleSelectAllDrivers} />}
+      label="All Drivers"
+      style={{marginRight: '10px'}}
+    />
+    <Select
+      value={selectedDriver}
+      onChange={handleDriverSelect}
+      displayEmpty
+      disabled={selectAllDrivers} // Disable the select if "All Drivers" or "Any Time" is checked
+      style={{ marginBottom: '20px', marginRight: '10px'}}
+    >
+      <MenuItem value="" disabled={selectAllDrivers}>Select Driver</MenuItem>
+      {drivers && drivers.map((driver, index) => (
+        <MenuItem key={index} value={driver}>{driver}</MenuItem>
+      ))}
+    </Select>
+    {/* Add Checkbox for "Any Time" */}
+    <FormControlLabel
+      control={<Checkbox checked={anyTime} onChange={handleAnyTime} />}
+      label="Any Time"
+      style={{marginRight: '10px'}}
+    />
+    <TextField
+      label="Start Date"
+      type="date"
+      value={startDate}
+      onChange={handleStartDateChange}
+      InputLabelProps={{
+        shrink: true,
+      }}
+      disabled={anyTime} // Disable the Start Date TextField if "Any Time" is checked
+      style={{marginRight: '10px'}}
+    />
+    <TextField
+      label="End Date"
+      type="date"
+      value={endDate}
+      onChange={handleEndDateChange}
+      InputLabelProps={{
+        shrink: true,
+      }}
+      disabled={anyTime} // Disable the End Date TextField if "Any Time" is checked
+      style={{marginRight: '10px'}}
+    />
+    <Button variant="contained" color="primary" onClick={handleSubmitPoints} style={{marginRight: '10px'}}>
+      Submit
+    </Button>
+    <Button variant="contained" color="primary" onClick={handleDownload2} style={{marginRight: '10px'}}>
+      Download CSV
+    </Button>
+    {pointChanges.map((pointChange, index) => (
+  <Card key={index} style={{ marginBottom: '10px' }}>
+    <CardContent>
+      <Typography variant="h6" component="h2">
+        Point Change ID: {pointChange.point_change_id}
+      </Typography>
+      <Typography variant="body1" component="p">
+        User ID: {pointChange.user_ID}
+      </Typography>
+      <Typography variant="body1" component="p">
+        Name: {pointChange.first_Name}
+      </Typography>
+      <Typography variant="body1" component="p">
+        Point Change Value: {pointChange.point_change_value}
+      </Typography>
+      <Typography variant="body1" component="p">
+        Reason: {pointChange.reason}
+      </Typography>
+      <Typography variant="body1" component="p">
+        Timestamp: {pointChange.timestamp}
+      </Typography>
+    </CardContent>
+  </Card>
+))}
+  </>
+)}
+            {reportValue === 1 && (
+              <>  
                 <Select
-                  value={selectedDriver}
-                  onChange={handleDriverSelect}
+                  value={selectedAudit}
+                  onChange={handleSelectedAudit}
                   displayEmpty
+                  style={{marginRight: '10px'}}
                 >
-                  <MenuItem value="" disabled>Select Driver</MenuItem>
-                  {drivers && drivers.map((driver, index) => (
-                    <MenuItem key={index} value={driver}>{driver}</MenuItem>
-                  ))}
+                  <MenuItem value="">Select Audit</MenuItem>
+                  <MenuItem value="Driver_App_Audit">Driver App Audit</MenuItem>
+                  <MenuItem value="Login_Attempts_Audit">Login Attempts Audit</MenuItem>
+                  <MenuItem value="Password_Changes_Audit">Password Changes Audit</MenuItem>
+                  <MenuItem value="Point_Changes_Audit">Point Changes Audit</MenuItem>
                 </Select>
+                <FormControlLabel
+                  control={<Checkbox checked={anyTime} onChange={handleAnyTime} />}
+                  label="Any Time"
+                  style={{marginRight: '10px'}}
+                />
                 <TextField
                   label="Start Date"
                   type="date"
@@ -783,6 +1011,8 @@ const handleSubmit = () => {
                   InputLabelProps={{
                     shrink: true,
                   }}
+                  disabled={anyTime} // Disable the Start Date TextField if "Any Time" is checked
+                  style={{marginRight: '10px'}}
                 />
                 <TextField
                   label="End Date"
@@ -792,40 +1022,114 @@ const handleSubmit = () => {
                   InputLabelProps={{
                     shrink: true,
                   }}
+                  disabled={anyTime} // Disable the End Date TextField if "Any Time" is checked
+                  style={{marginRight: '10px'}}
                 />
-                <Button variant="contained" color="primary" onClick={handleSubmitPoints}>
+                <Button variant="contained" color="primary" onClick={handleSubmitAudits} style={{marginRight: '10px'}}>
                   Submit
                 </Button>
-                {pointChanges.map((pointChange, index) => (
-                  <div key={index}>
-                    <p>Point Change ID: {pointChange.point_change_id}</p>
-                    <p>User ID: {pointChange.user_ID}</p>
-                    <p>First Name: {pointChange.first_Name}</p>
-                    <p>Point Change Value: {pointChange.point_change_value}</p>
-                    <p>Reason: {pointChange.reason}</p>
-                    <p>Timestamp: {pointChange.timestamp}</p>
-                  </div>
-                ))}
+                <Button variant="contained" color="primary" onClick={handleDownload} style={{marginRight: '10px'}}>
+                  Download CSV
+                </Button>
+                {
+                  selectedAudit === 'Driver_App_Audit' ? (
+                    auditLog.map((audit, index) => (
+                      <Card key={index} style={{ marginBottom: '10px' }}>
+                        <CardContent>
+                          <Typography variant="h6" component="h2">
+                            Driver App ID: {audit.driver_app_id}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            User ID: {audit.user_ID}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Name: {audit.first_Name}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Reason: {audit.reason}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Timestamp: {audit.timestamp}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            App Status: {audit.app_Status}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : selectedAudit === 'Login_Attempts_Audit' ? (
+                    auditLog.map((audit, index) => (
+                      <Card key={index} style={{ marginBottom: '10px' }}>
+                        <CardContent>
+                          <Typography variant="h6" component="h2">
+                            Login Attempts ID: {audit.login_attempts_id}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            User ID: {audit.user_ID}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Name: {audit.first_Name}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Status: {audit.status}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Timestamp: {audit.timestamp}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : selectedAudit === 'Password_Changes_Audit' ? (
+                    auditLog.map((audit, index) => (
+                      <Card key={index} style={{ marginBottom: '10px' }}>
+                        <CardContent>
+                          <Typography variant="h6" component="h2">
+                            Password Change ID: {audit.password_change_id}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            User ID: {audit.user_ID}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Name: {audit.first_Name}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Change Type: {audit.change_type}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Timestamp: {audit.timestamp}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : selectedAudit === 'Point_Changes_Audit' && (
+                    auditLog.map((audit, index) => (
+                      <Card key={index} style={{ marginBottom: '10px' }}>
+                        <CardContent>
+                          <Typography variant="h6" component="h2">
+                            Point Change ID: {audit.point_change_id}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            User ID: {audit.user_ID}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Name: {audit.first_Name}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Point Change Value: {audit.point_change_value}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Reason: {audit.reason}
+                          </Typography>
+                          <Typography variant="body1" component="p">
+                            Timestamp: {audit.timestamp}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )
+                }
               </>
             )}
-            {reportValue === 1 && (
-              <>
-                <MenuItem value="" disabled>Select Driver</MenuItem>
-                {drivers && drivers.map((driver, index) => (
-                  <MenuItem key={index} value={driver}>{driver}</MenuItem>
-                ))}
-              </>
-            )}
-          </>
-        )}
-        {value === 4 && (
-          <>
-            <div>
-            <Orders isSpoof={isSpoofing} spoofId={sponsorSpoofID} />
-
-
-            </div>
-
           </>
         )}
 
@@ -833,4 +1137,3 @@ const handleSubmit = () => {
     </>
   );
 }
-
