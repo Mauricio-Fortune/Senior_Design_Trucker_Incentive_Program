@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Select, Box, FormControl, MenuItem, InputLabel, Divider, Button, Typography } from '@mui/material';
+import { Select, Box, FormControl, MenuItem, InputLabel, Divider, Button, Dialog, DialogTitle, DialogContent, Typography } from '@mui/material';
 import DriversPage from './drivers';
 import SponsorsPage from './sponsors';
 import Account from "./account";
@@ -12,8 +12,10 @@ const AdminPanel = () => {
   const [allSponsors, setAllSponsors] = useState([]);
 
   const [isLoading, setIsLoading] = useState(true);
-  const [updateDriver, setUpdateDriver] = useState(false);
-  const [updateSponsor, setUpdateSponsor] = useState(false);
+  const [openDriverAccountModal, setOpenDriverAccountModal] = useState(false);
+  const [openSponsorAccountModal, setOpenSponsorAccountModal] = useState(false);
+  const [openDriverDialog, setOpenDriverDialog] = useState(false);
+  const [openSponsorDialog, setOpenSponsorDialog] = useState(false);
 
   useEffect(() => {
     const getDrivers = async () => {
@@ -68,19 +70,38 @@ const AdminPanel = () => {
 
   const handleDriverChange = (event) => {
     setDriver(event.target.value);
+    setOpenDriverDialog(true);
   };
   const handleSponsorChange = (event) => {
     setSponsor(event.target.value);
+    setOpenSponsorDialog(true);
   };
 
+
   const handleDriverAccountClick = () => {
-    setUpdateDriver(true);
+    setOpenDriverDialog(false);
+    setOpenDriverAccountModal(true);
   }
 
   const handleSponsorAccountClick = () => {
-    setUpdateSponsor(true);
+    setOpenSponsorDialog(false);
+    setOpenSponsorAccountModal(true);
   }
 
+  const handleDriverClose = () => {
+    setOpenDriverAccountModal(false);
+  };
+  const handleSponsorClose = () => {
+    setOpenSponsorAccountModal(false);
+  };
+
+  const handleDriverDialogClose = () => {
+    setOpenDriverDialog(false);
+  };
+
+  const handleSponsorDialogClose = () => {
+    setOpenSponsorDialog(false);
+  };
 
   return (
     <div style={{ marginTop: '40px' }}>
@@ -115,33 +136,32 @@ const AdminPanel = () => {
         </FormControl>
       </Box>
 
-      {selectedDriver && (
-        <>
-          <div style={{ marginTop: '40px' }}></div>
-          <Divider sx={{ borderBottomWidth: 5, borderColor: 'primary.main' }} />
-          <DriversPage isSpoofing={true} driverSpoofID={selectedDriver} />
-          <hr />
-          <Button onClick={handleDriverAccountClick}>Update Credentials</Button>
-          <div style={{ marginTop: '50px' }}></div>
-        </>
-      )}
-      {updateDriver && (
-        <Account isSpoof={true} spoofId={selectedDriver} />
-      )}
+      <Dialog open={openDriverAccountModal} onClose={handleDriverClose}>
+        <DialogContent>
+          <Account isSpoof={true} spoofId={selectedDriver} />
+        </DialogContent>
+      </Dialog>
 
-      {selectedSponsor && (
-        <>
-          <div style={{ marginTop: '40px' }}></div>
-          <Divider sx={{ borderBottomWidth: 5, borderColor: 'primary.main' }} />
+      <Dialog open={openSponsorAccountModal} onClose={handleSponsorClose}>
+        <DialogContent>
+          <Account isSpoof={true} spoofId={selectedSponsor} />
+        </DialogContent>
+      </Dialog>
+
+
+      <Dialog open={openDriverDialog} onClose={handleDriverDialogClose}>
+        <Button onClick={handleDriverAccountClick}>Update Account</Button>
+        <DialogContent>
+          <DriversPage isSpoofing={true} driverSpoofID={selectedDriver} />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openSponsorDialog} onClose={handleSponsorDialogClose}>
+      <Button onClick={handleSponsorAccountClick}>Update Account</Button>
+        <DialogContent>
           <SponsorsPage isSpoofing={true} sponsorSpoofID={selectedSponsor} />
-          <hr />
-          <Button onClick={handleSponsorAccountClick}>Update Credentials</Button>
-          <div style={{ marginTop: '50px' }}></div>
-        </>
-      )}
-      {updateSponsor && (
-        <Account isSpoof={true} spoofId={selectedSponsor} />
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from '@mui/material';
 import AdminPanel from './admin_panel';
+import Account from './account';
 
 function Admin() {
   const [sponsorOrgs, setSponsorOrgs] = useState([]);  
@@ -44,6 +45,9 @@ function Admin() {
   const [orgsList, setOrgsList] = useState([]);
   const [orgAddOrDelUser, setorgAddOrDelUser] = useState('');
 
+  const [selectedUserUpdate, setUserUpdate] = useState('');
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+
   useEffect(() => {
     setIsLoading(true);
     fetchSponsorOrgs();
@@ -66,13 +70,6 @@ function Admin() {
     setIsLoading(false);
   }, [selectedOrg]);
 
-  useEffect(() => {
-    setIsLoading(true);
-    if(sponsorOrgs.length > 0){
-      handleRemoveUserFromOrg();
-    }
-    setIsLoading(false);
-  }, [selectedUser]);
 
   // Idk if this is updating anything
   useEffect(() => {
@@ -361,12 +358,20 @@ const handleOrgAction = async (orgName) => {
     setBehaviorText('');
     setDialogOpen(true);
   };
+  
+  const handleUpdateCredentials = (spoofId) => {
+    setUserUpdate(spoofId);
+    setUpdateDialogOpen(true);
+  }
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
   };
   const handleCloseOrgsDialog = () => {
     setOrgsDialogOpen(false);
+  };
+  const handleCloseUpdateDialog = () => {
+    setUpdateDialogOpen(false);
   }
 
   return (
@@ -424,6 +429,13 @@ const handleOrgAction = async (orgName) => {
               </Button>
               <Button
                 variant="contained"
+                style={{ marginRight: '8px', backgroundColor: 'dimgray', color: 'white' }}
+                onClick={() => handleUpdateCredentials(user.user_ID)}
+              >
+                Update Credentials
+              </Button>
+              <Button
+                variant="contained"
                 style={{ marginRight: '8px', backgroundColor: 'red', color: 'white' }}
                 onClick={() => handleDeleteUser(user.user_ID)}
               >
@@ -468,6 +480,13 @@ const handleOrgAction = async (orgName) => {
                 //style={{ marginRight: '8px' }}
               >
                 Edit Sponsor Organization(s)
+              </Button>
+              <Button
+                variant="contained"
+                style={{ marginRight: '8px', backgroundColor: 'dimgray', color: 'white' }}
+                onClick={() => handleUpdateCredentials(user.user_ID)}
+              >
+                Update Credentials
               </Button>
               <Button
                 variant="contained"
@@ -555,6 +574,13 @@ const handleOrgAction = async (orgName) => {
           onClose={() => setSuccessMessage('')}
           message={successMessage}
         />
+
+        <Dialog open={updateDialogOpen} onClose={handleCloseUpdateDialog}>
+          <DialogTitle>Update Account</DialogTitle>
+          <DialogContent>
+            <Account isSpoof={true} spoofId={selectedUserUpdate} />
+          </DialogContent>
+        </Dialog>
 
         {isLoading && (
           <Box display="flex" justifyContent="center" mt={3}>
