@@ -21,25 +21,35 @@ export default async function handler(req, res) {
         const connection = await mysql.createConnection(dbConfig);
         const currentTimestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-        const { user_ID, org_ID} = req.body;
+        const { user_ID, org_ID, email, name} = req.body;
+        console.log('API');
+        console.log(user_ID);
+        console.log(org_ID);
+        console.log(email);
+        console.log(name);
 
-        const query = 'UPDATE User_Org SET app_Status = ?, active_User = ? WHERE user_ID = ? AND org_ID = ?'
-        const response = await connection.query(query,["ACCEPTED", 1, user_ID, org_ID]);
+   
 
-        //UPDATE AUDIT LOG
-        const query2 = 'UPDATE Driver_App_Audit  SET app_status = ? WHERE user_ID = ? AND org_ID = ?';
-        const response2 = await connection.query(query2,["ACCEPTED",user_ID,org_ID]);
+        const query1 = 'INSERT INTO User (user_ID, user_Type, email, first_Name,is_active) VALUES (?,?,?,?,?)';
+        const response1 = await connection.query(query1,[user_ID,'DRIVER',email,name,1]);
 
+        const query = 'INSERT INTO User_Org (user_ID, org_ID, app_status,is_current) VALUES (?,?,?,?)';
+        const response = await connection.query(query,[user_ID, org_ID,'ACCEPTED',1]);
+
+
+        const query2 = 'INSERT INTO Driver_App_Audit (org_ID, user_ID,reason,timestamp,app_status) VALUES (?,?,?,?,?)';
+        const response2 = await connection.query(query2,[org_ID,user_ID,'Created by Sponsor',currentTimestamp,'ACCEPTED']);
+    
         // add 0 points so they are in the audit table 
         const query3 = 'INSERT INTO Point_Changes_Audit (user_ID, point_change_value, reason, org_ID, timestamp) VALUES (?,?,?,?,?)';
-        const response3 = await connection.query(query3, [user_ID, 0, 'Accepted', org_ID, currentTimestamp]);
+        const response3 = await connection.query(query3, [user_ID, 0, 'created by sponsor', org_ID, currentTimestamp]);
         
 
         // Close the database connection
         await connection.end();
 
         // Send the data as JSON response
-        res.status(200).json({message: "Successfully accepted driver"});
+        res.status(200).json({message: "Successfully added driver user"});
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

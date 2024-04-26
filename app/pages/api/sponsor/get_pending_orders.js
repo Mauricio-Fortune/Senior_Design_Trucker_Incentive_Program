@@ -24,33 +24,28 @@ export default async function viewAllApplications(req, res) {
 
         // Prepare the SELECT query
         const query = `
-            SELECT 
-                User_Org.user_ID,
-                User.first_Name, 
-                User.email,
-                SUM(Point_Changes_Audit.point_change_value) AS total_points
-            FROM 
-                User_Org
-            JOIN 
-                User ON User_Org.user_ID = User.user_ID
-            JOIN
-                Point_Changes_Audit ON User_Org.user_ID = Point_Changes_Audit.user_ID
-            WHERE 
-                User_Org.org_ID = ? AND 
-                User_Org.app_Status = 'ACCEPTED'
-            GROUP BY
-                User_Org.user_ID, User.first_Name, User.email;
-            `;
-
-  
+        SELECT 
+            Orders.order_ID, 
+            Orders.user_ID,
+            User.first_Name, 
+            User.email
+        FROM 
+            Orders 
+        JOIN 
+            User ON Orders.user_ID = User.user_ID 
+        WHERE 
+            Orders.org_ID = ? AND 
+            Orders.order_Status = 'PENDING' AND
+            Orders.is_cart = 0
+        `;
 
         // Execute the query
-        const [userInfo] = await connection.query(query, [org_ID,'ACCEPTED']);
-        
+        const [orders] = await connection.query(query, [org_ID]);
+
         await connection.end();
 
         // Send the data as JSON response
-        res.status(200).json(userInfo);
+        res.status(200).json(orders);
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

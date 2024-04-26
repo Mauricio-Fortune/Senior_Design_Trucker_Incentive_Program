@@ -20,37 +20,41 @@ export default async function viewAllApplications(req, res) {
         const connection = await mysql.createConnection(dbConfig);
 
         // Extract org_ID from the request body or query parameters
+        const user_ID = req.query.user_ID;
         const org_ID = req.query.org_ID;
 
         // Prepare the SELECT query
         const query = `
-            SELECT 
-                User_Org.user_ID,
-                User.first_Name, 
-                User.email,
-                SUM(Point_Changes_Audit.point_change_value) AS total_points
-            FROM 
-                User_Org
-            JOIN 
-                User ON User_Org.user_ID = User.user_ID
-            JOIN
-                Point_Changes_Audit ON User_Org.user_ID = Point_Changes_Audit.user_ID
-            WHERE 
-                User_Org.org_ID = ? AND 
-                User_Org.app_Status = 'ACCEPTED'
-            GROUP BY
-                User_Org.user_ID, User.first_Name, User.email;
-            `;
-
-  
+        SELECT 
+            Orders.order_ID,
+            Orders.user_ID,
+            Orders.order_Status,
+            Order_Item.item_Name,
+            Order_Item.points,
+            User.first_name,
+            Order_Item.item_Quantity
+        FROM 
+            Orders
+        JOIN 
+            Order_Item ON Orders.order_ID = Order_Item.order_ID
+        JOIN 
+            User_Org ON Orders.user_ID = User_Org.user_ID
+        JOIN
+            User ON Orders.user_ID = User.user_ID
+        WHERE 
+            Orders.org_ID = ? AND
+            User_Org.org_ID = ? AND
+            User_Org.user_ID = ? AND
+            Orders.is_cart = 0
+        `;
 
         // Execute the query
-        const [userInfo] = await connection.query(query, [org_ID,'ACCEPTED']);
-        
+        const [orders] = await connection.query(query, [org_ID, org_ID, user_ID]);
+
         await connection.end();
 
         // Send the data as JSON response
-        res.status(200).json(userInfo);
+        res.status(200).json(orders);
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

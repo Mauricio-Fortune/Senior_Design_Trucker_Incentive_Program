@@ -4,7 +4,6 @@ import { config } from 'dotenv';
 config(); // This loads the .env variables
 
 export default async function handler(req, res) {
-
     // Database connection configuration
     const dbConfig = {
         host: process.env.DB_HOST,
@@ -14,23 +13,28 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
-    console.log(dbConfig);
-
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const org_name = req.query.org_name;
-        const user_type = req.query.user_type; 
+        const org_ID = req.query.org_ID;
 
-        const [rows] = await connection.query('SELECT u.user_ID, u.user_Type, u.first_Name, u.last_Name FROM User u JOIN User_Org uo ON u.user_ID = uo.user_ID JOIN Org o ON uo.org_ID = o.org_ID WHERE o.org_Name = ? AND u.user_Type = ?', [org_name, user_type]);
+        // Query organization IDs for the provided user_ID
+        const [rows] = await connection.query('SELECT u.first_Name FROM User_Org uo JOIN User u ON uo.user_ID = u.user_ID WHERE u.user_Type = ? AND uo.org_ID = ? AND uo.app_Status = ?', ['DRIVER', org_ID, 'ACCEPTED']);
 
+        // Check if rows array is empty
+        if (rows.length === 0) {
+            // Close the database connection
+            await connection.end();
+            // Send NULL response as there are no org_IDs
+            return res.status(200).json(null);
+        }
 
-        // Close the database connection
         await connection.end();
 
         // Send the data as JSON response
-        res.status(200).json(rows);
+        res.status(200).json(rows.map(row => row.first_Name));
+
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

@@ -23,8 +23,7 @@ export default async function handler(req, res) {
         const connection = await mysql.createConnection(dbConfig);
 
         const sql_query = (`
-        INSERT INTO User (first_Name, last_Name, email, user_Type) VALUES (?, ?, ?, ?);
-        `);
+        INSERT INTO User (first_Name, last_Name, email, user_Type) VALUES (?, ?, ?, ?);`);
 
         const [results] = await connection.execute(sql_query, [first_Name, last_Name, email, user_Type]);
 

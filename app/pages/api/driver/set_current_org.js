@@ -14,23 +14,17 @@ export default async function handler(req, res) {
     };
 
     try {
-        // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
+        const org_ID = req.query.org_ID;
         const user_ID = req.query.user_ID;
 
-        const [result] = await connection.query('SELECT order_ID FROM Orders WHERE is_cart = true AND user_ID = ?', [user_ID]);
+        const row = await connection.query('UPDATE User_Org SET Is_current = 0 WHERE org_ID != ? AND user_ID = ?', [org_ID, user_ID]);
+        const row2 = await connection.query('UPDATE User_Org SET Is_current = 1 WHERE org_ID = ? AND user_ID = ?', [org_ID, user_ID]);
 
-        // Close the database connection
         await connection.end();
 
-        if (result.length > 0) {
-            // Entry found, send back the order_ID
-            res.status(200).json({ order_ID: result[0].order_ID });
-        } else {
-            // No entry found that matches the criteria
-            res.status(200).json({order_ID : -1});
-        }
+        res.status(200).json({"Message": 'Successfully set current org'});
 
     } catch (error) {
         console.error('Database connection or query failed', error);

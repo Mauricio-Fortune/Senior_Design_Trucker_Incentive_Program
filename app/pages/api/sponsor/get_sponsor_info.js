@@ -27,30 +27,28 @@ export default async function viewAllApplications(req, res) {
             SELECT 
                 User_Org.user_ID,
                 User.first_Name, 
-                User.email,
-                SUM(Point_Changes_Audit.point_change_value) AS total_points
+                User.email
             FROM 
                 User_Org
             JOIN 
                 User ON User_Org.user_ID = User.user_ID
-            JOIN
-                Point_Changes_Audit ON User_Org.user_ID = Point_Changes_Audit.user_ID
             WHERE 
                 User_Org.org_ID = ? AND 
-                User_Org.app_Status = 'ACCEPTED'
+                User_Org.app_Status = 'ACCEPTED' AND
+                User.user_Type = 'SPONSOR'
             GROUP BY
-                User_Org.user_ID, User.first_Name, User.email;
+                User_Org.user_ID, User.first_Name, User.email
             `;
 
   
 
         // Execute the query
-        const [userInfo] = await connection.query(query, [org_ID,'ACCEPTED']);
-        
+        const [sponsorInfo] = await connection.query(query, [org_ID]);
+
         await connection.end();
 
         // Send the data as JSON response
-        res.status(200).json(userInfo);
+        res.status(200).json(sponsorInfo);
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

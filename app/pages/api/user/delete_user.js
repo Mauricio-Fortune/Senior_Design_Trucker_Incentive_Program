@@ -1,3 +1,5 @@
+// DELETE driver account
+
 import mysql from 'mysql2/promise';
 import { config } from 'dotenv';
 
@@ -14,28 +16,29 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
+
+    const {user_ID} = req.body;
+
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const org_IDs = req.query.org_IDs;
-        console.log(org_IDs);
+        const sql_query = (`UPDATE User SET is_active = false WHERE user_ID = ?`);
 
-        // Parse the string of organization IDs
+        //const userID = req.query.userID;
 
-        // Generate placeholders for the orgIDs in the SQL query
-        const placeholders = org_IDs.map(() => '?').join(',');
-        console.log(placeholders);
-        
-
-        // Query organization names for the provided orgIDs
-        const [rows] = await connection.query(`SELECT org_Name FROM Org WHERE org_ID IN (${placeholders})`, org_IDs);
+        const [result] = await connection.execute(sql_query, [user_ID]);
 
         // Close the database connection
         await connection.end();
 
-        // Send the data as JSON response
-        res.status(200).json({ org_Names: rows.map(row => row.org_Name) }); // Extract organization names from the rows
+       
+        // Send the confirmation as JSON response
+        if (result.affectedRows > 0) {
+            res.status(200).json({ message: 'User deleted successfully' });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

@@ -20,7 +20,7 @@ export default async function handler(req, res) {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const { user_ID, email, first_Name, last_Name, user_type } = req.body;
+        const { user_ID, email, first_Name, user_type } = req.body;
 
         //check if user is already in db
         const query = 'SELECT 1 FROM User WHERE user_ID = ? LIMIT 1';
@@ -31,8 +31,8 @@ export default async function handler(req, res) {
             // const user = await fetchUserAttributes();
             console.log(`Adding ${first_Name} to RDS database`);
 
-            const query2 = 'INSERT INTO User (user_ID, email, first_Name, last_Name, user_type) VALUES (?,?,?,?,?)'
-            const response2 = await connection.execute(query2, [user_ID, email, first_Name, last_Name, user_type]);
+            const query2 = 'INSERT INTO User (user_ID, email, first_Name, user_type) VALUES (?,?,?,?)'
+            const response2 = await connection.execute(query2, [user_ID, email, first_Name, user_type]);
         }
 
         else {

@@ -1,5 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
+import { Table, 
+  TableBody,
+   TableCell, 
+   TableContainer, 
+   TableHead, 
+   TableRow, 
+   Paper, 
+   Typography, 
+   Container,
+   Button,
+   Dialog,
+   DialogActions,
+   DialogContent,
+   DialogTitle,
+   TextField
+  } from '@mui/material';
 import { fetchUserAttributes } from '@aws-amplify/auth';
 
 export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
@@ -7,6 +22,9 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
   const [detailedItemData, setDetailedItemData] = useState({});
   const [user, setUser] = useState();
   const [orgID,setOrgID] = useState();
+  const [pointRatio, setPointRatio] = useState();
+  const [pointRatioOpen, setPointRatioOpen] = useState(false);
+
 
 
  useEffect(() => {
@@ -18,44 +36,44 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       console.log("spoof id: ", spoofId);
     }
     else {
-    try {
-      const user = await fetchUserAttributes(); // Assuming this correctly fetches the user
-      setUser(user); // Once the user is set, it triggers the useEffect for getDriverPoints
-      console.log(user);
-    } catch (err) {
-      console.log(err);
-    }
+      try {
+        const user = await fetchUserAttributes();
+        setUser(user);
+      } catch (err) {
+        console.log(err);
+      }
     }
   }
   currentAuthenticatedUser();
 }, []);
 
 
-const getOrgID = async () => { // fetches all itemIDs in database
-  try {
-    const requestOptions = {
-      method: "GET",
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    };
-    console.log("USER " + user.sub);
-    const response = await fetch(`/api/driver/get_current_sponsor?user_ID=${user.sub}`, requestOptions);
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch data');
-    }
-    const result = await response.json();
-    
-    setOrgID(result.org_ID);
-    //console.log("result.org_ID = " + result.org_ID);
-    //console.log("orgID = " + orgID);
-  } catch (error) {
-    console.error('Failed to fetch data:', error);
-    setOrgID([]);
-  }
-};
 useEffect(() => {
+  const getOrgID = async () => { // fetches all itemIDs in database
+    try {
+      const requestOptions = {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+      console.log("USER " + user.sub);
+      const response = await fetch(`/api/driver/get_current_sponsor?user_ID=${user.sub}`, requestOptions);
+  
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+      const result = await response.json();
+      
+      setOrgID(result.org_ID);
+      //console.log("result.org_ID = " + result.org_ID);
+      //console.log("orgID = " + orgID);
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+      setOrgID([]);
+    }
+  };
   if (user) {
     (async () => {
       const orgID = await getOrgID();
@@ -69,6 +87,62 @@ useEffect(() => {
 
 
   useEffect(() => {
+    const getPointRatio = async () => {
+      try {
+        const requestOptions = {
+          method: "GET",
+          redirect: "follow"
+        };
+    
+        const response = await fetch(`api/sponsor/get_point_ratio?org_ID=${orgID}`, requestOptions);
+        if (!response.ok) {
+          throw new Error('Network response was not ok.');
+        }
+        
+        const data = await response.json(); // Convert response to JSON
+        setPointRatio(data.point_Ratio); // Assuming the data is in the format you need; otherwise, you might need data.someProperty
+    
+      } catch (error) {
+        console.error('Error Getting Point Ratio', error);
+        setPointRatio(0); // Set to 0 or another default value in case of error
+      }
+    };
+    
+
+
+
+    const fetchData = async () => { // fetches all itemIDs in database
+      try {
+        const requestOptions = {
+          method: "GET",
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+  
+        const response = await fetch(`/api/catalog/get_items_from_org?org_ID=${orgID}`, requestOptions);
+  
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+  
+        const result = await response.json();
+  
+        if (Array.isArray(result)) { // Assuming the API directly returns an array
+          setEntries(result);
+        } else {
+          console.error('Expected results to be an array but got:', result);
+          setEntries([]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+        setEntries([]);
+      }
+    };
+
+    
+    if(orgID != null)
+      getPointRatio();
     fetchData(); // Called only on component mount
   }, [orgID]);
   
@@ -94,34 +168,7 @@ useEffect(() => {
   }, [entries]); // Depends on `entries`
   
 
-  const fetchData = async () => { // fetches all itemIDs in database
-    try {
-      const requestOptions = {
-        method: "GET",
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      };
 
-      const response = await fetch(`/api/catalog/get_items_from_org?org_ID=${orgID}`, requestOptions);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch data');
-      }
-
-      const result = await response.json();
-
-      if (Array.isArray(result)) { // Assuming the API directly returns an array
-        setEntries(result);
-      } else {
-        console.error('Expected results to be an array but got:', result);
-        setEntries([]);
-      }
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
-      setEntries([]);
-    }
-  };
   
  const getItemData = async (itemID) => { // gets item data from iTunes
       try {
@@ -156,7 +203,7 @@ useEffect(() => {
             if (!response.ok) {
               throw new Error('Failed to add items to database');
             }
-        
+            alert('Item has been removed from the catalog');
           } catch (error) {
             console.error('Error Deleting items to database:', error);
             
@@ -267,11 +314,70 @@ useEffect(() => {
       minHeight: '40px', 
       cursor: 'pointer',
     }
+    const handlePointRatio = () => { 
+      setPointRatioOpen(true);
+  };
+  
+  const handleCloseDialog = () => {
+    setPointRatioOpen(false);
+  };
+  
+  const handleSubmit = () => {
+      console.log(`Changing Point Ratio to ${pointRatio} for Org ${orgID}`);
+      const pointOptions = {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+              org_ID : orgID,
+              point_Ratio: pointRatio
+            })
+          };
+            fetch('/api/sponsor/post_change_point_ratio', pointOptions);
+  
+      // Here, add your logic to update the points backend or state
+      handleCloseDialog();
+  };
+
+
+
   return (
     <div>
-      <Typography variant="h4" gutterBottom component="div" align = "center">
+      <Typography variant="h4"  component="div" align = "center">
         Catalog Manager
       </Typography>
+      <Container variant="h4"  component="div" align = "center">
+        <div>Price to Point Ratio: {pointRatio}</div>
+        <div>
+          <Button
+              color="secondary"
+              onClick={() => handlePointRatio()}
+              style={{ marginRight: '2px' }}
+            >
+             Edit
+            </Button>
+          </div>
+          <Dialog open={pointRatioOpen} onClose={handleCloseDialog}>
+                    <DialogTitle>Point Ratio</DialogTitle>
+                    <DialogContent>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            id="ratio"
+                            label="ratio"
+                            type="number"
+                            fullWidth
+                            value={pointRatio}
+                            onChange={(e) => setPointRatio(e.target.value)}
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseDialog}>Cancel</Button>
+                        <Button onClick={handleSubmit} color="primary">Submit</Button>
+                    </DialogActions>
+                </Dialog>
+      </Container>
       <TableContainer component={Paper}>
         <Table aria-label="simple table">
           <TableBody>
@@ -279,7 +385,11 @@ useEffect(() => {
             <TableRow key={entry.item_ID}>
                   <TableCell align = "center">
                         {renderEntryComponent(entry.item_ID)}
-                        <button onClick={() => removeItem(entry.item_ID,orgID)} style = {button_style}>Remove Item</button>
+                        <Button  variant="contained"
+                         color="primary"
+                          onClick={() => removeItem(entry.item_ID,orgID)} >
+                            Remove Item
+                          </Button>
                   </TableCell>
             </TableRow>
             ))}
@@ -287,5 +397,6 @@ useEffect(() => {
         </Table>
       </TableContainer>
     </div>
+    
   );
 }

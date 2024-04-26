@@ -14,28 +14,21 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
+    const { user_ID } = req.body;
+
     try {
+
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const org_IDs = req.query.org_IDs;
-        console.log(org_IDs);
+        const query = ('UPDATE User SET is_active = ? WHERE user_ID = ?;');
 
-        // Parse the string of organization IDs
+        const response = await connection.query(query, [0, user_ID]);
 
-        // Generate placeholders for the orgIDs in the SQL query
-        const placeholders = org_IDs.map(() => '?').join(',');
-        console.log(placeholders);
-        
-
-        // Query organization names for the provided orgIDs
-        const [rows] = await connection.query(`SELECT org_Name FROM Org WHERE org_ID IN (${placeholders})`, org_IDs);
-
-        // Close the database connection
         await connection.end();
 
         // Send the data as JSON response
-        res.status(200).json({ org_Names: rows.map(row => row.org_Name) }); // Extract organization names from the rows
+        res.status(200).json({message: "Successfully deactivated account"});
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

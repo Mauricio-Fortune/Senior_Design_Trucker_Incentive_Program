@@ -4,7 +4,6 @@ import { config } from 'dotenv';
 config(); // This loads the .env variables
 
 export default async function handler(req, res) {
-
     // Database connection configuration
     const dbConfig = {
         host: process.env.DB_HOST,
@@ -14,24 +13,21 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
-    const { user_ID, change_type } = req.body;
-
     try {
-        const currentTimestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
-
-        // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
+        const { org_ID, point_Ratio } = req.body; 
 
-        const query = ('INSERT INTO Password_Changes_Audit (timestamp, user_ID, change_type) VALUES (?,?,?); ');
+        const query = `UPDATE Org SET point_Ratio = ? WHERE org_ID = ?`;
 
-        const response = await connection.query(query, [currentTimestamp, user_ID, change_type]);
 
+        await connection.execute(query, [point_Ratio, org_ID]);
+
+      
         await connection.end();
 
-        // Send the data as JSON response
-        res.status(200).json({message: "Successfully audited password change"});
+        res.status(200).json({ message: "Point Ratio updated successfully" });
     } catch (error) {
         console.error('Database connection or query failed', error);
-        res.status(500).json({ message: 'Internal Server Error' });
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 }

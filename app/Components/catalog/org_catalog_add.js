@@ -22,14 +22,13 @@ export default function Catalog_add({isSpoof = false, spoofId = null}) {
         console.log("spoof id: ", spoofId);
       }
       else {
-      try {
-        const user = await fetchUserAttributes(); // Assuming this correctly fetches the user
-        setUser(user); // Once the user is set, it triggers the useEffect for getDriverPoints
-        console.log(user);
-      } catch (err) {
-        console.log(err);
+        try {
+          const user = await fetchUserAttributes();
+          setUser(user);
+        } catch (err) {
+          console.log(err);
+        }
       }
-    }
     }
     currentAuthenticatedUser();
   }, []);

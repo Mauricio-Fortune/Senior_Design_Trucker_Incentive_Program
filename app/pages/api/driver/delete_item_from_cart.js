@@ -21,11 +21,8 @@ export default async function handler(req, res) {
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
-
-        // get application
         const {order_ID, item_ID} = req.body;
-
-        
+       
         
         // make query
         const query = 'DELETE FROM Order_Item WHERE order_ID = ? AND item_ID = ?';

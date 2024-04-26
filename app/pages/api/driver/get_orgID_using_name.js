@@ -4,7 +4,6 @@ import { config } from 'dotenv';
 config(); // This loads the .env variables
 
 export default async function handler(req, res) {
-
     // Database connection configuration
     const dbConfig = {
         host: process.env.DB_HOST,
@@ -14,32 +13,23 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
-  
-
-  
-  
-    try     {
-        const {order_ID,item_ID,item_Quantity,item_Name,points} = req.body;
-      
-        // Create a connection to the database
+    try {
         const connection = await mysql.createConnection(dbConfig);
 
-        const sql_query = (`INSERT INTO Order_Item (order_ID, item_ID, item_Quantity, item_Name, points) VALUES (?, ?, ?, ?,?) `);
+        const org_Name = req.query.org_Name;
 
-        const [results] = await connection.execute(sql_query, [order_ID,item_ID,item_Quantity,item_Name,points]);
+        const [rows, fields] = await connection.execute('SELECT org_ID from Org WHERE org_Name = ?', [org_Name]);
 
-        // Close the database connection
         await connection.end();
 
-        if (results.affectedRows > 0) {
-  
-            res.status(200).json({ message: "Item added successfully" });
+        // Check if any rows were returned and if org_ID exists
+        if (rows.length > 0 && rows[0].org_ID !== undefined) {
+            const org_ID = rows[0].org_ID; // Accessing the org_ID from the first row
+            res.status(200).json(org_ID); // Sending just the org_ID value in the response
         } else {
-    
-            res.status(404).json({ message: "User could not be added" });
+            res.status(404).json({ message: 'Organization not found or org_ID missing' });
         }
     } catch (error) {
-        console.log("------------------------------------------");
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }

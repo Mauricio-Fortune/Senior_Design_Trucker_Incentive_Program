@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Select, Box, FormControl, MenuItem, InputLabel, Container } from '@mui/material';
-import DriversPage from './drivers';
-import SponsorsPage from './sponsors';
+import { Select, Box, FormControl, MenuItem, InputLabel, Divider, Button, Dialog, DialogTitle, DialogContent, Typography } from '@mui/material';
+import DriversPage from '../pages/drivers';
+import SponsorsPage from '../pages/sponsors';
+import Account from "../pages/account";
 
 const AdminPanel = () => {
   const [selectedDriver, setDriver] = useState('');
@@ -11,6 +12,10 @@ const AdminPanel = () => {
   const [allSponsors, setAllSponsors] = useState([]);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [openDriverAccountModal, setOpenDriverAccountModal] = useState(false);
+  const [openSponsorAccountModal, setOpenSponsorAccountModal] = useState(false);
+  const [openDriverDialog, setOpenDriverDialog] = useState(false);
+  const [openSponsorDialog, setOpenSponsorDialog] = useState(false);
 
   useEffect(() => {
     const getDrivers = async () => {
@@ -64,21 +69,48 @@ const AdminPanel = () => {
   }, []);
 
   const handleDriverChange = (event) => {
-    console.log('driver change: '+ event.target.value);
-    console.log(allDrivers);
     setDriver(event.target.value);
+    setOpenDriverDialog(true);
   };
   const handleSponsorChange = (event) => {
     setSponsor(event.target.value);
+    setOpenSponsorDialog(true);
   };
 
 
+  const handleDriverAccountClick = () => {
+    setOpenDriverDialog(false);
+    setOpenDriverAccountModal(true);
+  }
+
+  const handleSponsorAccountClick = () => {
+    setOpenSponsorDialog(false);
+    setOpenSponsorAccountModal(true);
+  }
+
+  const handleDriverClose = () => {
+    setOpenDriverAccountModal(false);
+  };
+  const handleSponsorClose = () => {
+    setOpenSponsorAccountModal(false);
+  };
+
+  const handleDriverDialogClose = () => {
+    setOpenDriverDialog(false);
+  };
+
+  const handleSponsorDialogClose = () => {
+    setOpenSponsorDialog(false);
+  };
+
   return (
-    <div>
-      <h1>Admin Panel</h1>
-      <Box sx={{ minWidth: 120 }}>
+    <div style={{ marginTop: '40px' }}>
+      <Typography variant="h4" gutterBottom>
+          User View
+        </Typography>
+      <Box sx={{ minWidth: 120 }} style={{ marginTop: '5px' }}>
         <FormControl fullWidth>
-          <InputLabel>View driver</InputLabel>
+          <InputLabel>Drivers</InputLabel>
           <Select
             value={selectedDriver}
             label="selectedDriver"
@@ -91,9 +123,9 @@ const AdminPanel = () => {
         </FormControl>
       </Box>
 
-      <Box sx={{ minWidth: 120 }}>
+      <Box sx={{ minWidth: 120 }} style={{ marginTop: '8px' }}>
         <FormControl fullWidth>
-          <InputLabel>View sponsor</InputLabel>
+          <InputLabel>Sponsors</InputLabel>
           <Select
             value={selectedSponsor}
             label="selectedSponsor"
@@ -106,19 +138,32 @@ const AdminPanel = () => {
         </FormControl>
       </Box>
 
-      {selectedDriver && (
-        <>
-          <div style={{ marginBottom: '40px' }}></div>
-          <DriversPage isSpoofing={true} driverSpoofID={selectedDriver} />
-        </>
-      )}
+      <Dialog open={openDriverAccountModal} onClose={handleDriverClose}>
+        <DialogContent>
+          <Account isSpoof={true} spoofId={selectedDriver} />
+        </DialogContent>
+      </Dialog>
 
-      {selectedSponsor && (
-        <>
-          <div style={{ marginBottom: '40px' }}></div>
+      <Dialog open={openSponsorAccountModal} onClose={handleSponsorClose}>
+        <DialogContent>
+          <Account isSpoof={true} spoofId={selectedSponsor} />
+        </DialogContent>
+      </Dialog>
+
+
+      <Dialog open={openDriverDialog} onClose={handleDriverDialogClose}>
+        <Button onClick={handleDriverAccountClick}>Update Account</Button>
+        <DialogContent>
+          <DriversPage isSpoofing={true} driverSpoofID={selectedDriver} />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openSponsorDialog} onClose={handleSponsorDialogClose}>
+      <Button onClick={handleSponsorAccountClick}>Update Account</Button>
+        <DialogContent>
           <SponsorsPage isSpoofing={true} sponsorSpoofID={selectedSponsor} />
-        </>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

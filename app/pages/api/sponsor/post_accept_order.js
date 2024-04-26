@@ -1,12 +1,11 @@
-// DELETE driver account
+// View all pending driver application for a specific org
 
 import mysql from 'mysql2/promise';
 import { config } from 'dotenv';
 
 config(); // This loads the .env variables
 
-export default async function handler(req, res) {
-
+export default async function viewAllApplications(req, res) {
     // Database connection configuration
     const dbConfig = {
         host: process.env.DB_HOST,
@@ -16,26 +15,23 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
-
-
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const userID = req.query.userID;
+        // Extract org_ID from the request body or query parameters
+        const {order_ID}= req.body;
 
-        const [result] = await connection.query('UPDATE User SET is_active = false WHERE userID = ?', [userID]);
+        // Prepare the SELECT query
+        const query = `UPDATE Orders SET order_Status = ? WHERE order_ID = ?`;
 
-        // Close the database connection
+        // Execute the query
+        const [orders] = await connection.query(query, ["ACCEPTED",order_ID]);
+
         await connection.end();
 
-       
-        // Send the confirmation as JSON response
-        if (result.affectedRows > 0) {
-            res.status(200).json({ message: 'User deleted successfully' });
-        } else {
-            res.status(404).json({ message: 'User not found' });
-        }
+        // Send the data as JSON response
+        res.status(200).json(orders);
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

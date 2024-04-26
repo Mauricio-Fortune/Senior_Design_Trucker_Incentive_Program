@@ -188,7 +188,7 @@ const formFields = {
       label: 'Password:',
       placeholder: 'Enter your Password:',
       isRequired: false,
-      order: 5,
+      order: 4,
     },
     username: {
       label: 'Email',
@@ -198,15 +198,15 @@ const formFields = {
     },
     confirm_password: {
       label: 'Confirm Password:',
-      order: 6,
+      order: 5,
     },
     'custom:user_type': {
-      label: 'Account Type',
-      placeholder: 'Enter Account Type',
-      order: 3
+      order: 6,
+      value: 'DRIVER',
+      type: 'hidden'
     },
     birthdate: {
-      order: 4
+      order: 3
     }
   },
   forceNewPassword: {

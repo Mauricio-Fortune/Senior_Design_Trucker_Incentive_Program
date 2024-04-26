@@ -37,7 +37,9 @@ export default async function viewAllApplications(req, res) {
                 Point_Changes_Audit ON User_Org.user_ID = Point_Changes_Audit.user_ID
             WHERE 
                 User_Org.org_ID = ? AND 
-                User_Org.app_Status = 'ACCEPTED'
+                User_Org.app_Status = 'ACCEPTED' AND
+                User.user_Type = 'DRIVER' AND
+                Point_Changes_Audit.org_ID = ?
             GROUP BY
                 User_Org.user_ID, User.first_Name, User.email
             `;
@@ -45,7 +47,9 @@ export default async function viewAllApplications(req, res) {
   
 
         // Execute the query
-        const [userInfo] = await connection.query(query, [org_ID,'ACCEPTED']);
+        const [userInfo] = await connection.query(query, [org_ID,org_ID,'ACCEPTED']);
+
+        await connection.end();
 
         // Send the data as JSON response
         res.status(200).json(userInfo);

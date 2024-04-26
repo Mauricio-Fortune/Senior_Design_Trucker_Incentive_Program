@@ -2,17 +2,12 @@ import React, { useState } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import Menu from '@mui/material/Menu';
-import MenuIcon from '@mui/icons-material/Menu';
 import Container from '@mui/material/Container';
-import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
-import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import { useRouter } from 'next/router';
-import { signOut } from 'aws-amplify/auth';
 
 const pages = ['Home', 'About', 'Dashboard'];
 
@@ -22,16 +17,8 @@ function ResponsiveAppBar() {
   const [isLoggedIn, setLoggedIn] = useState(false);  // State to track login status
   const router = useRouter();
 
-  const handleOpenNavMenu = (event) => {
-    setAnchorElNav(event.currentTarget);
-  };
-
   const handleCloseNavMenu = () => {
     setAnchorElNav(null);
-  };
-
-  const handleOpenUserMenu = (event) => {
-    setAnchorElUser(event.currentTarget);
   };
 
   const handleCloseUserMenu = () => {
@@ -43,14 +30,6 @@ function ResponsiveAppBar() {
     router.push('/account');
     handleCloseUserMenu();
   };
-
-  async function handleLogout() {
-    try {
-      await signOut();
-    } catch (error) {
-      console.log('error signing out: ', error);
-    }
-  }
 
   const handleNavigate = (path) => {
     if (path.toLowerCase() === '/login' && !isLoggedIn) {
@@ -103,17 +82,6 @@ function ResponsiveAppBar() {
           <Button color="inherit" onClick={handleNavigateToAccount}>
               Account
             </Button>
-            {isLoggedIn ? (
-              <Tooltip title="Open account settings">
-                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <Avatar alt="User Avatar" src="/static/images/avatar/2.jpg" />
-                </IconButton>
-              </Tooltip>
-            ) : (
-              <Button color="inherit" onClick={handleLogout}>
-                Sign Out
-              </Button>
-            )}
             <Menu
               id="menu-appbar"
               anchorEl={anchorElUser}

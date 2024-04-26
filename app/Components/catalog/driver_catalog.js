@@ -13,13 +13,282 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
   const [user, setUser] = useState();
   const [orgID,setOrgID] = useState();
   const [order_ID, setOrderID] = useState();
-  const [cart_ID, setCart] = useState(-1);
+  const [cart_ID, setCart] = useState(0);
+  const [pointRatio, setPointRatio] = useState(0);
+  
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const [orderItem, setorderItem] = useState({
+      itemID: '',
+      name: '',
+      quantity: 0,
+      points: 0
+  });
+
+  const [cartItem, setCartItem] = useState({
+    itemID: '',
+    name: '',
+    quantity: 0,
+    points: 0
+  });
+
+
+
+  // cart orders
+
+  const addCartItem = async (item_ID) => {
+    const item = detailedItemData[item_ID];
+    const itemDetails = {
+      itemID: item_ID,
+      name: getName(item), 
+      quantity: quantityType,
+      points: Math.round(getPoints(item) * pointRatio * quantityType) 
+    };
+   
+    setCartItem(itemDetails); 
+  };
+
+
+  useEffect(() => {
+    const createCartOrder = async () => {
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_ID: user.sub,
+          is_cart: 1,
+          org_ID: orgID
+        })
+    };
+    const response = await fetch(`/api/driver/post_new_order`, requestOptions);
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch data');
+    }
+    const result = await response.json();
+    
+  
+    setCart(result.order_ID);
+
+    }
+    const getCartID = async () => {
+      try {
+        const requestOptions = {
+          method: "GET",
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+        //console.log("USER " + user.sub);
+        const response = await fetch(`/api/driver/get_cart_orderID?user_ID=${user.sub}`, requestOptions);
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        const result = await response.json();
+        setCart(result.order_ID);
+        return result.order_ID; // Return the new cart_ID
+      } catch (error) {
+        //console.error('Failed to fetch data:', error);
+        createCartOrder();
+        return -1; // Return -1 on failure
+      }
+    };
+      
+    if(user != null && cartItem != null){
+      if(cart_ID == -1)
+        createCartOrder();
+      getCartID();
+    }
+  }, [cartItem]);
+
+
+  
+  useEffect(() => {
+    const addToCart = async () => {
+      try{
+          const requestOptions = {
+            method: "POST",
+            headers: {
+            'Content-Type': 'application/json'
+          },
+            body: JSON.stringify({ 
+            order_ID : cart_ID,
+            item_ID : cartItem.itemID,
+            item_Quantity: cartItem.quantity,
+            item_Name: cartItem.name,
+            points: cartItem.points
+          })
+        };
+
+
+  
+        const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
+  
+        console.log("added item "+ cartItem.itemID + " to cart "+ cart_ID);
+    
+      alert("Added item to your cart!");
+
+    } catch (error) {
+      console.error(`Error adding item to order ${order_ID}`, error);
+    }
+  }
+  if(user != null && cart_ID != null && cartItem != null)
+    addToCart();  
+  }, [cart_ID]);
+  
+
+
+
+// individual orders
+const addOrderItem = async (item_ID) => {
+  const item = detailedItemData[item_ID];
+  const itemDetails = {
+    itemID: item_ID,
+    name: getName(item), 
+    quantity: quantityType,
+    points: Math.round(getPoints(item) * pointRatio * quantityType) 
+  };
+ 
+  setorderItem(itemDetails); 
+};
+
+useEffect(() => {
+  const createNewOrder = async () => { // fetches all itemIDs in database
+    try {
+        const requestOptions = {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user_ID: user.sub,
+            is_cart: 0,
+            org_ID: orgID
+          })
+      };
+      const response = await fetch(`/api/driver/post_new_order`, requestOptions);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+      const result = await response.json();
+      
+    
+      setOrderID(result.order_ID);
+
+      console.log("Created order: " + result.order_ID);
+        
+
+
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+      setOrderID([0]);
+    }
+  };
+  if(user != null && orderItem != null){
+    createNewOrder();
+  }
+}, [orderItem]);
+
+useEffect(() => {
+  const completeOrder = async () => {
+    try{
+        const requestOptions = {
+          method: "POST",
+          headers: {
+          'Content-Type': 'application/json'
+        },
+          body: JSON.stringify({ 
+          order_ID : order_ID,
+          item_ID : orderItem.itemID,
+          item_Quantity: orderItem.quantity,
+          item_Name: orderItem.name,
+          points: orderItem.points
+        })
+      };
+
+      const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
+
+      console.log("added item "+ orderItem.itemID + " to order "+ order_ID);
+  
+
+
+        const pointOptions = {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            user_ID : user.sub,
+            point_change_value : -orderItem.points,
+            reason: "order", 
+            org_ID: orgID,
+            timestamp: "timestamp"
+          })
+        };
+    const pointchange = await fetch('/api/sponsor/edit_points', pointOptions);
+
+    alert("Ordered Item!");
+  } catch (error) {
+    console.error(`Error adding item to order ${order_ID}`, error);
+  }
+}
+if(user != null && orderItem != null)
+  completeOrder();  
+}, [order_ID]);
 
 
 
   useEffect(() => {
+    const getDriverPoints = async () => {
+      try {
+        const requestOptions = {
+          method: "GET",
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+        if(user == null){
+          currentAuthenticatedUser();
+        }
+        
+        const response = await fetch(`/api/driver/get_driver_points?user_ID=${user.sub}&org_ID=${orgID}`, requestOptions);
+        if (!response.ok) throw new Error('Failed to fetch item data');
+        
+    
+        
+        const data = await response.json();
+        //console.log(data.totalPoints);
+   
+        return data.totalPoints; 
+      } catch (error) {
+        console.error('Failed to fetch item data:', error);
+        //console.log(user);
+        return 0; 
+      }
+  };
+  const getPointRatio = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        redirect: "follow"
+      };
+  
+      const response = await fetch(`api/sponsor/get_point_ratio?org_ID=${orgID}`, requestOptions);
+      if (!response.ok) {
+        throw new Error('Network response was not ok.');
+      }
+      
+      const data = await response.json(); // Convert response to JSON
+      setPointRatio(data.point_Ratio); // Assuming the data is in the format you need; otherwise, you might need data.someProperty
+  
+    } catch (error) {
+      console.error('Error Getting Point Ratio', error);
+      setPointRatio(0); // Set to 0 or another default value in case of error
+    }
+  };
+   
     const fetchData = async () => { // fetches all itemIDs in database
       try {
         const requestOptions = {
@@ -49,39 +318,21 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       }
     };
     fetchData();
+
+    if(orgID != null)
+    getPointRatio();
+
+    if (user) {
+      (async () => {
+        const driverPoints = await getDriverPoints();
+        if (driverPoints != null) {
+          setDriverPoints(driverPoints);
+        }
+      })();
+    }
   }, [orgID]);
 
-
-  const createNewOrder = async (cart) => { // fetches all itemIDs in database
-    try {
-        const requestOptions = {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            user_ID: user.sub,
-            is_cart: cart
-          })
-      };
-      console.log("USER " + user.sub);
-      const response = await fetch(`/api/driver/post_new_order`, requestOptions);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch data');
-      }
-      const result = await response.json();
-      if(cart == true){
-        setCart(result.order_ID);
-      }
-        setOrderID(result.order_ID);
-
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
-      setOrderID([]);
-    }
-  };
-
+ 
 
  
   useEffect(() => {
@@ -93,7 +344,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
             'Content-Type': 'application/json'
           }
         };
-        console.log("USER " + user.sub);
+        //console.log("USER " + user.sub);
         const response = await fetch(`/api/driver/get_current_sponsor?user_ID=${user.sub}`, requestOptions);
   
         if (!response.ok) {
@@ -121,8 +372,6 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
   }, [user]); 
 
 
-
-
   const handleLimitTypeChange = (event) => {
     setQuantityType(Number(event.target.value)); // Convert to number if it's ensured to be numeric
   };
@@ -134,60 +383,22 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
         setUser({
           sub: spoofId
         })
-        console.log("spoof id: ", spoofId);
+        //console.log("spoof id: ", spoofId);
       }
       else {
-      try {
-        const user = await fetchUserAttributes(); // Assuming this correctly fetches the user
-        setUser(user); // Once the user is set, it triggers the useEffect for getDriverPoints
-        console.log(user);
-      } catch (err) {
-        console.log(err);
-      }
+        try {
+          const user = await fetchUserAttributes();
+          setUser(user);
+         // console.log("driver catalog");
+        } catch (err) {
+          console.log(err);
+        }
       }
     }
     currentAuthenticatedUser();
   }, []);
   
-  useEffect(() => {
-    const getDriverPoints = async () => {
-      try {
-        const requestOptions = {
-          method: "GET",
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        };
-        if(user == null){
-          currentAuthenticatedUser();
-        }
-   
-        const response = await fetch(`/api/driver/get_driver_points?user_ID=${user.sub}`, requestOptions);
-        if (!response.ok) throw new Error('Failed to fetch item data');
-        
-    
-        
-        const data = await response.json();
-        console.log(data.totalPoints);
-   
-        return data.totalPoints; 
-      } catch (error) {
-        console.error('Failed to fetch item data:', error);
-        console.log(user);
-        return 0; 
-      }
-  };
-    // This now depends on the user state. Once the user is fetched and set, this runs.
-    if (user) {
-      (async () => {
-        const driverPoints = await getDriverPoints();
-        if (driverPoints != null) {
-          setDriverPoints(driverPoints);
-        }
-      })();
-    }
-  }, [user]); // Depend on user state
-  
+
   useEffect(() => {
     const getItemData = async (itemID) => { // gets item data from iTunes
       try {
@@ -228,127 +439,47 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
   }, [entries]); // Depends on `entries`
   
 
+ 
+  
+
+
+ 
 
 
   
 
-
-    const getCartID = async () => {
-      try {
-        const requestOptions = {
-          method: "GET",
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        };
-        console.log("USER " + user.sub);
-        const response = await fetch(`/api/driver/get_cart_orderID?user_ID=${user.sub}`, requestOptions);
-        if (!response.ok) {
-          throw new Error('Failed to fetch data');
-        }
-        const result = await response.json();
-        setCart(result.order_ID);
-        return result.order_ID; // Return the new cart_ID
-      } catch (error) {
-        console.error('Failed to fetch data:', error);
-        setCart(-1);
-        return -1; // Return -1 on failure
-      }
-    };
-
-  const order_item = async (itemID,cart) => {
-    const item = detailedItemData[itemID];
-
-    if(cart == true){
-      try{
-
-        const cart_ID = await getCartID();
-        console.log("Cart_ID = " + cart_ID);
-        if(cart_ID == -1){
-          createNewOrder(cart);
-        }
-        const requestOptions = {
-            method: "POST",
-            headers: {
-            'Content-Type': 'application/json'
-          },
-            body: JSON.stringify({ 
-            order_ID : cart_ID,
-            item_ID : getID(item),
-            item_Quantity: quantityType,
-            item_Name: getName(item)
-          })
-        };
-        const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
-        if (!response.ok) {
-          throw new Error('Failed to add items to database');
-        }
-    
-        // Response from the server after adding items to the database
-        const result = await response.json();
-      }catch (error) {
-        console.error('Error adding items to database:', error);
-      }
-     
-      
-    }
-    else{
-    try {
-      createNewOrder(cart);
-      const requestOptions = {
-          method: "POST",
-          headers: {
-          'Content-Type': 'application/json'
-        },
-          body: JSON.stringify({ 
-          order_ID : order_ID,
-          item_ID : getID(item),
-          item_Quantity: quantityType,
-          item_Name: getName(item)
-        })
-      };
-
-      const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
-      
-      const points = (-Math.round(getPoints(item))* 10 * quantityType);
-      if(points > driverPoints){
-        throw new Error('Not Enough Points!');
-      }
-      else{
-        console.log(points);
+const add_to_cart = async (itemID) => {
+try{
+  await getCartID();
+  if(cart_ID == -1){
+    createNewOrder(true);
+  }
+  const points = (Math.round(getPoints(item))* pointRatio * quantityType);
   
-        const pointOptions = {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ 
-            user_ID : user.sub,
-            point_change_value : points,
-            reason: "order", 
-            org_ID: orgID,
-            timestamp: "04/02/2024"
-          })
-        };
-          const pointchange = await fetch('/api/sponsor/edit_points', pointOptions);
-    
-          if (!response.ok) {
-            throw new Error('Failed to add items to database');
-          }
-      
-          // Response from the server after adding items to the database
-          const result = await response.json();
-   
-  
-      }
-     
-  
-    } catch (error) {
-      console.error('Error adding items to database:', error);
-    }
-    }
-  
+  const requestOptions = {
+      method: "POST",
+      headers: {
+      'Content-Type': 'application/json'
+    },
+      body: JSON.stringify({ 
+      order_ID : order_ID,
+      item_ID : getID(item),
+      item_Quantity: quantityType,
+      item_Name: getName(item),
+      points: points
+    })
+  };
 
+  const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
+  if (!response.ok) {
+    throw new Error('Failed to add item to order_items');
+  }
+  
+    // Response from the server after adding items to the database
+    const result = await response.json();
+}catch (error) {
+  console.error('ERROR adding items to order', error);
+}
 };
 
          //pull item Name from specific type
@@ -418,7 +549,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
         <div>Artist: {song.artistName}</div>
         <div>Album: {song.collectionName}</div>
         <div>Genre: {song.primaryGenreName}</div>
-        <div>Points: {Math.round(song.trackPrice) * 10}</div>
+        <div>Points: {Math.round(song.trackPrice) * pointRatio}</div>
       </div>
     );
   const AlbumItem = ({ album }) => (
@@ -429,7 +560,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       <div>Artist: {album.artistName}</div>
       <div>track Count: {album.trackCount}</div>
       <div>Genre: {album.primaryGenreName}</div>
-      <div>Points: {Math.round(album.collectionPrice)*10}</div>
+      <div>Points: {Math.round(album.collectionPrice)* pointRatio}</div>
     </div>
   );
   
@@ -440,7 +571,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       <div>Podcast: {podcast.collectionName}</div>
       <div>Artist: {podcast.artistName}</div>
       <div>Genre: {podcast.primaryGenreName}</div>
-      <div>Points: {Math.round(podcast.trackPrice)*10}</div>
+      <div>Points: {Math.round(podcast.trackPrice)* pointRatio}</div>
     </div>
   );
   
@@ -451,7 +582,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       <div>Title: {audiobook.collectionName}</div>
       <div>Author: {audiobook.artistName}</div>
       <div>Genre: {audiobook.primaryGenreName}</div>
-      <div>Points: {Math.round(audiobook.collectionPrice)*10}</div>
+      <div>Points: {Math.round(audiobook.collectionPrice)* pointRatio}</div>
     </div>
   );
   
@@ -463,7 +594,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       <div>Director: {movie.artistName}</div>
       <div>Genre: {movie.primaryGenreName}</div>
       <div>Rating: {movie.contentAdvisoryRating}</div>
-      <div>Points: {Math.round(movie.trackPrice)*10}</div>
+      <div>Points: {Math.round(movie.trackPrice)* pointRatio}</div>
     </div>
   );
   const EbookItem = ({ ebook }) => (
@@ -472,7 +603,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       <img src={ebook.artworkUrl100} alt="Audiobook Artwork" style={{ width: 100, height: 100 }} />
       <div>Title: {ebook.trackName}</div>
       <div>Author: {ebook.artistName}</div>
-      <div>Points: {Math.round(ebook.price)*10}</div>
+      <div>Points: {Math.round(ebook.price)* pointRatio}</div>
   </div>
   );
   
@@ -487,7 +618,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
     
      const entry = detailedItemData[itemID];
     if(entry){
-      console.log(entry);
+      //console.log(entry);
       if (entry.kind == "song") {
             return <SongItem song={entry} />;
         } else if (entry.collectionType == "Album") {
@@ -534,8 +665,8 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
             <TableRow key={entry.item_ID}>
                   <TableCell align = "center">
                         {renderEntryComponent(entry.item_ID)}
-                        <button onClick={() => order_item(entry.item_ID,false)} style = {button_style}>Order</button>
-                        <button onClick={() => order_item(entry.item_ID,true)} style = {button_style}>Add to Cart</button>
+                        <button onClick={() => addOrderItem(entry.item_ID)} style = {button_style}>Order</button>
+                        <button onClick={() => addCartItem(entry.item_ID)} style = {button_style}>Add to Cart</button>
                         <select value={quantityType} onChange={handleLimitTypeChange} style={dropdown_menu_style}>
                           <option value="1">1</option>
                           <option value="2">2</option>
@@ -559,3 +690,4 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
     </div>
   );
 }
+

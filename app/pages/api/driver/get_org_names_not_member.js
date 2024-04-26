@@ -4,7 +4,6 @@ import { config } from 'dotenv';
 config(); // This loads the .env variables
 
 export default async function handler(req, res) {
-
     // Database connection configuration
     const dbConfig = {
         host: process.env.DB_HOST,
@@ -18,19 +17,37 @@ export default async function handler(req, res) {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const orgIDs = JSON.parse(req.query.org_IDs); // Parse org_IDs as it's received as a string
+        const user_ID = req.query.user_ID;
 
-        // Generate placeholders for the orgIDs in the SQL query
-        const placeholders = orgIDs.map(() => '?').join(',');
+        // Query organization IDs for the provided user_ID
+        const [rows] = await connection.query('SELECT org_ID FROM User_Org WHERE user_ID = ?', [user_ID]);
 
-        // Query organization names that are not in the provided org IDs
-        const [rows] = await connection.query(`SELECT org_Name FROM Org WHERE org_ID NOT IN (${placeholders})`, orgIDs);
+        // Check if rows array is empty
+        if (rows.length === 0) {
+            
+            const [rows2] = await connection.query('SELECT org_Name FROM Org');
 
-        // Close the database connection
-        await connection.end();
+            await connection.end();
+            // Send NULL response as there are no org_IDs
+            res.status(200).json(rows2.map(row => row.org_Name));
+        }
+        else {
+            // Extract organization IDs from the rows
+            const orgIDs = rows.map(row => row.org_ID);
 
-        // Send the data as JSON response
-        res.status(200).json({ org_Names: rows.map(row => row.org_Name) }); // Extract organization names from the rows
+            // Generate placeholders for the orgIDs in the SQL query
+            const placeholders = orgIDs.map(() => '?').join(',');
+
+            // Query organization names for the provided orgIDs
+            const [rows2] = await connection.query(`SELECT org_Name FROM Org WHERE org_ID NOT IN (${placeholders})`, orgIDs);
+
+            // Close the database connection
+            await connection.end();
+
+            // Send the data as JSON response
+            res.status(200).json(rows2.map(row => row.org_Name));
+
+        }
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

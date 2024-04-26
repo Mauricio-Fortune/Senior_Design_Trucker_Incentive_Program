@@ -1,3 +1,5 @@
+// GET driver points
+
 import mysql from 'mysql2/promise';
 import { config } from 'dotenv';
 
@@ -14,28 +16,24 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
+    
+
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const org_IDs = req.query.org_IDs;
-        console.log(org_IDs);
+        //const {user_ID} = req.body;
+        const user_ID = req.query.user_ID;
+        const org_ID = req.query.org_ID;
 
-        // Parse the string of organization IDs
-
-        // Generate placeholders for the orgIDs in the SQL query
-        const placeholders = org_IDs.map(() => '?').join(',');
-        console.log(placeholders);
-        
-
-        // Query organization names for the provided orgIDs
-        const [rows] = await connection.query(`SELECT org_Name FROM Org WHERE org_ID IN (${placeholders})`, org_IDs);
-
+        const [rows] = await connection.query(
+            'SELECT point_change_value, reason, timestamp FROM Point_Changes_Audit WHERE user_ID = ? AND org_ID = ? ORDER BY timestamp DESC', 
+            [user_ID, org_ID]
+        );
         // Close the database connection
         await connection.end();
 
-        // Send the data as JSON response
-        res.status(200).json({ org_Names: rows.map(row => row.org_Name) }); // Extract organization names from the rows
+        res.status(200).json({rows});
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

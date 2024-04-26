@@ -4,7 +4,6 @@ import { config } from 'dotenv';
 config(); // This loads the .env variables
 
 export default async function handler(req, res) {
-
     // Database connection configuration
     const dbConfig = {
         host: process.env.DB_HOST,
@@ -18,24 +17,22 @@ export default async function handler(req, res) {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const org_IDs = req.query.org_IDs;
-        console.log(org_IDs);
+        const org_ID = req.query.org_ID;
+        const startDate = req.query.startDate || '0000-00-00'; // Default to '0000-00-00' if null
+        const endDate = req.query.endDate || '9999-12-31'; // Default to '9999-12-31' if null
 
-        // Parse the string of organization IDs
+        console.log(startDate);
+        console.log(endDate);
 
-        // Generate placeholders for the orgIDs in the SQL query
-        const placeholders = org_IDs.map(() => '?').join(',');
-        console.log(placeholders);
-        
-
-        // Query organization names for the provided orgIDs
-        const [rows] = await connection.query(`SELECT org_Name FROM Org WHERE org_ID IN (${placeholders})`, org_IDs);
+        // Query point changes for the selected driver within the provided date range
+        const [rows] = await connection.query('SELECT p.point_change_id, p.user_ID, u.first_Name, p.point_change_value, p.reason, p.timestamp FROM Point_Changes_Audit p JOIN User u ON p.user_ID = u.user_ID WHERE p.org_ID = ? AND p.timestamp >= ? AND p.timestamp <= ? ORDER BY p.timestamp DESC', [org_ID, startDate, endDate]);
 
         // Close the database connection
         await connection.end();
 
         // Send the data as JSON response
-        res.status(200).json({ org_Names: rows.map(row => row.org_Name) }); // Extract organization names from the rows
+        res.status(200).json(rows);
+
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

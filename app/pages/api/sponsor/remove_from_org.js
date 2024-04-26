@@ -16,16 +16,17 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
-
+    const { user_ID, org_ID } = req.body;
 
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
         const { user_ID, org_ID } = req.body;
-
-        const query = 'DELETE FROM User_Org WHERE user_ID = ? AND org_ID = ?;'
-        const response = await connection.query(query,[user_ID, org_ID]);
+        //const query = 'DELETE FROM User_Org WHERE user_ID = ? AND org_ID = ?;'
+        const query = 'UPDATE User_Org SET active_User = 0 WHERE user_ID = ? AND org_ID = ?;';
+        
+        const [results] = await connection.query(query,[user_ID, org_ID]);
 
         //ADD AUDIT LOG
         

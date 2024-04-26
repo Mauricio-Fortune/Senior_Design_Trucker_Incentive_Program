@@ -14,28 +14,33 @@ export default async function handler(req, res) {
         database: process.env.DB_NAME
     };
 
+    
+
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
+        const currentTimestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-        const org_IDs = req.query.org_IDs;
-        console.log(org_IDs);
+        const { user_ID, org_ID, email, name} = req.body;
+        console.log('API');
+        console.log(user_ID);
+        console.log(org_ID);
+        console.log(email);
+        console.log(name);
 
-        // Parse the string of organization IDs
-
-        // Generate placeholders for the orgIDs in the SQL query
-        const placeholders = org_IDs.map(() => '?').join(',');
-        console.log(placeholders);
         
-
-        // Query organization names for the provided orgIDs
-        const [rows] = await connection.query(`SELECT org_Name FROM Org WHERE org_ID IN (${placeholders})`, org_IDs);
+            const query1 = 'INSERT INTO User (user_ID, user_Type, email, first_Name,is_active) VALUES (?,?,?,?,?)';
+            const response1 = await connection.query(query1,[user_ID,'SPONSOR',email,name,1]);
+    
+            const query = 'INSERT INTO User_Org (user_ID, org_ID, app_status, is_current) VALUES (?,?,?,?)';
+            const response = await connection.query(query,[user_ID, org_ID,'ACCEPTED',1]);
+         
 
         // Close the database connection
         await connection.end();
 
         // Send the data as JSON response
-        res.status(200).json({ org_Names: rows.map(row => row.org_Name) }); // Extract organization names from the rows
+        res.status(200).json({message: "Successfully added Sponsor User"});
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

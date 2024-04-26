@@ -12,8 +12,6 @@ function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const [user, setUser] = useState(null);
-  const [driverSpoof, setDriverSpoof] = useState(null);
-  const [sponsorSpoof, setSponsorSpoof] = useState(null);
 
   //Set user with credentials
   useEffect(() => {
@@ -108,9 +106,6 @@ function Dashboard() {
       {userType === "ADMIN" && (
         <>
           <AdminsPage />
-          <div style={{ marginBottom: '40px' }}></div>
-          {/* <SponsorsPage isSpoofing={true} sponsorSpoofID={'12a24b29-1a15-4c33-ab87-45fe4fdd0abe'} />
-          <div style={{ marginBottom: '40px' }}></div> */}
         </>
       )}
     </ProtectedLayout>

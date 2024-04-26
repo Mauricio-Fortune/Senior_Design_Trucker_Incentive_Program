@@ -24,11 +24,12 @@ export default async function handler(req, res) {
 
         //const {user_ID} = req.body;
         const user_ID = req.query.user_ID;
-        console.log(user_ID);
+        const org_ID = req.query.org_ID;
+
 
         const [rows] = await connection.query(
-            'SELECT user_ID, SUM(point_change_value) AS total FROM Point_Changes_Audit WHERE user_ID = ? GROUP BY user_ID', 
-            [user_ID]
+            'SELECT user_ID, SUM(point_change_value) AS total FROM Point_Changes_Audit WHERE user_ID = ? AND org_ID = ?GROUP BY user_ID', 
+            [user_ID, org_ID]
         );
         // Close the database connection
         await connection.end();
