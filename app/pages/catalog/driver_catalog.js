@@ -15,8 +15,203 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
   const [order_ID, setOrderID] = useState();
   const [cart_ID, setCart] = useState(-1);
   const [pointRatio, setPointRatio] = useState(0);
+  
+
+  const [orderItem, setorderItem] = useState({
+      itemID: '',
+      name: '',
+      quantity: 0,
+      points: 0
+  });
+
+  const [cartItem, setCartItem] = useState({
+    itemID: '',
+    name: '',
+    quantity: 0,
+    points: 0
+  });
 
 
+
+  // cart orders
+
+  const addCartItem = async (item_ID) => {
+    const item = detailedItemData[item_ID];
+    const itemDetails = {
+      itemID: item_ID,
+      name: getName(item), 
+      quantity: quantityType,
+      points: Math.round(getPoints(item) * pointRatio * quantityType) 
+    };
+   
+    setCartItem(itemDetails); 
+  };
+
+
+  useEffect(() => {
+    const getCartID = async () => {
+      try {
+        const requestOptions = {
+          method: "GET",
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+        //console.log("USER " + user.sub);
+        const response = await fetch(`/api/driver/get_cart_orderID?user_ID=${user.sub}`, requestOptions);
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        const result = await response.json();
+        setCart(result.order_ID);
+        return result.order_ID; // Return the new cart_ID
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+        setCart(-1);
+        return -1; // Return -1 on failure
+      }
+    };
+      
+    if(user != null && cartItem != null){
+      getCartID();
+    }
+  }, [cartItem]);
+
+
+  
+  useEffect(() => {
+    const addToCart = async () => {
+      try{
+          const requestOptions = {
+            method: "POST",
+            headers: {
+            'Content-Type': 'application/json'
+          },
+            body: JSON.stringify({ 
+            order_ID : cart_ID,
+            item_ID : cartItem.itemID,
+            item_Quantity: cartItem.quantity,
+            item_Name: cartItem.name,
+            points: cartItem.points
+          })
+        };
+
+
+  
+        const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
+  
+        console.log("added item "+ cartItem.itemID + " to cart "+ cart_ID);
+    
+      alert("Added item to your cart!");
+
+    } catch (error) {
+      console.error(`Error adding item to order ${order_ID}`, error);
+    }
+  }
+  if(user != null && cart_ID != null && cartItem != null)
+    addToCart();  
+  }, [cart_ID]);
+  
+
+
+
+// individual orders
+const addOrderItem = async (item_ID) => {
+  const item = detailedItemData[item_ID];
+  const itemDetails = {
+    itemID: item_ID,
+    name: getName(item), 
+    quantity: quantityType,
+    points: Math.round(getPoints(item) * pointRatio * quantityType) 
+  };
+ 
+  setorderItem(itemDetails); 
+};
+
+useEffect(() => {
+  const createNewOrder = async () => { // fetches all itemIDs in database
+    try {
+        const requestOptions = {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user_ID: user.sub,
+            is_cart: 0,
+            org_ID: orgID
+          })
+      };
+      const response = await fetch(`/api/driver/post_new_order`, requestOptions);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+      const result = await response.json();
+      
+    
+      setOrderID(result.order_ID);
+
+      console.log("Created order: " + result.order_ID);
+        
+
+
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+      setOrderID([0]);
+    }
+  };
+  if(user != null && orderItem != null){
+    createNewOrder();
+  }
+}, [orderItem]);
+
+useEffect(() => {
+  const completeOrder = async () => {
+    try{
+        const requestOptions = {
+          method: "POST",
+          headers: {
+          'Content-Type': 'application/json'
+        },
+          body: JSON.stringify({ 
+          order_ID : order_ID,
+          item_ID : orderItem.itemID,
+          item_Quantity: orderItem.quantity,
+          item_Name: orderItem.name,
+          points: orderItem.points
+        })
+      };
+
+      const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
+
+      console.log("added item "+ orderItem.itemID + " to order "+ order_ID);
+  
+
+
+        const pointOptions = {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            user_ID : user.sub,
+            point_change_value : -orderItem.points,
+            reason: "order", 
+            org_ID: orgID,
+            timestamp: "timestamp"
+          })
+        };
+    const pointchange = await fetch('/api/sponsor/edit_points', pointOptions);
+
+    alert("Ordered Item!");
+  } catch (error) {
+    console.error(`Error adding item to order ${order_ID}`, error);
+  }
+}
+if(user != null && orderItem != null)
+  completeOrder();  
+}, [order_ID]);
 
 
 
@@ -39,12 +234,12 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
     
         
         const data = await response.json();
-        console.log(data.totalPoints);
+        //console.log(data.totalPoints);
    
         return data.totalPoints; 
       } catch (error) {
         console.error('Failed to fetch item data:', error);
-        console.log(user);
+        //console.log(user);
         return 0; 
       }
   };
@@ -112,37 +307,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
     }
   }, [orgID]);
 
-
-  const createNewOrder = async (cart) => { // fetches all itemIDs in database
-    try {
-        const requestOptions = {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            user_ID: user.sub,
-            is_cart: cart
-          })
-      };
-      console.log("USER " + user.sub);
-      const response = await fetch(`/api/driver/post_new_order`, requestOptions);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch data');
-      }
-      const result = await response.json();
-      if(cart == true){
-        setCart(result.order_ID);
-      }
-        setOrderID(result.order_ID);
-
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
-      setOrderID([]);
-    }
-  };
-
+ 
 
  
   useEffect(() => {
@@ -154,7 +319,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
             'Content-Type': 'application/json'
           }
         };
-        console.log("USER " + user.sub);
+        //console.log("USER " + user.sub);
         const response = await fetch(`/api/driver/get_current_sponsor?user_ID=${user.sub}`, requestOptions);
   
         if (!response.ok) {
@@ -182,8 +347,6 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
   }, [user]); 
 
 
-
-
   const handleLimitTypeChange = (event) => {
     setQuantityType(Number(event.target.value)); // Convert to number if it's ensured to be numeric
   };
@@ -195,13 +358,13 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
         setUser({
           sub: spoofId
         })
-        console.log("spoof id: ", spoofId);
+        //console.log("spoof id: ", spoofId);
       }
       else {
         try {
           const user = await fetchUserAttributes();
           setUser(user);
-          console.log("driver catalog");
+         // console.log("driver catalog");
         } catch (err) {
           console.log(err);
         }
@@ -251,127 +414,47 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
   }, [entries]); // Depends on `entries`
   
 
+ 
+  
+
+
+ 
 
 
   
 
-
-    const getCartID = async () => {
-      try {
-        const requestOptions = {
-          method: "GET",
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        };
-        console.log("USER " + user.sub);
-        const response = await fetch(`/api/driver/get_cart_orderID?user_ID=${user.sub}`, requestOptions);
-        if (!response.ok) {
-          throw new Error('Failed to fetch data');
-        }
-        const result = await response.json();
-        setCart(result.order_ID);
-        return result.order_ID; // Return the new cart_ID
-      } catch (error) {
-        console.error('Failed to fetch data:', error);
-        setCart(-1);
-        return -1; // Return -1 on failure
-      }
-    };
-
-  const order_item = async (itemID,cart) => {
-    const item = detailedItemData[itemID];
-
-    if(cart == true){
-      try{
-
-        const cart_ID = await getCartID();
-        console.log("Cart_ID = " + cart_ID);
-        if(cart_ID == -1){
-          createNewOrder(cart);
-        }
-        const requestOptions = {
-            method: "POST",
-            headers: {
-            'Content-Type': 'application/json'
-          },
-            body: JSON.stringify({ 
-            order_ID : cart_ID,
-            item_ID : getID(item),
-            item_Quantity: quantityType,
-            item_Name: getName(item)
-          })
-        };
-        const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
-        if (!response.ok) {
-          throw new Error('Failed to add items to database');
-        }
-    
-        // Response from the server after adding items to the database
-        const result = await response.json();
-      }catch (error) {
-        console.error('Error adding items to database:', error);
-      }
-     
-      
-    }
-    else{
-    try {
-      createNewOrder(cart);
-      const requestOptions = {
-          method: "POST",
-          headers: {
-          'Content-Type': 'application/json'
-        },
-          body: JSON.stringify({ 
-          order_ID : order_ID,
-          item_ID : getID(item),
-          item_Quantity: quantityType,
-          item_Name: getName(item)
-        })
-      };
-
-      const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
-      
-      const points = (-Math.round(getPoints(item))* pointRatio * quantityType);
-      if(points > driverPoints){
-        throw new Error('Not Enough Points!');
-      }
-      else{
-        console.log(points);
+const add_to_cart = async (itemID) => {
+try{
+  await getCartID();
+  if(cart_ID == -1){
+    createNewOrder(true);
+  }
+  const points = (Math.round(getPoints(item))* pointRatio * quantityType);
   
-        const pointOptions = {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ 
-            user_ID : user.sub,
-            point_change_value : points,
-            reason: "order", 
-            org_ID: orgID,
-            timestamp: "04/02/2024"
-          })
-        };
-          const pointchange = await fetch('/api/sponsor/edit_points', pointOptions);
-    
-          if (!response.ok) {
-            throw new Error('Failed to add items to database');
-          }
-      
-          // Response from the server after adding items to the database
-          const result = await response.json();
-   
-  
-      }
-     
-  
-    } catch (error) {
-      console.error('Error adding items to database:', error);
-    }
-    }
-  
+  const requestOptions = {
+      method: "POST",
+      headers: {
+      'Content-Type': 'application/json'
+    },
+      body: JSON.stringify({ 
+      order_ID : order_ID,
+      item_ID : getID(item),
+      item_Quantity: quantityType,
+      item_Name: getName(item),
+      points: points
+    })
+  };
 
+  const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
+  if (!response.ok) {
+    throw new Error('Failed to add item to order_items');
+  }
+  
+    // Response from the server after adding items to the database
+    const result = await response.json();
+}catch (error) {
+  console.error('ERROR adding items to order', error);
+}
 };
 
          //pull item Name from specific type
@@ -510,7 +593,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
     
      const entry = detailedItemData[itemID];
     if(entry){
-      console.log(entry);
+      //console.log(entry);
       if (entry.kind == "song") {
             return <SongItem song={entry} />;
         } else if (entry.collectionType == "Album") {
@@ -557,8 +640,8 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
             <TableRow key={entry.item_ID}>
                   <TableCell align = "center">
                         {renderEntryComponent(entry.item_ID)}
-                        <button onClick={() => order_item(entry.item_ID,false)} style = {button_style}>Order</button>
-                        <button onClick={() => order_item(entry.item_ID,true)} style = {button_style}>Add to Cart</button>
+                        <button onClick={() => addOrderItem(entry.item_ID)} style = {button_style}>Order</button>
+                        <button onClick={() => addCartItem(entry.item_ID)} style = {button_style}>Add to Cart</button>
                         <select value={quantityType} onChange={handleLimitTypeChange} style={dropdown_menu_style}>
                           <option value="1">1</option>
                           <option value="2">2</option>
@@ -582,3 +665,4 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
     </div>
   );
 }
+

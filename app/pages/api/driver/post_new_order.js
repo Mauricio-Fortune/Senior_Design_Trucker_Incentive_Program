@@ -16,16 +16,16 @@ export default async function handler(req, res) {
 
    
 
-    const {user_ID,is_cart} = req.body;
+    const {user_ID,is_cart,org_ID} = req.body;
     // table shoudl be auto increment for the orderID
 
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const sql_query = (`INSERT INTO Orders (user_ID, is_cart) VALUES (?,?) `);
+        const sql_query = (`INSERT INTO Orders (user_ID, is_cart,org_ID) VALUES (?,?,?) `);
 
-        const [results] = await connection.execute(sql_query, [user_ID,is_cart]);
+        const [results] = await connection.execute(sql_query, [user_ID,is_cart,org_ID]);
 
         // Close the database connection
         await connection.end();
