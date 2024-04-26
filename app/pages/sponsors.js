@@ -27,6 +27,8 @@ import { fetchUserAttributes } from '@aws-amplify/auth';
 import { signUp } from 'aws-amplify/auth';
 import { unstable_createStyleFunctionSx } from '@mui/system';
 
+import OrderManager from "./sponsor_orders_manager"
+
 
 export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
   const [value, setValue] = useState(0);
@@ -80,6 +82,14 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
       userName: '',
       userEmail: '',
       points: 0
+    }
+  ])
+
+  const [sponsorInfo, setSponsorInfo] = useState([
+    {
+      userID: '',
+      name: '',
+      email: '',
     }
   ])
   
@@ -155,6 +165,39 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
       }
 
     };
+
+    const fetchSponsorData = async () => {
+      try {
+        const requestOptions = {
+          method: "GET",
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+
+        const response = await fetch(`/api/sponsor/get_sponsor_info?org_ID=${orgID}`, requestOptions);
+  
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        
+        const result = await response.json();
+
+        const updatedSponsor = result.map(sponsor => ({
+          userID: sponsor.user_ID,
+          name: sponsor.first_Name,
+          email: sponsor.email
+        }));
+  
+        setSponsorInfo(updatedSponsor);
+      
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      }
+
+    };
+
+    fetchSponsorData();
 
     fetchAppData()
     fetchDriverData()
@@ -394,7 +437,7 @@ const handleSubmit = () => {
           body: JSON.stringify({ 
             user_ID : currentDriverId,
             point_change_value : pointsChange,
-            reason: "Cause I said so", 
+            reason: pointChangeReason, 
             org_ID: orgID,
             timestamp: "timestamp"
           })
@@ -685,6 +728,7 @@ const handleSubmit = () => {
           <Tab label="Applications" />
           <Tab label="Catalog" />
           <Tab label="Reports" />
+          <Tab label="Orders" />
         </Tabs>
       </Box>
 
@@ -721,6 +765,19 @@ const handleSubmit = () => {
                 </CardContent>
               </Card>
             ))}
+               <div>
+            <Typography variant="h4" gutterBottom>
+              Sponsors
+            </Typography>
+            {sponsorInfo.map((sponsor) => (
+              <Card key={sponsor.userID} style={{ marginBottom: '16px' }}>
+                <CardContent>
+                  <Typography variant="h5">{sponsor.name}</Typography>
+                  <Typography variant="body1">{sponsor.email}</Typography>
+                </CardContent>
+              </Card>
+            ))}
+            </div>
 
                 {/* Points Management Dialog */}
                 <Dialog open={pointDialogOpen} onClose={handleCloseDialog}>
@@ -1131,6 +1188,9 @@ const handleSubmit = () => {
               </>
             )}
           </>
+        )}
+        {value === 4 && (
+            <OrderManager isSpoof={isSpoofing} spoofId={sponsorSpoofID} />
         )}
 
       </Container>
