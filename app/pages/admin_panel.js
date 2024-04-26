@@ -105,7 +105,9 @@ const AdminPanel = () => {
 
   return (
     <div style={{ marginTop: '40px' }}>
-      <h1>Modify Users</h1>
+      <Typography variant="h4" gutterBottom>
+          View Users
+        </Typography>
       <Box sx={{ minWidth: 120 }} style={{ marginTop: '5px' }}>
         <FormControl fullWidth>
           <InputLabel>Drivers</InputLabel>
