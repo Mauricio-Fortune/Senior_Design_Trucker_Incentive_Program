@@ -22,7 +22,7 @@ export default async function handler(req, res) {
 
         const user_ID = req.query.user_ID;
 
-        const query = (`SELECT o.org_Name FROM Org o WHERE NOT EXISTS (SELECT 1 FROM User_Org uo WHERE uo.org_ID = o.org_ID AND uo.user_ID = ? AND uo.Is_current = 1);`);
+        const query = (`SELECT o.org_Name FROM Org o JOIN User_Org uo ON o.org_ID = uo.org_ID WHERE uo.user_ID = ? AND uo.active_User = 1 AND uo.app_status = 'ACCEPTED';`);
 
         const [rows] = await connection.query(query,[user_ID]);
         // Close the database connection

@@ -23,8 +23,8 @@ export default async function handler(req, res) {
 
         const { user_ID, org_ID} = req.body;
 
-        const query = 'UPDATE User_Org SET app_Status = ? WHERE user_ID = ? AND org_ID = ?'
-        const response = await connection.query(query,["ACCEPTED", user_ID, org_ID]);
+        const query = 'UPDATE User_Org SET app_Status = ?, active_User = ? WHERE user_ID = ? AND org_ID = ?'
+        const response = await connection.query(query,["ACCEPTED", 1, user_ID, org_ID]);
 
         //UPDATE AUDIT LOG
         const query2 = 'UPDATE Driver_App_Audit  SET app_status = ? WHERE user_ID = ? AND org_ID = ?';

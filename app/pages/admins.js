@@ -95,7 +95,7 @@ function Admin() {
   const fetchSponsorsInSameOrg = async () => {
     try {
       console.log("Org Name:", sponsorOrgs[selectedOrg].org_Name);
-      const response = await fetch(`/api/user/get-accounts-by-org-name?org_name=${sponsorOrgs[selectedOrg].org_Name}&user_type=${'SPONSOR'}`);
+      const response = await fetch(`/api/user/get_accounts_by_org_name?org_name=${sponsorOrgs[selectedOrg].org_Name}&user_type=${'SPONSOR'}`);
       if (!response.ok) {
         throw new Error('Failed to fetch sponsors');
       }
@@ -113,7 +113,7 @@ function Admin() {
   const fetchDriversInSameOrg = async () => {
     try {
       console.log("Org Name:", sponsorOrgs[selectedOrg].org_Name);
-      const response = await fetch(`/api/user/get-accounts-by-org-name?org_name=${sponsorOrgs[selectedOrg].org_Name}&user_type=${'DRIVER'}`);
+      const response = await fetch(`/api/user/get_accounts_by_org_name?org_name=${sponsorOrgs[selectedOrg].org_Name}&user_type=${'DRIVER'}`);
       if (!response.ok) {
         throw new Error('Failed to fetch sponsors');
       }
@@ -174,11 +174,16 @@ function Admin() {
       if (!response.ok) {
         throw new Error('Failed to remove sponsor');
       }
-      const updatedSponsorUsers = sponsorUsers.filter(user => user.user_ID !== userID);
-      const updatedDriverUsers = driverUsers.filter(user => user.user_ID !== userID);
-      setSponsorUsers(updatedSponsorUsers);
-      setDriverUsers(updatedDriverUsers);
-      setSuccessMessage('User removed successfully');
+
+      if(sponsorOrgs[selectedOrg].org_ID == orgID){
+        console.log("The user is being removed")
+        const updatedSponsorUsers = sponsorUsers.filter(user => user.user_ID !== userID);
+        const updatedDriverUsers = driverUsers.filter(user => user.user_ID !== userID);
+        setSponsorUsers(updatedSponsorUsers);
+        setDriverUsers(updatedDriverUsers);
+      }
+      console.log("Setting it now in handleRemoveUserFromOrg");
+      setSuccessMessage('User removed from org successfully');
     } catch (error) {
       console.error('Error removing sponsor:', error);
       setError('Failed to remove user');
@@ -191,28 +196,26 @@ function Admin() {
 
   const handleEditSponsorOrgs = async (userID) => {
     setSelectedUser(userID);
+    setSuccessMessage('');
     setOrgsDialogOpen(true);
-
   }
 
   const handleActionChange = async (selectedAction) => {
-    console.log("Handling action change");
+    
     setActionType(selectedAction);
+
     if (selectedAction === 'Add') {
-      console.log("Selected Add");
-      console.log("User is: ", selectedUser);
+      
         // Fetch organizations that the driver is not a part of
-        const response = await fetch(`/api/user/get-orgs-not-part-of?user_ID=${selectedUser}`);
+        const response = await fetch(`/api/user/get_orgs_not_part_of?user_ID=${selectedUser}`);
         const data = await response.json();
-        console.log("API Response: ", data);
+
         setOrgsList(data);
     } else if (selectedAction === 'Remove') {
-      console.log("Selected Remove");
-      console.log("User is: ", selectedUser);
+
         // Fetch organizations that the driver is a part of
-        const response = await fetch(`/api/user/get-orgs-part-of?user_ID=${selectedUser}`);
+        const response = await fetch(`/api/user/get_orgs_part_of?user_ID=${selectedUser}`);
         const data = await response.json();
-        console.log("API Response: ", data);
         setOrgsList(data);
     }
 };
@@ -220,14 +223,12 @@ function Admin() {
 const handleOrgAction = async (orgName) => {
   let orgID;
   try {
-    const response = await fetch(`/api/driver/get_orgID_using_name?org_Name=${orgName}`);
+    const response = await fetch(`/api/driver/get_orgID_using_name_mauricio?org_Name=${orgName}`);
     if (!response.ok) {
       throw new Error('Failed to fetch orgID');
     }
     const data = await response.json();
-    console.log("Data: ", data);
     orgID = data[0].org_ID;
-    console.log('orgID:', orgID);
   } catch (error) {
     console.error('Error fetching org_ID:', error);
     setError('Failed to fetch org_ID');
@@ -262,6 +263,7 @@ const handleOrgAction = async (orgName) => {
   } else if (actionType === 'Remove') {
       // Similar handling for removing a user from an org
       await handleRemoveUserFromOrg(selectedUser, orgID);
+      setSuccessMessage('User removed from org successfully');
   }
 };
 
@@ -271,57 +273,70 @@ const handleOrgAction = async (orgName) => {
 
 
   const handlePointSubmit = async () => {
-    console.log(`Submitting points change: ${pointsChange} and behavior ${behaviorText} for driver ID: ${currentDriverId}`);
-    
-    const pointOptions = {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ 
-            user_ID : currentDriverId,
-            point_change_value : pointsChange,
-            reason: behaviorText, 
-            org_ID: sponsorOrgs[selectedOrg].org_ID,
-            timestamp: "timestamp"
-          })
-        };
+    try{
+      console.log('Submit button clicked');
+      const pointOptions = {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+              user_ID : currentDriverId,
+              point_change_value : pointsChange,
+              reason: behaviorText, 
+              org_ID: sponsorOrgs[selectedOrg].org_ID,
+              timestamp: "timestamp"
+            })
+      };
 
-      fetch('/api/sponsor/edit_points', pointOptions);
+        const response = await fetch('/api/sponsor/edit_points', pointOptions);
+        console.log('API Response', response);
+
+        if (!response.ok) {
+          throw new Error('Failed to update points');
+        } 
+      
+        setSuccessMessage("Points updated successfully");
+        console.log("Success Message Set", successMessage);
+
+      }catch (error) {
+          console.error('Error updating points', error);
+          setError('Failed to update points');
+        }
 
     // Here, add your logic to update the points backend or state
     handleCloseDialog();
   };
 
-  const handleAlterOrgs = async (userID, orgID) => {
-    try {
-      const requestOptions = {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          user_ID: userID,
-          org_ID : orgID
-        })
-      };
-      //console.log("User Deleted" + userID);
-      // If it is a remove operation
-      const response = await fetch(`/api/sponsor/remove_from_org`, requestOptions);
+  // const handleAlterOrgs = async (userID, orgID) => {
+  //   try {
+  //     const requestOptions = {
+  //       method: "POST",
+  //       headers: {
+  //         'Content-Type': 'application/json'
+  //       },
+  //       body: JSON.stringify({
+  //         user_ID: userID,
+  //         org_ID : orgID
+  //       })
+  //     };
+  //     //console.log("User Deleted" + userID);
+  //     // If it is a remove operation
+  //     const response = await fetch(`/api/sponsor/remove_from_org`, requestOptions);
       
-      if (!response.ok) {
-        throw new Error('Failed to remove sponsor');
-      }
-      const updatedSponsorUsers = sponsorUsers.filter(user => user.user_ID !== userID);
-      const updatedDriverUsers = driverUsers.filter(user => user.user_ID !== userID);
-      setSponsorUsers(updatedSponsorUsers);
-      setDriverUsers(updatedDriverUsers);
-      setSuccessMessage('User removed successfully');
-    } catch (error) {
-      console.error('Error removing sponsor:', error);
-      setError('Failed to remove user');
-    }
-  }
+  //     if (!response.ok) {
+  //       throw new Error('Failed to remove sponsor');
+  //     }
+  //     const updatedSponsorUsers = sponsorUsers.filter(user => user.user_ID !== userID);
+  //     const updatedDriverUsers = driverUsers.filter(user => user.user_ID !== userID);
+  //     setSponsorUsers(updatedSponsorUsers);
+  //     setDriverUsers(updatedDriverUsers);
+  //     setSuccessMessage('User removed successfully');
+  //   } catch (error) {
+  //     console.error('Error removing sponsor:', error);
+  //     setError('Failed to remove user');
+  //   }
+  // }
 
   // Delete entire account
   const handleDeleteUser = async (userID) => {
@@ -345,6 +360,7 @@ const handleOrgAction = async (orgName) => {
       const updatedDriverUsers = driverUsers.filter(user => user.user_ID !== userID);
       setSponsorUsers(updatedSponsorUsers);
       setDriverUsers(updatedDriverUsers);
+      console.log("Setting it now in handleDeleteUser");
       setSuccessMessage('User removed successfully');
     } catch (error) {
       console.error('Error removing sponsor:', error);
@@ -355,7 +371,6 @@ const handleOrgAction = async (orgName) => {
   const handleManagePoints = (driverId) => {
     setCurrentDriverId(driverId);
     setPointsChange(0);  
-    setBehaviorText('');
     setDialogOpen(true);
   };
   
@@ -365,9 +380,11 @@ const handleOrgAction = async (orgName) => {
   }
 
   const handleCloseDialog = () => {
+    setSuccessMessage('');
     setDialogOpen(false);
   };
   const handleCloseOrgsDialog = () => {
+    setSuccessMessage('');
     setOrgsDialogOpen(false);
   };
   const handleCloseUpdateDialog = () => {
@@ -563,7 +580,6 @@ const handleOrgAction = async (orgName) => {
               </DialogContent>
               <DialogActions>
                   <Button onClick={handleCloseOrgsDialog}>Cancel</Button>
-                  {/* Need to handleOrgSubmit funct<Button onClick={handleSubmit} color="primary">Submit</Button> */}
               </DialogActions>
             </Dialog>
 

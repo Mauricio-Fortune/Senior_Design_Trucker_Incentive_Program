@@ -44,7 +44,7 @@ export default async function handler(req, res) {
                 u.user_Type = ? AND
                 u.is_active = 1 AND
                 uo.app_status = "ACCEPTED" AND
-                uo.is_current = 1  -- Added condition to check if is_current is 1
+                uo.active_User = 1  
             GROUP BY
                 u.user_ID, u.first_Name, u.email, uo.app_Status;
             `;
