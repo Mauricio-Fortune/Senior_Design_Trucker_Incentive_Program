@@ -18,6 +18,9 @@ import {
 } from '@mui/material';
 import AdminPanel from '../Components/admin_panel';
 import Account from './account';
+import { fetchUserAttributes } from '@aws-amplify/auth';
+import { signUp } from 'aws-amplify/auth';
+import { ContentCutOutlined } from '@mui/icons-material';
 
 function Admin() {
   const [sponsorOrgs, setSponsorOrgs] = useState([]);  
@@ -48,6 +51,15 @@ function Admin() {
   const [createOrgName, setCreateOrgName] = useState('');
   const [createOrgDialogOpen, setCreateOrgDialogOpen] =  useState(false);
 
+    // for adding a new driver dialog
+    const [appDialogOpen, setAppDialogOpen] = useState(false);
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [birthday, setBirthday] = useState('');
+    const [password, setPassword] = useState('');
+    const [newUser, setNewUser] = useState('');
+    const [userType, setUserType] = useState('');
+
   useEffect(() => {
     setIsLoading(true);
     fetchSponsorOrgs();
@@ -75,6 +87,54 @@ function Admin() {
   useEffect(() => {
     console.log("Updated orgs list: ", orgsList);
   }, [orgsList]);
+
+  useEffect(() => {
+    async function addNewUser(userId){
+
+        try{
+          const myHeaders = new Headers();
+          myHeaders.append("Content-Type", "application/json");
+          
+          const raw = JSON.stringify({
+            "user_ID": userId,
+            "org_ID": sponsorOrgs[selectedOrg].org_ID,
+            "email": email,
+            "name": name
+          });
+          
+          const requestOptions1 = {
+            method: "POST",
+            headers: myHeaders,
+            body: raw,
+            redirect: "follow"
+          };
+          if(userType == 'driver'){
+            fetch("/api/sponsor/post_add_driver", requestOptions1)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+           .catch((error) => console.error(error));
+          }
+          else if(userType == 'sponsor'){
+            fetch("/api/sponsor/post_add_sponsor", requestOptions1)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+           .catch((error) => console.error(error));
+          }
+          // Edit here
+          else if(userType == 'admin'){
+            fetch("/api/sponsor/post_add_admin", requestOptions1)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+           .catch((error) => console.error(error));
+          }
+        }catch(error){
+          console.error('Error during sign up:', error);
+        }
+      }
+     
+    if(newUser != '')
+      addNewUser(newUser);
+  }, [newUser]); // Depend on user state
 
 
   const fetchSponsorOrgs = async () => {
@@ -338,6 +398,44 @@ const handleOrgAction = async (orgName) => {
     }
   };
 
+  const handleAppSubmit = () => {
+
+    async function handleSignUp(email, password, name, birthdate, userType) {
+      console.log("email", email);
+      console.log("password", password);
+      console.log("name", name);
+      console.log("birthdate", birthdate);
+      console.log("userType", userType);
+      
+      try {
+          const {isSignUpComplete, userId, nextStep } = await signUp({
+              'username': email,
+              'password': password,
+              options: {
+                userAttributes: {
+                  'email': email,
+                  'name': name,      
+                  'birthdate': birthdate,  
+                  'custom:user_type': userType,  
+              },
+              autoSignIn: false
+              }
+            
+          });
+          
+          console.log(userId);
+          
+          setNewUser(userId);
+   
+      } catch (error) {
+          console.error('Error during sign up:', error);
+      }
+  }
+    handleSignUp(email,password,name,birthday,userType);
+    
+    setAppDialogOpen(false);
+  };
+
   const handleManagePoints = (driverId) => {
     setCurrentDriverId(driverId);
     setPointsChange(0);  
@@ -360,6 +458,14 @@ const handleOrgAction = async (orgName) => {
   const handleCloseUpdateDialog = () => {
     setUpdateDialogOpen(false);
   }
+  // Add drivers or sponsors
+  const handleAppCloseDialog = () => {
+    setAppDialogOpen(false);
+  };
+
+  const handleAddDriver = (userType) => {
+    setAppDialogOpen(true);
+  };
 
 
   const handleCreateOrg = async () => {
@@ -515,6 +621,47 @@ const handleOrgAction = async (orgName) => {
             </CardContent>
           </Card>
         ))}
+        {/* Add New Sponsored Driver section */}
+        {selectedOrgBool && (
+          <>
+            <Typography variant="h4" gutterBottom style={{ marginTop: '16px' }}>
+              Add New Sponsored Driver
+            </Typography>
+            <form>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {setUserType('driver'); handleAddDriver();}}
+              >
+                Add Driver
+              </Button>
+            </form>
+            <Typography variant="h4" gutterBottom style={{ marginTop: '16px' }}>
+              Add New Sponsor User
+            </Typography>
+            <form>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {setUserType('sponsor');handleAddDriver();}}
+              >
+                Add Sponsor
+              </Button>
+              </form>
+              <Typography variant="h4" gutterBottom style={{ marginTop: '16px' }}>
+              Add New Admin User
+            </Typography>
+            <form>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {setUserType('admin');handleAddDriver();}}
+              >
+                Add Admin
+              </Button>
+              </form>
+          </>
+        )}
           {/* Points Management Dialog */}
           <Dialog open={dialogOpen} onClose={handleCloseDialog}>
               <DialogTitle>Manage Points</DialogTitle>
@@ -581,8 +728,68 @@ const handleOrgAction = async (orgName) => {
               <DialogActions>
                   <Button onClick={handleCloseOrgsDialog}>Cancel</Button>
               </DialogActions>
-            </Dialog>
-
+                </Dialog>
+    {/* Driver Management Dialog */}
+    <Dialog 
+              open={appDialogOpen} 
+              onClose={handleAppCloseDialog}
+              fullWidth={true}
+              style={{ 
+                padding: '8px 24px'
+              }}
+            >
+                <DialogTitle>Add a New User</DialogTitle>
+                <DialogContent>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="Email"
+                        label="Email"
+                        fullWidth
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                </DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="Name"
+                        label="Name"
+                        fullWidth
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                    />
+                </DialogContent>            
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="Birthday"
+                        label="Birthday (yyyy-mm-dd)"
+                        fullWidth
+                        value={birthday}
+                        onChange={(e) => setBirthday(e.target.value)}
+                    />
+                      <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="Password"
+                        label="Password"
+                        fullWidth
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </DialogContent>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleAppCloseDialog}>Cancel</Button>
+                    <Button onClick={() => {handleAppSubmit();}} color="primary">
+                  Submit
+                </Button>
+                </DialogActions>
+                </Dialog>
 
         <Snackbar
           open={!!successMessage}
