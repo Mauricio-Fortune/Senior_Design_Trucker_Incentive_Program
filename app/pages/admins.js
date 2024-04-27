@@ -14,7 +14,12 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  FormControlLabel,
+  Checkbox,
+  Select,
   DialogTitle,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import AdminPanel from '../Components/admin_panel';
 import Account from './account';
@@ -59,10 +64,356 @@ function Admin() {
   const [password, setPassword] = useState('');
   const [newUser, setNewUser] = useState('');
   const [userType, setUserType] = useState('');
+  const [selectedSponsor, setSelectedSponsor] = useState('');
+  const [selectAllSponsors, setSelectAllSponsors] = useState(false);
+  const [sponsors, setSponsors] = useState([]);
+  const [anyTime, setAnyTime] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [submittedInvoice, setSubmittedInvoice] = useState(0);
+  const [submittedAudit, setSubmittedAudit] = useState(0);
+  const [invoices, setInvoices] = useState([]);
+  const [totalPoints, setTotalPoints] = useState(0);
+  const [totalDollars, setTotalDollars] = useState(0);
+  const [pointRatio, setPointRatio] = useState(0);
+  const [drivers, setDriver] = useState([]);
+  const uniqueDriverNames = new Set(); // Initialize a set to store unique driver names
+  const [reportValue, setReportValue] = useState(0);
+  const [selectedAudit, setSelectedAudit] = useState('');
+  const [auditLog, setAuditLog] = useState([]);
+  const [csvContent, setCSVContent] = useState('');
+
+  const getAuditLog = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+
+      const response = await fetch(`/api/admin/get_audit_log?selectedSponsor=${selectedSponsor}&selectedAudit=${selectedAudit}&startDate=${startDate}&endDate=${endDate}`, requestOptions);
+      if (!response.ok) {
+        throw new Error('Failed to get audit log');
+      }
+      const result = await response.json();
+      setAuditLog(result);
+    } catch (error) {
+      console.error('Failed to fetch audit log:', error);
+    }
+  }
+
+  const getAllAuditLogs = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+
+      const response = await fetch(`/api/admin/get_all_audit_logs?selectedAudit=${selectedAudit}&startDate=${startDate}&endDate=${endDate}`, requestOptions);
+      if (!response.ok) {
+        throw new Error('Failed to get all audit logs');
+      }
+      const result = await response.json();
+      setAuditLog(result);
+    } catch (error) {
+      console.error('Failed to fetch all audit logs:', error);
+    }
+  }
+
+  const handleSelectedAudit = (event) => {
+    setSelectedAudit(event.target.value);
+  }
+
+  const handleSelectAllSponsors = (event) => {
+    setSelectAllSponsors(event.target.checked);
+    setSelectedSponsor('All Sponsors');
+  }
+
+  const handleSponsorSelect = (event) => {
+    setSelectedSponsor(event.target.value);
+  }
+
+  const handleSubmitInvoice = () => {
+    if(anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+    }
+    if(startDate == 'NaN-NaN-NaN') {
+      setStartDate('');
+    }
+    if(endDate == 'NaN-NaN-NaN') {
+      setEndDate('');
+    }
+    setSubmittedInvoice(submittedInvoice + 1);
+  }
+
+  const handleSubmitAudits = () => {
+    if(anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+    }
+    if(startDate == 'NaN-NaN-NaN') {
+      setStartDate('');
+    }
+    if(endDate == 'NaN-NaN-NaN') {
+      setEndDate('');
+    }
+    setSubmittedAudit(submittedAudit + 1);
+  }
+
+  const handleStartDateChange = (event) => {
+    const formattedDate = formatDate(event.target.value);
+    setStartDate(formattedDate);
+    if(anyTime == true) {
+      setStartDate('');
+    }
+  };
+
+  const handleEndDateChange = (event) => {
+    const formattedDate = formatDate(event.target.value);
+    setEndDate(formattedDate);
+    if(anyTime == true) {
+      setEndDate('');
+    }
+  };
+
+  const formatDate = (dateString) => {
+    let dateObject = new Date(dateString);
+    
+    // Adjust date for timezone offset
+    dateObject.setDate(dateObject.getDate() + 1);
+    
+    const year = dateObject.getFullYear();
+    const month = String(dateObject.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObject.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleAnyTime = (event) => {
+    setAnyTime(event.target.checked);
+    if(anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+    }
+  }
+
+  useEffect(() => {
+    if(submittedInvoice > 0 && selectAllSponsors != true && anyTime != true) {
+      getInvoices();
+      getDrivers();
+    }
+    else if(submittedInvoice > 0 && selectAllSponsors == true && anyTime != true) {
+      getInvoicesAllSponsors();
+      getAllDrivers();
+    }
+    else if (submittedInvoice > 0 && selectAllSponsors == true && anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+      getInvoicesAllSponsors();
+      getAllDrivers();
+    }
+    else if (submittedInvoice > 0 && selectAllSponsors != true && anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+      getInvoices();
+      getDrivers();
+    }
+  }, [submittedInvoice]);
+
+  useEffect(() => {
+    if(submittedAudit > 0 && selectAllSponsors != true && anyTime != true) {
+      getAuditLog();
+    }
+    else if(submittedAudit > 0 && selectAllSponsors == true && anyTime != true) {
+      getAllAuditLogs();
+    }
+    else if (submittedAudit > 0 && selectAllSponsors == true && anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+      getAllAuditLogs();
+    }
+    else if (submittedAudit > 0 && selectAllSponsors != true && anyTime == true) {
+      setStartDate('');
+      setEndDate('');
+      getAuditLog();
+    }
+  }, [submittedAudit]);
+
+  useEffect(() => {
+    calcTotalPoints();
+    calcTotalDollars();
+  }, [invoices]);
+
+  const calcTotalPoints = () => {
+    if (invoices && invoices.length > 0) {
+      const totalPoints = invoices.reduce((accumulator, currentValue) => accumulator + currentValue.points, 0);
+      setTotalPoints(totalPoints);
+    }
+    else {
+      setTotalPoints(0);
+    }
+  }
+
+  const calcTotalDollars = () => {
+    if (invoices && invoices.length > 0) {
+      const totalDollars = invoices.reduce((accumulator, currentValue) => accumulator + (currentValue.points/currentValue.point_Ratio), 0);
+      setTotalDollars(totalDollars);
+    }
+    else {
+      setTotalDollars(0);
+    }
+  }
+
+  const handleDownload1 = () => {
+    // Prepare CSV content
+    const encodedURI = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedURI);
+    link.setAttribute("download", "invoices.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDownload2 = () => {
+    // Prepare CSV content
+    const encodedURI = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedURI);
+    link.setAttribute("download", "audit_logs.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  useEffect(() => {
+    createCSV();
+  }, [auditLog]);
+
+  useEffect(() => {
+    createCSV2();
+  }, [invoices]);
+
+  const createCSV = () => {
+    setCSVContent("data:text/csv;charset=utf-8," + auditLog.map(audit => Object.values(audit).join(",")).join("\n"));
+  }
+
+  const createCSV2 = () => {
+    setCSVContent("data:text/csv;charset=utf-8," + invoices.map(point => Object.values(point).join(",")).join("\n"));
+  }
+
+  const getInvoices = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+  
+      const response = await fetch(`/api/admin/get_invoices?selectedSponsor=${selectedSponsor}`, requestOptions);
+      if (!response.ok) {
+        throw new Error('Failed to get invoices');
+      }
+      const result = await response.json();
+      setInvoices(result); // Set "result" as the orders state
+    } catch (error) {
+      console.error('Failed to fetch invoices:', error);
+    }
+  }
+
+  const getInvoicesAllSponsors = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+  
+      const response = await fetch(`/api/admin/get_invoices_all_sponsors`, requestOptions);
+      if (!response.ok) {
+        throw new Error('Failed to get invoices');
+      }
+      const result = await response.json();
+      setInvoices(result); // Set "result" as the orders state
+    } catch (error) {
+      console.error('Failed to fetch invoices:', error);
+    }
+  }
+
+  const getDrivers = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+  
+      const response = await fetch(`/api/admin/get_drivers?selectedSponsor=${selectedSponsor}`, requestOptions);
+      if (!response.ok) {
+        throw new Error('Failed to get drivers');
+      }
+      const result = await response.json();
+      setDriver(result); // Set "result" as the orders state
+    } catch (error) {
+      console.error('Failed to fetch drivers:', error);
+    }
+  }
+
+  const getAllDrivers = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+  
+      const response = await fetch(`/api/admin/get_all_drivers_for_sponsor`, requestOptions);
+      if (!response.ok) {
+        throw new Error('Failed to get drivers');
+      }
+      const result = await response.json();
+      setDriver(result); // Set "result" as the orders state
+    } catch (error) {
+      console.error('Failed to fetch drivers:', error);
+    }
+  }
+
+  const getSponsors = async () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+  
+      const response = await fetch(`/api/admin/get_all_sponsors_orgs`, requestOptions);
+      if (!response.ok) {
+        throw new Error('Failed to get sponsors');
+      }
+      const result = await response.json();
+      setSponsors(result); // Set "result" as the orders state
+    } catch (error) {
+      console.error('Failed to fetch sponsors:', error);
+    }
+  };
+
+  const handleReportChange = (event, newValue) => {
+    setReportValue(newValue);
+  }
 
   useEffect(() => {
     setIsLoading(true);
     fetchSponsorOrgs();
+    getSponsors();
     setIsLoading(false);
   }, []);
 
@@ -833,6 +1184,283 @@ function Admin() {
             </Button>
           </DialogContent>
         </Dialog>
+        
+        <Typography variant="h4" gutterBottom>
+          Reports
+        </Typography>
+        <Tabs
+              value={reportValue}
+              onChange={handleReportChange}
+              aria-label="catalog tabs"
+              style={{ marginBottom: '20px' }} // Add margin-bottom for spacing
+            >
+              <Tab label="Invoices" />
+              <Tab label="Audit Log" />
+            </Tabs>
+        {reportValue === 0 && (
+        <>
+        <FormControlLabel
+          control={<Checkbox checked={selectAllSponsors} onChange={handleSelectAllSponsors} />}
+          label="All Sponsors"
+          style={{marginRight: '10px'}}
+        />
+        <Select
+          value={selectedSponsor}
+          onChange={handleSponsorSelect}
+          displayEmpty
+          disabled={selectAllSponsors} // Disable the select if "All Drivers" or "Any Time" is checked
+          style={{ marginBottom: '20px', marginRight: '10px'}}
+        >
+          <MenuItem value="" disabled={selectAllSponsors}>Select Sponsor</MenuItem>
+          {sponsors && sponsors.map((sponsor, index) => (
+            <MenuItem key={index} value={sponsor}>{sponsor}</MenuItem>
+          ))}
+        </Select>
+        <FormControlLabel
+          control={<Checkbox checked={anyTime} onChange={handleAnyTime} />}
+          label="Any Time"
+          style={{marginRight: '10px'}}
+        />
+        <TextField
+          label="Start Date"
+          type="date"
+          value={startDate}
+          onChange={handleStartDateChange}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          disabled={anyTime} // Disable the Start Date TextField if "Any Time" is checked
+          style={{marginRight: '10px'}}
+        />
+        <TextField
+          label="End Date"
+          type="date"
+          value={endDate}
+          onChange={handleEndDateChange}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          disabled={anyTime} // Disable the End Date TextField if "Any Time" is checked
+          style={{marginRight: '10px'}}
+        />
+        <Button variant="contained" color="primary" onClick={handleSubmitInvoice} style={{marginRight: '10px'}}>
+          Submit
+        </Button>
+        <Button variant="contained" color="primary" onClick={handleDownload1} style={{marginRight: '10px'}}>
+          Download CSV
+        </Button>
+        <Card style={{ marginBottom: '10px' }}>
+          <CardContent>
+            <Typography variant="h5" component="h2">
+              Organization Name: {selectedSponsor}
+            </Typography>
+            <Typography variant="body1" component="p">
+              Total Points Spent: {totalPoints}
+            </Typography>
+            <Typography variant="body1" component="p">
+              Total Dollars Spent: {totalDollars}
+            </Typography>
+          </CardContent>
+        </Card>
+        {
+          drivers.map((driver, index) => {
+            // Check if the driver's name has already been encountered
+            if (!uniqueDriverNames.has(driver.first_Name)) {
+              // Add the driver's name to the set to mark it as encountered
+              uniqueDriverNames.add(driver.first_Name);
+
+              // Filter invoices for the current driver
+              const filteredInvoices = invoices.filter(invoice => invoice.first_Name === driver.first_Name);
+
+              // Calculate total points spent for the current driver
+              const totalPoints = filteredInvoices.reduce((accumulator, currentValue) => accumulator + currentValue.points, 0);
+              const totalDollars = filteredInvoices.reduce((accumulator, currentValue) => accumulator + (currentValue.points / currentValue.point_Ratio), 0);
+
+              return (
+                <Card key={index} style={{ marginBottom: '10px' }}>
+                  <CardContent>
+                    <Typography variant="h6" component="h2">
+                      Driver Name: {driver.first_Name}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      Total Points Spent: {totalPoints}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      Total Dollars Spent: {totalDollars}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              );
+            } else {
+              return null; // Skip rendering if the driver's name has already been encountered
+            }
+          })
+        }
+        </>
+      )}
+      {reportValue === 1 && (
+        <>
+          <Select
+            value={selectedAudit}
+            onChange={handleSelectedAudit}
+            displayEmpty
+            style={{marginRight: '10px'}}
+          >
+            <MenuItem value="">Select Audit</MenuItem>
+            <MenuItem value="Driver_App_Audit">Driver App Audit</MenuItem>
+            <MenuItem value="Login_Attempts_Audit">Login Attempts Audit</MenuItem>
+            <MenuItem value="Password_Changes_Audit">Password Changes Audit</MenuItem>
+            <MenuItem value="Point_Changes_Audit">Point Changes Audit</MenuItem>
+          </Select>
+          <FormControlLabel
+            control={<Checkbox checked={selectAllSponsors} onChange={handleSelectAllSponsors} />}
+            label="All Sponsors"
+            style={{marginRight: '10px'}}
+          />
+          <Select
+            value={selectedSponsor}
+            onChange={handleSponsorSelect}
+            displayEmpty
+            disabled={selectAllSponsors} // Disable the select if "All Drivers" or "Any Time" is checked
+            style={{ marginBottom: '20px', marginRight: '10px'}}
+          >
+            <MenuItem value="" disabled={selectAllSponsors}>Select Sponsor</MenuItem>
+            {sponsors && sponsors.map((sponsor, index) => (
+              <MenuItem key={index} value={sponsor}>{sponsor}</MenuItem>
+            ))}
+          </Select>
+          <FormControlLabel
+            control={<Checkbox checked={anyTime} onChange={handleAnyTime} />}
+            label="Any Time"
+            style={{marginRight: '10px'}}
+          />
+          <TextField
+            label="Start Date"
+            type="date"
+            value={startDate}
+            onChange={handleStartDateChange}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            disabled={anyTime} // Disable the Start Date TextField if "Any Time" is checked
+            style={{marginRight: '10px'}}
+          />
+          <TextField
+            label="End Date"
+            type="date"
+            value={endDate}
+            onChange={handleEndDateChange}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            disabled={anyTime} // Disable the End Date TextField if "Any Time" is checked
+            style={{marginRight: '10px'}}
+          />
+          <Button variant="contained" color="primary" onClick={handleSubmitAudits} style={{marginRight: '10px'}}>
+            Submit
+          </Button>
+          <Button variant="contained" color="primary" onClick={handleDownload2} style={{marginRight: '10px'}}>
+            Download CSV
+          </Button>
+          {
+            selectedAudit === 'Driver_App_Audit' ? (
+              auditLog.map((audit, index) => (
+                <Card key={index} style={{ marginBottom: '10px' }}>
+                  <CardContent>
+                    <Typography variant="h6" component="h2">
+                      Driver App ID: {audit.driver_app_id}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      User ID: {audit.user_ID}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      Name: {audit.first_Name}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      Reason: {audit.reason}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      Timestamp: {audit.timestamp}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      App Status: {audit.app_Status}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))
+            ) : selectedAudit === 'Login_Attempts_Audit' ? (
+              auditLog.map((audit, index) => (
+                <Card key={index} style={{ marginBottom: '10px' }}>
+                  <CardContent>
+                    <Typography variant="h6" component="h2">
+                      Login Attempts ID: {audit.login_attempts_id}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      User ID: {audit.user_ID}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      Name: {audit.first_Name}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      Status: {audit.status}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      Timestamp: {audit.timestamp}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))
+            ) : selectedAudit === 'Password_Changes_Audit' ? (
+              auditLog.map((audit, index) => (
+                <Card key={index} style={{ marginBottom: '10px' }}>
+                  <CardContent>
+                    <Typography variant="h6" component="h2">
+                      Password Change ID: {audit.password_change_id}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      User ID: {audit.user_ID}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      Name: {audit.first_Name}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      Change Type: {audit.change_type}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      Timestamp: {audit.timestamp}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))
+            ) : selectedAudit === 'Point_Changes_Audit' && (
+              auditLog.map((audit, index) => (
+                <Card key={index} style={{ marginBottom: '10px' }}>
+                  <CardContent>
+                    <Typography variant="h6" component="h2">
+                      Point Change ID: {audit.point_change_id}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      User ID: {audit.user_ID}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      Name: {audit.first_Name}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      Point Change Value: {audit.point_change_value}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      Reason: {audit.reason}
+                    </Typography>
+                    <Typography variant="body1" component="p">
+                      Timestamp: {audit.timestamp}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))
+            )
+          }
+        </>
+      )}
       </Container>
     </React.Fragment>
   );
