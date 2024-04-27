@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { 
-  Container, 
-  Typography, 
-  Card, 
-  CardContent, 
-  Button, 
-  TextField, 
-  Box, 
-  CircularProgress, 
-  MenuItem, 
+import {
+  Container,
+  Typography,
+  Card,
+  CardContent,
+  Button,
+  TextField,
+  Box,
+  CircularProgress,
+  MenuItem,
   Snackbar,
   Dialog,
   DialogActions,
@@ -23,7 +23,7 @@ import { signUp } from 'aws-amplify/auth';
 import { ContentCutOutlined } from '@mui/icons-material';
 
 function Admin() {
-  const [sponsorOrgs, setSponsorOrgs] = useState([]);  
+  const [sponsorOrgs, setSponsorOrgs] = useState([]);
   const [sponsorUsers, setSponsorUsers] = useState([]);
   const [driverUsers, setDriverUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -49,16 +49,16 @@ function Admin() {
   const [selectedUserUpdate, setUserUpdate] = useState('');
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [createOrgName, setCreateOrgName] = useState('');
-  const [createOrgDialogOpen, setCreateOrgDialogOpen] =  useState(false);
+  const [createOrgDialogOpen, setCreateOrgDialogOpen] = useState(false);
 
-    // for adding a new driver dialog
-    const [appDialogOpen, setAppDialogOpen] = useState(false);
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [birthday, setBirthday] = useState('');
-    const [password, setPassword] = useState('');
-    const [newUser, setNewUser] = useState('');
-    const [userType, setUserType] = useState('');
+  // for adding a new driver dialog
+  const [appDialogOpen, setAppDialogOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [birthday, setBirthday] = useState('');
+  const [password, setPassword] = useState('');
+  const [newUser, setNewUser] = useState('');
+  const [userType, setUserType] = useState('');
 
   useEffect(() => {
     setIsLoading(true);
@@ -68,7 +68,7 @@ function Admin() {
 
   useEffect(() => {
     setIsLoading(true);
-    if(sponsorOrgs.length > 0){
+    if (sponsorOrgs.length > 0) {
       fetchSponsorsInSameOrg();
     }
     setIsLoading(false);
@@ -76,67 +76,65 @@ function Admin() {
 
   useEffect(() => {
     setIsLoading(true);
-    if(sponsorOrgs.length > 0){
+    if (sponsorOrgs.length > 0) {
       fetchDriversInSameOrg();
     }
     setIsLoading(false);
   }, [selectedOrg]);
 
-
-  // Idk if this is updating anything
   useEffect(() => {
     console.log("Updated orgs list: ", orgsList);
   }, [orgsList]);
 
   useEffect(() => {
-    async function addNewUser(userId){
+    async function addNewUser(userId) {
 
-        try{
-          const myHeaders = new Headers();
-          myHeaders.append("Content-Type", "application/json");
-          
-          const raw = JSON.stringify({
-            "user_ID": userId,
-            "org_ID": sponsorOrgs[selectedOrg].org_ID,
-            "email": email,
-            "name": name
-          });
-          
-          const requestOptions1 = {
-            method: "POST",
-            headers: myHeaders,
-            body: raw,
-            redirect: "follow"
-          };
-          if(userType == 'driver'){
-            fetch("/api/sponsor/post_add_driver", requestOptions1)
+      try {
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        const raw = JSON.stringify({
+          "user_ID": userId,
+          "org_ID": sponsorOrgs[selectedOrg].org_ID,
+          "email": email,
+          "name": name
+        });
+
+        const requestOptions1 = {
+          method: "POST",
+          headers: myHeaders,
+          body: raw,
+          redirect: "follow"
+        };
+        if (userType == 'driver') {
+          fetch("/api/sponsor/post_add_driver", requestOptions1)
             .then((response) => response.text())
             .then((result) => console.log(result))
-           .catch((error) => console.error(error));
-          }
-          else if(userType == 'sponsor'){
-            fetch("/api/sponsor/post_add_sponsor", requestOptions1)
-            .then((response) => response.text())
-            .then((result) => console.log(result))
-           .catch((error) => console.error(error));
-          }
-          // Edit here
-          else if(userType == 'admin'){
-            fetch("/api/sponsor/post_add_admin", requestOptions1)
-            .then((response) => response.text())
-            .then((result) => console.log(result))
-           .catch((error) => console.error(error));
-          }
-        }catch(error){
-          console.error('Error during sign up:', error);
+            .catch((error) => console.error(error));
         }
+        else if (userType == 'sponsor') {
+          fetch("/api/sponsor/post_add_sponsor", requestOptions1)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+            .catch((error) => console.error(error));
+        }
+        // Edit here
+        else if (userType == 'admin') {
+          fetch("/api/sponsor/post_add_admin", requestOptions1)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+            .catch((error) => console.error(error));
+        }
+      } catch (error) {
+        console.error('Error during sign up:', error);
       }
-     
-    if(newUser != '')
+    }
+
+    if (newUser != '')
       addNewUser(newUser);
   }, [newUser]); // Depend on user state
 
-
+  // Obtain all the sponsored orgs
   const fetchSponsorOrgs = async () => {
     try {
       const response = await fetch('/api/driver/get_all_avail_sponsor_companies');
@@ -144,7 +142,6 @@ function Admin() {
         throw new Error('Failed to fetch sponsors');
       }
       const data = await response.json();
-      //console.log('API Response:', data); // Add this line
       setSponsorOrgs(data);
     } catch (error) {
       console.error('Error fetching sponsors:', error);
@@ -152,6 +149,7 @@ function Admin() {
     }
   };
 
+  // Obtain all the users in the same org
   const fetchSponsorsInSameOrg = async () => {
     try {
       console.log("Org Name:", sponsorOrgs[selectedOrg].org_Name);
@@ -166,8 +164,8 @@ function Admin() {
       console.error('Error fetching sponsors:', error);
       setError('Failed to fetch sponsors');
     }
-  }; 
-  
+  };
+
   // Only return drivers who are currently in this org and
   // Have an ACCEPTED app status
   const fetchDriversInSameOrg = async () => {
@@ -184,14 +182,16 @@ function Admin() {
       console.error('Error fetching drivers:', error);
       setError('Failed to fetch drivers');
     }
-  };  
+  };
 
+  // handle the org changes
   const handleOrgChange = (event) => {
     const selectedOrgIndex = event.target.value;
     setSelectedOrg(selectedOrgIndex);
     setSelectOrgBool(true);
   };
 
+  // Handle an add sponsor
   const handleAddSponsor = async () => {
     try {
       const response = await fetch('/api/admin/add_org', {
@@ -215,7 +215,7 @@ function Admin() {
   };
 
   // Remove user from org
-  const handleRemoveUserFromOrg  = async (userID, orgID) => {
+  const handleRemoveUserFromOrg = async (userID, orgID) => {
     try {
       const requestOptions = {
         method: "POST",
@@ -224,7 +224,7 @@ function Admin() {
         },
         body: JSON.stringify({
           user_ID: userID,
-          org_ID : orgID
+          org_ID: orgID
         })
       };
 
@@ -235,7 +235,7 @@ function Admin() {
         throw new Error('Failed to remove sponsor');
       }
 
-      if(sponsorOrgs[selectedOrg].org_ID == orgID){
+      if (sponsorOrgs[selectedOrg].org_ID == orgID) {
         console.log("The user is being removed")
         const updatedSponsorUsers = sponsorUsers.filter(user => user.user_ID !== userID);
         const updatedDriverUsers = driverUsers.filter(user => user.user_ID !== userID);
@@ -250,119 +250,113 @@ function Admin() {
     }
   }
 
-/***************************************************** */
-
-
-
+  // Handle editing the sponsored orgs
   const handleEditSponsorOrgs = async (userID) => {
     setSelectedUser(userID);
     setSuccessMessage('');
     setOrgsDialogOpen(true);
   }
 
+  // Handle an add or remove from org
   const handleActionChange = async (selectedAction) => {
-    
+
     setActionType(selectedAction);
 
     if (selectedAction === 'Add') {
-      
-        // Fetch organizations that the driver is not a part of
-        const response = await fetch(`/api/user/get_orgs_not_part_of?user_ID=${selectedUser}`);
-        const data = await response.json();
 
-        setOrgsList(data);
+      // Fetch organizations that the driver is not a part of
+      const response = await fetch(`/api/user/get_orgs_not_part_of?user_ID=${selectedUser}`);
+      const data = await response.json();
+
+      setOrgsList(data);
     } else if (selectedAction === 'Remove') {
 
-        // Fetch organizations that the driver is a part of
-        const response = await fetch(`/api/user/get_orgs_part_of?user_ID=${selectedUser}`);
-        const data = await response.json();
-        setOrgsList(data);
+      // Fetch organizations that the driver is a part of
+      const response = await fetch(`/api/user/get_orgs_part_of?user_ID=${selectedUser}`);
+      const data = await response.json();
+      setOrgsList(data);
     }
-};
+  };
 
-const handleOrgAction = async (orgName) => {
-  let orgID;
-  try {
-    const response = await fetch(`/api/driver/get_orgID_using_name_mauricio?org_Name=${orgName}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch orgID');
+  // Get the orgID using the org_Name
+  const handleOrgAction = async (orgName) => {
+    let orgID;
+    try {
+      const response = await fetch(`/api/driver/get_orgID_using_name_mauricio?org_Name=${orgName}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch orgID');
+      }
+      const data = await response.json();
+      orgID = data[0].org_ID;
+    } catch (error) {
+      console.error('Error fetching org_ID:', error);
+      setError('Failed to fetch org_ID');
     }
-    const data = await response.json();
-    orgID = data[0].org_ID;
-  } catch (error) {
-    console.error('Error fetching org_ID:', error);
-    setError('Failed to fetch org_ID');
-  }
 
-  
-  if (actionType === 'Add') {
+    if (actionType === 'Add') {
       // API call to add the user to the org
       try {
-          const response = await fetch('/api/user/post_add_to_org', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                  user_ID: selectedUser,
-                  org_ID: orgID
-              })
-          });
-          const result = await response.json();
-          if (response.ok) {
-              setSuccessMessage('User added to org successfully');
-              // Remove the org from the list
-              setOrgsList(prevOrgs => prevOrgs.filter(org => org.org_ID !== orgID));
-          } else {
-              throw new Error(result.message || 'Failed to add user to org');
-          }
+        const response = await fetch('/api/user/post_add_to_org', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_ID: selectedUser,
+            org_ID: orgID
+          })
+        });
+        const result = await response.json();
+        if (response.ok) {
+          setSuccessMessage('User added to org successfully');
+          // Remove the org from the list
+          setOrgsList(prevOrgs => prevOrgs.filter(org => org.org_ID !== orgID));
+        } else {
+          throw new Error(result.message || 'Failed to add user to org');
+        }
       } catch (error) {
-          console.error('Error adding user to org:', error);
-          setError(error.message);
+        console.error('Error adding user to org:', error);
+        setError(error.message);
       }
-  } else if (actionType === 'Remove') {
+    } else if (actionType === 'Remove') {
       // Similar handling for removing a user from an org
       await handleRemoveUserFromOrg(selectedUser, orgID);
       setSuccessMessage('User removed from org successfully');
-  }
-};
+    }
+  };
 
-
-
-/***************************************************** */
-
-
+  // Handle a point submission
   const handlePointSubmit = async () => {
-    try{
+    try {
       console.log('Submit button clicked');
       const pointOptions = {
-            method: "POST",
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ 
-              user_ID : currentDriverId,
-              point_change_value : pointsChange,
-              reason: behaviorText, 
-              org_ID: sponsorOrgs[selectedOrg].org_ID,
-              timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
-            })
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_ID: currentDriverId,
+          point_change_value: pointsChange,
+          reason: behaviorText,
+          org_ID: sponsorOrgs[selectedOrg].org_ID,
+          timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        })
       };
 
-        const response = await fetch('/api/sponsor/edit_points', pointOptions);
-        console.log('API Response', response);
+      const response = await fetch('/api/sponsor/edit_points', pointOptions);
+      console.log('API Response', response);
 
-        if (!response.ok) {
-          throw new Error('Failed to update points');
-        } 
-      
-        setSuccessMessage("Points updated successfully");
-        console.log("Success Message Set", successMessage);
+      if (!response.ok) {
+        throw new Error('Failed to update points');
+      }
 
-      }catch (error) {
-          console.error('Error updating points', error);
-          setError('Failed to update points');
-        }
+      setSuccessMessage("Points updated successfully");
+      console.log("Success Message Set", successMessage);
+
+    } catch (error) {
+      console.error('Error updating points', error);
+      setError('Failed to update points');
+    }
 
     // Here, add your logic to update the points backend or state
     handleCloseDialog();
@@ -380,9 +374,9 @@ const handleOrgAction = async (orgName) => {
           user_ID: userID
         })
       };
-      //console.log("User Deleted" + userID);
+
       const response = await fetch(`/api/user/delete_user`, requestOptions);
-      
+
       if (!response.ok) {
         throw new Error('Failed to remove sponsor');
       }
@@ -398,6 +392,7 @@ const handleOrgAction = async (orgName) => {
     }
   };
 
+  // Submit an application to accept the user
   const handleAppSubmit = () => {
 
     async function handleSignUp(email, password, name, birthdate, userType) {
@@ -406,42 +401,42 @@ const handleOrgAction = async (orgName) => {
       console.log("name", name);
       console.log("birthdate", birthdate);
       console.log("userType", userType);
-      
+
       try {
-          const {isSignUpComplete, userId, nextStep } = await signUp({
-              'username': email,
-              'password': password,
-              options: {
-                userAttributes: {
-                  'email': email,
-                  'name': name,      
-                  'birthdate': birthdate,  
-                  'custom:user_type': userType,  
-              },
-              autoSignIn: false
-              }
-            
-          });
-          
-          console.log(userId);
-          
-          setNewUser(userId);
-   
+        const { isSignUpComplete, userId, nextStep } = await signUp({
+          'username': email,
+          'password': password,
+          options: {
+            userAttributes: {
+              'email': email,
+              'name': name,
+              'birthdate': birthdate,
+              'custom:user_type': userType,
+            },
+            autoSignIn: false
+          }
+
+        });
+
+        console.log(userId);
+
+        setNewUser(userId);
+
       } catch (error) {
-          console.error('Error during sign up:', error);
+        console.error('Error during sign up:', error);
       }
-  }
-    handleSignUp(email,password,name,birthday,userType);
-    
+    }
+    handleSignUp(email, password, name, birthday, userType);
+
     setAppDialogOpen(false);
   };
 
   const handleManagePoints = (driverId) => {
     setCurrentDriverId(driverId);
-    setPointsChange(0);  
+    setPointsChange(0);
     setDialogOpen(true);
   };
-  
+
   const handleUpdateCredentials = (spoofId) => {
     setUserUpdate(spoofId);
     setUpdateDialogOpen(true);
@@ -467,7 +462,7 @@ const handleOrgAction = async (orgName) => {
     setAppDialogOpen(true);
   };
 
-
+  // Create an org
   const handleCreateOrg = async () => {
     try {
       const requestOptions = {
@@ -481,7 +476,7 @@ const handleOrgAction = async (orgName) => {
       };
       //console.log("User Deleted" + userID);
       const response = await fetch(`/api/admin/post_create_org`, requestOptions);
-      
+
       if (!response.ok) {
         throw new Error('Failed to create org');
       }
@@ -563,7 +558,7 @@ const handleOrgAction = async (orgName) => {
                 onClick={() => handleDeleteUser(user.user_ID)}
               >
                 Delete User
-                </Button>
+              </Button>
             </CardContent>
           </Card>
         ))}
@@ -600,7 +595,7 @@ const handleOrgAction = async (orgName) => {
                 variant="contained"
                 style={{ marginRight: '8px', backgroundColor: 'green', color: 'white' }}
                 onClick={() => handleEditSponsorOrgs(user.user_ID)}
-                //style={{ marginRight: '8px' }}
+              //style={{ marginRight: '8px' }}
               >
                 Edit Sponsor Organization(s)
               </Button>
@@ -631,7 +626,7 @@ const handleOrgAction = async (orgName) => {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => {setUserType('driver'); handleAddDriver();}}
+                onClick={() => { setUserType('driver'); handleAddDriver(); }}
               >
                 Add Driver
               </Button>
@@ -643,67 +638,67 @@ const handleOrgAction = async (orgName) => {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => {setUserType('sponsor');handleAddDriver();}}
+                onClick={() => { setUserType('sponsor'); handleAddDriver(); }}
               >
                 Add Sponsor
               </Button>
-              </form>
-              <Typography variant="h4" gutterBottom style={{ marginTop: '16px' }}>
+            </form>
+            <Typography variant="h4" gutterBottom style={{ marginTop: '16px' }}>
               Add New Admin User
             </Typography>
             <form>
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => {setUserType('admin');handleAddDriver();}}
+                onClick={() => { setUserType('admin'); handleAddDriver(); }}
               >
                 Add Admin
               </Button>
-              </form>
+            </form>
           </>
         )}
-          {/* Points Management Dialog */}
-          <Dialog open={dialogOpen} onClose={handleCloseDialog}>
-              <DialogTitle>Manage Points</DialogTitle>
-              <DialogContent>
-                  <TextField
-                      autoFocus
-                      margin="dense"
-                      id="points"
-                      label="Change Points"
-                      type="number"
-                      fullWidth
-                      value={pointsChange}
-                      onChange={(e) => setPointsChange(e.target.value)}
-                  />
-                  <TextField
-                    margin="dense"
-                    id="behaviorText" // Unique ID
-                    label="Behavior"
-                    type="text"
-                    fullWidth
-                    value={behaviorText}
-                    onChange={(e) => setBehaviorText(e.target.value)}
-                  />
-              </DialogContent>
-              <DialogActions>
-                  <Button onClick={handleCloseDialog}>Cancel</Button>
-                  <Button onClick={handlePointSubmit} color="primary">Submit</Button>
-              </DialogActions>
-            </Dialog>
-          {/* Alter orgs Dialog */}
-            <Dialog open ={orgsDialogOpen} onClose={handleCloseOrgsDialog}
-            sx={{
-                  '& .MuiDialog-paper': { // This targets the inner Paper component
-                    minWidth: '500px', // Set a minimum width
-                    maxWidth: '90%', // Set a maximum width relative to the viewport
-                    width: 'auto', // Auto-adjust to content
-                    maxHeight: '80vh' // Set a maximum height relative to the viewport
-                  }
-                }}>
-                <DialogTitle>Manage Orgs</DialogTitle>
-                <DialogContent>
-                <TextField
+        {/* Points Management Dialog */}
+        <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+          <DialogTitle>Manage Points</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              id="points"
+              label="Change Points"
+              type="number"
+              fullWidth
+              value={pointsChange}
+              onChange={(e) => setPointsChange(e.target.value)}
+            />
+            <TextField
+              margin="dense"
+              id="behaviorText" // Unique ID
+              label="Behavior"
+              type="text"
+              fullWidth
+              value={behaviorText}
+              onChange={(e) => setBehaviorText(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button onClick={handlePointSubmit} color="primary">Submit</Button>
+          </DialogActions>
+        </Dialog>
+        {/* Alter orgs Dialog */}
+        <Dialog open={orgsDialogOpen} onClose={handleCloseOrgsDialog}
+          sx={{
+            '& .MuiDialog-paper': {
+              minWidth: '500px',
+              maxWidth: '90%',
+              width: 'auto',
+              maxHeight: '80vh'
+            }
+          }}>
+          <DialogTitle>Manage Orgs</DialogTitle>
+          <DialogContent>
+            <TextField
               select
               autoFocus
               margin="dense"
@@ -713,83 +708,83 @@ const handleOrgAction = async (orgName) => {
               value={actionType}
               onChange={(e) => handleActionChange(e.target.value)}
             >
-                <MenuItem value="Add">Add</MenuItem>
-                <MenuItem value="Remove">Remove</MenuItem>
-                </TextField>
-                  {orgsList.map((org, index) => (
-                      <div key={index}>
-                          <Typography>{org.org_Name}</Typography>
-                          <Button variant="contained" onClick={() => handleOrgAction(org.org_Name)}>
-                              {actionType === 'Add' ? 'Add to Org' : 'Remove from Org'}
-                          </Button>
-                      </div>
-                  ))}
-              </DialogContent>
-              <DialogActions>
-                  <Button onClick={handleCloseOrgsDialog}>Cancel</Button>
-              </DialogActions>
-                </Dialog>
-    {/* Driver Management Dialog */}
-    <Dialog 
-              open={appDialogOpen} 
-              onClose={handleAppCloseDialog}
-              fullWidth={true}
-              style={{ 
-                padding: '8px 24px'
-              }}
-            >
-                <DialogTitle>Add a New User</DialogTitle>
-                <DialogContent>
-                <DialogContent>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="Email"
-                        label="Email"
-                        fullWidth
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                </DialogContent>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="Name"
-                        label="Name"
-                        fullWidth
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
-                </DialogContent>            
-                <DialogContent>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="Birthday"
-                        label="Birthday (yyyy-mm-dd)"
-                        fullWidth
-                        value={birthday}
-                        onChange={(e) => setBirthday(e.target.value)}
-                    />
-                      <DialogContent>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="Password"
-                        label="Password"
-                        fullWidth
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </DialogContent>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleAppCloseDialog}>Cancel</Button>
-                    <Button onClick={() => {handleAppSubmit();}} color="primary">
-                  Submit
+              <MenuItem value="Add">Add</MenuItem>
+              <MenuItem value="Remove">Remove</MenuItem>
+            </TextField>
+            {orgsList.map((org, index) => (
+              <div key={index}>
+                <Typography>{org.org_Name}</Typography>
+                <Button variant="contained" onClick={() => handleOrgAction(org.org_Name)}>
+                  {actionType === 'Add' ? 'Add to Org' : 'Remove from Org'}
                 </Button>
-                </DialogActions>
-                </Dialog>
+              </div>
+            ))}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseOrgsDialog}>Cancel</Button>
+          </DialogActions>
+        </Dialog>
+        {/* Driver Management Dialog */}
+        <Dialog
+          open={appDialogOpen}
+          onClose={handleAppCloseDialog}
+          fullWidth={true}
+          style={{
+            padding: '8px 24px'
+          }}
+        >
+          <DialogTitle>Add a New User</DialogTitle>
+          <DialogContent>
+            <DialogContent>
+              <TextField
+                autoFocus
+                margin="dense"
+                id="Email"
+                label="Email"
+                fullWidth
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              id="Name"
+              label="Name"
+              fullWidth
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </DialogContent>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              id="Birthday"
+              label="Birthday (yyyy-mm-dd)"
+              fullWidth
+              value={birthday}
+              onChange={(e) => setBirthday(e.target.value)}
+            />
+            <DialogContent>
+              <TextField
+                autoFocus
+                margin="dense"
+                id="Password"
+                label="Password"
+                fullWidth
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </DialogContent>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleAppCloseDialog}>Cancel</Button>
+            <Button onClick={() => { handleAppSubmit(); }} color="primary">
+              Submit
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         <Snackbar
           open={!!successMessage}
@@ -816,14 +811,14 @@ const handleOrgAction = async (orgName) => {
           </Typography>
         )}
         <AdminPanel />
-        <div style={{ marginTop: '40px' }}/>
+        <div style={{ marginTop: '40px' }} />
         <Button variant="contained" onClick={() => setCreateOrgDialogOpen(true)}> Create New Organization</Button>
-        <div style={{ marginTop: '40px' }}/>
+        <div style={{ marginTop: '40px' }} />
 
         <Dialog open={createOrgDialogOpen} onClose={handleOrgDialogClose}>
           <DialogContent>
             <Typography variant="h5" gutterBottom>
-                Organization Name
+              Organization Name
             </Typography>
             <TextField
               label="Enter Org Name"
