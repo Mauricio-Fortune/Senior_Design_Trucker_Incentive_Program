@@ -147,8 +147,9 @@ const addOrderItem = async (item_ID) => {
     itemID: item_ID,
     name: getName(item), 
     quantity: quantityType,
-    points: Math.round(getPoints(item) * pointRatio * quantityType) 
+    points: Math.round(getPoints(item)) * pointRatio * quantityType
   };
+  console.log("point for item: " + Math.round(getPoints(item)) * pointRatio * quantityType) ;
  
   setorderItem(itemDetails); 
 };
