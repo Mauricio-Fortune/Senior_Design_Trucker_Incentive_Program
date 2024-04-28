@@ -52,6 +52,7 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
   const [openDriverDialog, setOpenDriverDialog] = useState(false);
   const [driverSpoofId, setDriverSpoofId] = useState('');
   const [openAccountModal, setOpenAccountModal] = useState(false);
+  const [orgName, setOrgName] = useState('');
 
 
   // for adding a new driver dialog
@@ -200,11 +201,38 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
 
     };
 
-    fetchSponsorData();
+    const getOrgName = async () => {
+      try {
+        const requestOptions = {
+          method: "GET",
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
 
+        const response = await fetch(`/api/sponsor/get_org_name?org_ID=${orgID}`, requestOptions);
+  
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+       
+  
+        const data = await response.json();
+
+        setOrgName(data.org_Name);
+      
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      }
+    };
+
+    if(orgID != 0){
+      getOrgName();
+    fetchSponsorData();
     fetchAppData()
     fetchDriverData()
     getDrivers();
+    }
   }, [orgID]);
 
   useEffect(() => {
@@ -757,10 +785,10 @@ const handleSubmit = () => {
         {value === 0 && (
           <div>
             <Typography variant="h3" gutterBottom style={{ marginTop: '16px' }}>
-              Sponsor Dashboard
+              {orgName} Dashboard
             </Typography>
             <Typography variant="h4" gutterBottom>
-              Sponsored Drivers
+              Drivers
             </Typography>
             {userInfo.map((driver) => (
               <Card key={driver.userID} style={{ marginBottom: '16px' }}>
@@ -794,6 +822,16 @@ const handleSubmit = () => {
                 </CardContent>
               </Card>
             ))}
+            <form>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {setUserType('driver');handleAddDriver();}}
+              >
+               Add New Driver User
+              </Button>
+            </form>
+            <div style={{marginTop:'40px'}}>   </div>
                <div>
             <Typography variant="h4" gutterBottom>
               Sponsors
@@ -807,6 +845,15 @@ const handleSubmit = () => {
               </Card>
             ))}
             </div>
+            <form>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {setUserType('sponsor');handleAddDriver();}}
+              >
+                Add New Sponsor User
+              </Button>
+              </form>
 
                 {/* Points Management Dialog */}
                 <Dialog open={pointDialogOpen} onClose={handleCloseDialog}>
@@ -838,31 +885,7 @@ const handleSubmit = () => {
                     </DialogActions>
                 </Dialog>
 
-            {/* Form for adding new driver */}
-            <Typography variant="h4" gutterBottom style={{ marginTop: '16px' }}>
-              Add New Sponsored Driver
-            </Typography>
-            <form>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => {setUserType('driver');handleAddDriver();}}
-              >
-                Add Driver
-              </Button>
-            </form>
-            <Typography variant="h4" gutterBottom style={{ marginTop: '16px' }}>
-              Add New Sponsor User
-            </Typography>
-            <form>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => {setUserType('sponsor');handleAddDriver();}}
-              >
-                Add Sponsor
-              </Button>
-              </form>
+           
           </div>
         )}
         {/* Points Management Dialog */}
