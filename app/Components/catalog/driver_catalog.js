@@ -384,13 +384,11 @@ if(user != null && orderItem != null)
         setUser({
           sub: spoofId
         })
-        //console.log("spoof id: ", spoofId);
       }
       else {
         try {
           const user = await fetchUserAttributes();
           setUser(user);
-         // console.log("driver catalog");
         } catch (err) {
           console.log(err);
         }

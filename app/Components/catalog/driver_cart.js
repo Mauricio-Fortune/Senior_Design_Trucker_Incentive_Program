@@ -24,7 +24,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
         setUser({
           sub: spoofId
         })
-        console.log("spoof id: ", spoofId);
+        console.log("Testing ", spoofId);
       }
       else {
         try {
@@ -143,7 +143,6 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
         };
     
         if (!user) {
-          setUser();
           setCart(-1);
           return -1; // Return -1 when user or user.sub is not available
         }
