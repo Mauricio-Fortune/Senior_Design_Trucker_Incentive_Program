@@ -112,13 +112,3 @@ CREATE TABLE
         foreign key (org_ID) references Org (org_ID),
         primary key (item_ID, org_ID)
     );
-
-* * * * ADD COMPANIES INTO ORG * * * * * * USE app_db;
-
-INSERT INTO
-    Org (org_Name)
-VALUES
-    ('SpaceX'),
-    ('Amazon'),
-    ('Fedex'),
-    ('Apple');
