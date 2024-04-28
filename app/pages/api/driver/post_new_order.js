@@ -13,6 +13,7 @@ export default async function handler(req, res) {
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME
     };
+    const currentTimestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
    
 
@@ -23,9 +24,9 @@ export default async function handler(req, res) {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
 
-        const sql_query = (`INSERT INTO Orders (user_ID, is_cart,org_ID) VALUES (?,?,?) `);
+        const sql_query = (`INSERT INTO Orders (user_ID, is_cart,org_ID,timestamp) VALUES (?,?,?,?) `);
 
-        const [results] = await connection.execute(sql_query, [user_ID,is_cart,org_ID]);
+        const [results] = await connection.execute(sql_query, [user_ID,is_cart,org_ID,currentTimestamp]);
 
         // Close the database connection
         await connection.end();

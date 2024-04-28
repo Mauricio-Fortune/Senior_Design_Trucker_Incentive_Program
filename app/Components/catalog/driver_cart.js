@@ -47,7 +47,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
             'Content-Type': 'application/json'
           }
         };
-        console.log("USER " + user.sub);
+        
         const response = await fetch(`/api/driver/get_current_sponsor?user_ID=${user.sub}`, requestOptions);
   
         if (!response.ok) {
@@ -91,12 +91,12 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
     
         
         const data = await response.json();
-        console.log(data.totalPoints);
+        
+
    
         return data.totalPoints; 
       } catch (error) {
         console.error('Failed to fetch item data:', error);
-        console.log(user);
         return 0; 
       }
   };
@@ -147,8 +147,8 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
           return -1; // Return -1 when user or user.sub is not available
         }
     
-        console.log("USER " + user.sub);
-        const response = await fetch(`/api/driver/get_cart_orderID?user_ID=${user.sub}`, requestOptions);
+        
+        const response = await fetch(`/api/driver/get_cart_orderID?user_ID=${user.sub}&org_ID=${orgID}`, requestOptions);
         if (!response.ok) {
           console.log("No cart yet!");
         }        
@@ -301,7 +301,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
             order_ID: cart_ID
           })
         };
-        console.log("THIS IS CART ORDER\nuser_ID: "+ user.sub + "\norder_ID: "+cart_ID);
+        
 
         const cartchange = await fetch('/api/driver/post_complete_cart', cartOptions)
         .then((response) => response.text())
@@ -424,8 +424,7 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
   function renderEntryComponent(itemID) {
     
      const entry = detailedItemData[itemID];
-    if(entry){
-      console.log(entry);
+    if(entry){    
       if (entry.kind == "song") {
             return <SongItem song={entry} />;
         } else if (entry.collectionType == "Album") {

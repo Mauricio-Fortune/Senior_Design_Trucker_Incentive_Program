@@ -18,8 +18,9 @@ export default async function handler(req, res) {
         const connection = await mysql.createConnection(dbConfig);
 
         const user_ID = req.query.user_ID;
+        const org_ID = req.query.org_ID;
 
-        const [result] = await connection.query('SELECT order_ID FROM Orders WHERE is_cart = true AND user_ID = ?', [user_ID]);
+        const [result] = await connection.query('SELECT order_ID FROM Orders WHERE is_cart = true AND user_ID = ? AND org_ID = ?', [user_ID,org_ID]);
 
         // Close the database connection
         await connection.end();
