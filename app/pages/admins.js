@@ -159,28 +159,28 @@ function Admin() {
   }
 
   const handleSubmitInvoice = () => {
-    if(anyTime == true) {
+    if (anyTime == true) {
       setStartDate('');
       setEndDate('');
     }
-    if(startDate == 'NaN-NaN-NaN') {
+    if (startDate == 'NaN-NaN-NaN') {
       setStartDate('');
     }
-    if(endDate == 'NaN-NaN-NaN') {
+    if (endDate == 'NaN-NaN-NaN') {
       setEndDate('');
     }
     setSubmittedInvoice(submittedInvoice + 1);
   }
 
   const handleSubmitAudits = () => {
-    if(anyTime == true) {
+    if (anyTime == true) {
       setStartDate('');
       setEndDate('');
     }
-    if(startDate == 'NaN-NaN-NaN') {
+    if (startDate == 'NaN-NaN-NaN') {
       setStartDate('');
     }
-    if(endDate == 'NaN-NaN-NaN') {
+    if (endDate == 'NaN-NaN-NaN') {
       setEndDate('');
     }
     setSubmittedAudit(submittedAudit + 1);
@@ -189,7 +189,7 @@ function Admin() {
   const handleStartDateChange = (event) => {
     const formattedDate = formatDate(event.target.value);
     setStartDate(formattedDate);
-    if(anyTime == true) {
+    if (anyTime == true) {
       setStartDate('');
     }
   };
@@ -197,38 +197,38 @@ function Admin() {
   const handleEndDateChange = (event) => {
     const formattedDate = formatDate(event.target.value);
     setEndDate(formattedDate);
-    if(anyTime == true) {
+    if (anyTime == true) {
       setEndDate('');
     }
   };
 
   const formatDate = (dateString) => {
     let dateObject = new Date(dateString);
-    
+
     // Adjust date for timezone offset
     dateObject.setDate(dateObject.getDate() + 1);
-    
+
     const year = dateObject.getFullYear();
     const month = String(dateObject.getMonth() + 1).padStart(2, '0');
     const day = String(dateObject.getDate()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day}`;
   };
 
   const handleAnyTime = (event) => {
     setAnyTime(event.target.checked);
-    if(anyTime == true) {
+    if (anyTime == true) {
       setStartDate('');
       setEndDate('');
     }
   }
 
   useEffect(() => {
-    if(submittedInvoice > 0 && selectAllSponsors != true && anyTime != true) {
+    if (submittedInvoice > 0 && selectAllSponsors != true && anyTime != true) {
       getInvoices();
       getDrivers();
     }
-    else if(submittedInvoice > 0 && selectAllSponsors == true && anyTime != true) {
+    else if (submittedInvoice > 0 && selectAllSponsors == true && anyTime != true) {
       getInvoicesAllSponsors();
       getAllDrivers();
     }
@@ -247,10 +247,10 @@ function Admin() {
   }, [submittedInvoice]);
 
   useEffect(() => {
-    if(submittedAudit > 0 && selectAllSponsors != true && anyTime != true) {
+    if (submittedAudit > 0 && selectAllSponsors != true && anyTime != true) {
       getAuditLog();
     }
-    else if(submittedAudit > 0 && selectAllSponsors == true && anyTime != true) {
+    else if (submittedAudit > 0 && selectAllSponsors == true && anyTime != true) {
       getAllAuditLogs();
     }
     else if (submittedAudit > 0 && selectAllSponsors == true && anyTime == true) {
@@ -282,7 +282,7 @@ function Admin() {
 
   const calcTotalDollars = () => {
     if (invoices && invoices.length > 0) {
-      const totalDollars = invoices.reduce((accumulator, currentValue) => accumulator + (currentValue.points/currentValue.point_Ratio), 0);
+      const totalDollars = invoices.reduce((accumulator, currentValue) => accumulator + (currentValue.points / currentValue.point_Ratio), 0);
       setTotalDollars(totalDollars);
     }
     else {
@@ -336,7 +336,7 @@ function Admin() {
           'Content-Type': 'application/json'
         }
       };
-  
+
       const response = await fetch(`/api/admin/get_invoices?selectedSponsor=${selectedSponsor}`, requestOptions);
       if (!response.ok) {
         throw new Error('Failed to get invoices');
@@ -356,7 +356,7 @@ function Admin() {
           'Content-Type': 'application/json'
         }
       };
-  
+
       const response = await fetch(`/api/admin/get_invoices_all_sponsors`, requestOptions);
       if (!response.ok) {
         throw new Error('Failed to get invoices');
@@ -376,7 +376,7 @@ function Admin() {
           'Content-Type': 'application/json'
         }
       };
-  
+
       const response = await fetch(`/api/admin/get_drivers?selectedSponsor=${selectedSponsor}`, requestOptions);
       if (!response.ok) {
         throw new Error('Failed to get drivers');
@@ -396,7 +396,7 @@ function Admin() {
           'Content-Type': 'application/json'
         }
       };
-  
+
       const response = await fetch(`/api/admin/get_all_drivers_for_sponsor`, requestOptions);
       if (!response.ok) {
         throw new Error('Failed to get drivers');
@@ -416,7 +416,7 @@ function Admin() {
           'Content-Type': 'application/json'
         }
       };
-  
+
       const response = await fetch(`/api/admin/get_all_sponsors_orgs`, requestOptions);
       if (!response.ok) {
         throw new Error('Failed to get sponsors');
@@ -961,62 +961,62 @@ function Admin() {
           </Typography>
         )}
         <div>
-        {selectedOrgBool && driverUsers.map((user) => (
-          <Card key={user.user_ID} style={{ marginBottom: '16px' }}>
-            <CardContent>
-              <Typography variant="h6">Type: {user.user_Type}</Typography>
-              <Typography variant="body1">Name: {user.first_Name}</Typography>
-              <Typography variant="body1">Points: {user.total_points}</Typography>
-              <Typography variant="body1">Status: {user.app_Status}</Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => handleManagePoints(user.user_ID)}
-                style={{ marginRight: '8px' }}
-              >
-                Manage Points
-              </Button>
-              <Button
-                variant="contained"
-                color="secondary"
-                onClick={() => handleRemoveUserFromOrg(user.user_ID, sponsorOrgs[selectedOrg].org_ID)}
-                style={{ marginRight: '8px' }}
-              >
-                Remove From Org
-              </Button>
-              <Button
-                variant="contained"
-                style={{ marginRight: '8px', backgroundColor: 'teal', color: 'white' }}
-                onClick={() => handleEditSponsorOrgs(user.user_ID)}
-              >
-                Edit Sponsor Organization(s)
-              </Button>
-              <Button
-                variant="contained"
-                style={{ marginRight: '8px', backgroundColor: 'dimgray', color: 'white' }}
-                onClick={() => handleUpdateCredentials(user.user_ID)}
-              >
-                Update Credentials
-              </Button>
-              <Button
-                variant="contained"
-                onClick={() => handleSetDriverSpoof(user.user_ID)}
-                style={{ marginRight: '8px', backgroundColor: 'green' }}
-              >
-                Driver View
-              </Button>
-              <Button
-                variant="contained"
-                style={{ marginRight: '8px', backgroundColor: 'red', color: 'white' }}
-                onClick={() => handleDeleteUser(user.user_ID)}
-              >
-                Delete User
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-        {selectedOrgBool && (
-        <form>
+          {selectedOrgBool && driverUsers.map((user) => (
+            <Card key={user.user_ID} style={{ marginBottom: '16px' }}>
+              <CardContent>
+                <Typography variant="h6">Type: {user.user_Type}</Typography>
+                <Typography variant="body1">Name: {user.first_Name}</Typography>
+                <Typography variant="body1">Points: {user.total_points}</Typography>
+                <Typography variant="body1">Status: {user.app_Status}</Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => handleManagePoints(user.user_ID)}
+                  style={{ marginRight: '8px' }}
+                >
+                  Manage Points
+                </Button>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => handleRemoveUserFromOrg(user.user_ID, sponsorOrgs[selectedOrg].org_ID)}
+                  style={{ marginRight: '8px' }}
+                >
+                  Remove From Org
+                </Button>
+                <Button
+                  variant="contained"
+                  style={{ marginRight: '8px', backgroundColor: 'teal', color: 'white' }}
+                  onClick={() => handleEditSponsorOrgs(user.user_ID)}
+                >
+                  Edit Sponsor Organization(s)
+                </Button>
+                <Button
+                  variant="contained"
+                  style={{ marginRight: '8px', backgroundColor: 'dimgray', color: 'white' }}
+                  onClick={() => handleUpdateCredentials(user.user_ID)}
+                >
+                  Update Credentials
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => handleSetDriverSpoof(user.user_ID)}
+                  style={{ marginRight: '8px', backgroundColor: 'green' }}
+                >
+                  Driver View
+                </Button>
+                <Button
+                  variant="contained"
+                  style={{ marginRight: '8px', backgroundColor: 'red', color: 'white' }}
+                  onClick={() => handleDeleteUser(user.user_ID)}
+                >
+                  Delete User
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+          {selectedOrgBool && (
+            <form>
               <Button
                 variant="contained"
                 color="primary"
@@ -1027,47 +1027,6 @@ function Admin() {
             </form>
           )}
         </div>
-        {/* Add New Sponsored Driver section */}
-        {/* {selectedOrgBool && (
-          <>
-            <Typography variant="h4" gutterBottom style={{ marginTop: '16px' }}>
-              Add New Sponsored Driver
-            </Typography>
-            <form>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => { setUserType('driver'); handleAddDriver(); }}
-              >
-                Add Driver
-              </Button>
-            </form>
-            <Typography variant="h4" gutterBottom style={{ marginTop: '16px' }}>
-              Add New Sponsor User
-            </Typography>
-            <form>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => { setUserType('sponsor'); handleAddDriver(); }}
-              >
-                Add Sponsor
-              </Button>
-            </form>
-            <Typography variant="h4" gutterBottom style={{ marginTop: '16px' }}>
-              Add New Admin User
-            </Typography>
-            <form>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => { setUserType('admin'); handleAddDriver(); }}
-              >
-                Add Admin
-              </Button>
-            </form>
-          </>
-        )} */}
         {/* Points Management Dialog */}
         <Dialog open={dialogOpen} onClose={handleCloseDialog}>
           <DialogTitle>Manage Points</DialogTitle>
@@ -1223,17 +1182,17 @@ function Admin() {
         )}
 
         <div style={{ display: 'flex', alignItems: 'center' }}>
-        <Button variant="contained" onClick={() => setCreateOrgDialogOpen(true)}> Create New Organization</Button>
-        <form>
-              <Button
-                variant="contained"
-                color="primary"
-                style={{marginLeft: '10px'}}
-                onClick={() => { setUserType('admin'); handleAddDriver(); }}
-              >
-                Add Admin
-              </Button>
-            </form>
+          <Button variant="contained" onClick={() => setCreateOrgDialogOpen(true)}> Create New Organization</Button>
+          <form>
+            <Button
+              variant="contained"
+              color="primary"
+              style={{ marginLeft: '10px' }}
+              onClick={() => { setUserType('admin'); handleAddDriver(); }}
+            >
+              Add Admin
+            </Button>
+          </form>
         </div>
         <div style={{ marginTop: '40px' }} />
 
@@ -1255,283 +1214,283 @@ function Admin() {
             </Button>
           </DialogContent>
         </Dialog>
-        
+
         <Typography variant="h4" gutterBottom>
           Reports
         </Typography>
         <Tabs
-              value={reportValue}
-              onChange={handleReportChange}
-              aria-label="catalog tabs"
-              style={{ marginBottom: '20px' }} // Add margin-bottom for spacing
-            >
-              <Tab label="Invoices" />
-              <Tab label="Audit Log" />
-            </Tabs>
-        {reportValue === 0 && (
-        <>
-        <FormControlLabel
-          control={<Checkbox checked={selectAllSponsors} onChange={handleSelectAllSponsors} />}
-          label="All Sponsors"
-          style={{marginRight: '10px'}}
-        />
-        <Select
-          value={selectedSponsor}
-          onChange={handleSponsorSelect}
-          displayEmpty
-          disabled={selectAllSponsors} // Disable the select if "All Drivers" or "Any Time" is checked
-          style={{ marginBottom: '20px', marginRight: '10px'}}
+          value={reportValue}
+          onChange={handleReportChange}
+          aria-label="catalog tabs"
+          style={{ marginBottom: '20px' }} // Add margin-bottom for spacing
         >
-          <MenuItem value="" disabled={selectAllSponsors}>Select Sponsor</MenuItem>
-          {sponsors && sponsors.map((sponsor, index) => (
-            <MenuItem key={index} value={sponsor}>{sponsor}</MenuItem>
-          ))}
-        </Select>
-        <FormControlLabel
-          control={<Checkbox checked={anyTime} onChange={handleAnyTime} />}
-          label="Any Time"
-          style={{marginRight: '10px'}}
-        />
-        <TextField
-          label="Start Date"
-          type="date"
-          value={startDate}
-          onChange={handleStartDateChange}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          disabled={anyTime} // Disable the Start Date TextField if "Any Time" is checked
-          style={{marginRight: '10px'}}
-        />
-        <TextField
-          label="End Date"
-          type="date"
-          value={endDate}
-          onChange={handleEndDateChange}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          disabled={anyTime} // Disable the End Date TextField if "Any Time" is checked
-          style={{marginRight: '10px'}}
-        />
-        <Button variant="contained" color="primary" onClick={handleSubmitInvoice} style={{marginRight: '10px'}}>
-          Submit
-        </Button>
-        <Button variant="contained" color="primary" onClick={handleDownload1} style={{marginRight: '10px'}}>
-          Download CSV
-        </Button>
-        <Card style={{ marginBottom: '10px' }}>
-          <CardContent>
-            <Typography variant="h5" component="h2">
-              Organization Name: {selectedSponsor}
-            </Typography>
-            <Typography variant="body1" component="p">
-              Total Points Spent: {totalPoints}
-            </Typography>
-            <Typography variant="body1" component="p">
-              Total Dollars Spent: {totalDollars}
-            </Typography>
-          </CardContent>
-        </Card>
-        {
-          drivers.map((driver, index) => {
-            // Check if the driver's name has already been encountered
-            if (!uniqueDriverNames.has(driver.first_Name)) {
-              // Add the driver's name to the set to mark it as encountered
-              uniqueDriverNames.add(driver.first_Name);
+          <Tab label="Invoices" />
+          <Tab label="Audit Log" />
+        </Tabs>
+        {reportValue === 0 && (
+          <>
+            <FormControlLabel
+              control={<Checkbox checked={selectAllSponsors} onChange={handleSelectAllSponsors} />}
+              label="All Sponsors"
+              style={{ marginRight: '10px' }}
+            />
+            <Select
+              value={selectedSponsor}
+              onChange={handleSponsorSelect}
+              displayEmpty
+              disabled={selectAllSponsors} // Disable the select if "All Drivers" or "Any Time" is checked
+              style={{ marginBottom: '20px', marginRight: '10px' }}
+            >
+              <MenuItem value="" disabled={selectAllSponsors}>Select Sponsor</MenuItem>
+              {sponsors && sponsors.map((sponsor, index) => (
+                <MenuItem key={index} value={sponsor}>{sponsor}</MenuItem>
+              ))}
+            </Select>
+            <FormControlLabel
+              control={<Checkbox checked={anyTime} onChange={handleAnyTime} />}
+              label="Any Time"
+              style={{ marginRight: '10px' }}
+            />
+            <TextField
+              label="Start Date"
+              type="date"
+              value={startDate}
+              onChange={handleStartDateChange}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              disabled={anyTime} // Disable the Start Date TextField if "Any Time" is checked
+              style={{ marginRight: '10px' }}
+            />
+            <TextField
+              label="End Date"
+              type="date"
+              value={endDate}
+              onChange={handleEndDateChange}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              disabled={anyTime} // Disable the End Date TextField if "Any Time" is checked
+              style={{ marginRight: '10px' }}
+            />
+            <Button variant="contained" color="primary" onClick={handleSubmitInvoice} style={{ marginRight: '10px' }}>
+              Submit
+            </Button>
+            <Button variant="contained" color="primary" onClick={handleDownload1} style={{ marginRight: '10px' }}>
+              Download CSV
+            </Button>
+            <Card style={{ marginBottom: '10px' }}>
+              <CardContent>
+                <Typography variant="h5" component="h2">
+                  Organization Name: {selectedSponsor}
+                </Typography>
+                <Typography variant="body1" component="p">
+                  Total Points Spent: {totalPoints}
+                </Typography>
+                <Typography variant="body1" component="p">
+                  Total Dollars Spent: {totalDollars}
+                </Typography>
+              </CardContent>
+            </Card>
+            {
+              drivers.map((driver, index) => {
+                // Check if the driver's name has already been encountered
+                if (!uniqueDriverNames.has(driver.first_Name)) {
+                  // Add the driver's name to the set to mark it as encountered
+                  uniqueDriverNames.add(driver.first_Name);
 
-              // Filter invoices for the current driver
-              const filteredInvoices = invoices.filter(invoice => invoice.first_Name === driver.first_Name);
+                  // Filter invoices for the current driver
+                  const filteredInvoices = invoices.filter(invoice => invoice.first_Name === driver.first_Name);
 
-              // Calculate total points spent for the current driver
-              const totalPoints = filteredInvoices.reduce((accumulator, currentValue) => accumulator + currentValue.points, 0);
-              const totalDollars = filteredInvoices.reduce((accumulator, currentValue) => accumulator + (currentValue.points / currentValue.point_Ratio), 0);
+                  // Calculate total points spent for the current driver
+                  const totalPoints = filteredInvoices.reduce((accumulator, currentValue) => accumulator + currentValue.points, 0);
+                  const totalDollars = filteredInvoices.reduce((accumulator, currentValue) => accumulator + (currentValue.points / currentValue.point_Ratio), 0);
 
-              return (
-                <Card key={index} style={{ marginBottom: '10px' }}>
-                  <CardContent>
-                    <Typography variant="h6" component="h2">
-                      Driver Name: {driver.first_Name}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      Total Points Spent: {totalPoints}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      Total Dollars Spent: {totalDollars}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              );
-            } else {
-              return null; // Skip rendering if the driver's name has already been encountered
+                  return (
+                    <Card key={index} style={{ marginBottom: '10px' }}>
+                      <CardContent>
+                        <Typography variant="h6" component="h2">
+                          Driver Name: {driver.first_Name}
+                        </Typography>
+                        <Typography variant="body1" component="p">
+                          Total Points Spent: {totalPoints}
+                        </Typography>
+                        <Typography variant="body1" component="p">
+                          Total Dollars Spent: {totalDollars}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  );
+                } else {
+                  return null; // Skip rendering if the driver's name has already been encountered
+                }
+              })
             }
-          })
-        }
-        </>
-      )}
-      {reportValue === 1 && (
-        <>
-          <Select
-            value={selectedAudit}
-            onChange={handleSelectedAudit}
-            displayEmpty
-            style={{marginRight: '10px'}}
-          >
-            <MenuItem value="">Select Audit</MenuItem>
-            <MenuItem value="Driver_App_Audit">Driver App Audit</MenuItem>
-            <MenuItem value="Login_Attempts_Audit">Login Attempts Audit</MenuItem>
-            <MenuItem value="Password_Changes_Audit">Password Changes Audit</MenuItem>
-            <MenuItem value="Point_Changes_Audit">Point Changes Audit</MenuItem>
-          </Select>
-          <FormControlLabel
-            control={<Checkbox checked={selectAllSponsors} onChange={handleSelectAllSponsors} />}
-            label="All Sponsors"
-            style={{marginRight: '10px'}}
-          />
-          <Select
-            value={selectedSponsor}
-            onChange={handleSponsorSelect}
-            displayEmpty
-            disabled={selectAllSponsors} // Disable the select if "All Drivers" or "Any Time" is checked
-            style={{ marginBottom: '20px', marginRight: '10px'}}
-          >
-            <MenuItem value="" disabled={selectAllSponsors}>Select Sponsor</MenuItem>
-            {sponsors && sponsors.map((sponsor, index) => (
-              <MenuItem key={index} value={sponsor}>{sponsor}</MenuItem>
-            ))}
-          </Select>
-          <FormControlLabel
-            control={<Checkbox checked={anyTime} onChange={handleAnyTime} />}
-            label="Any Time"
-            style={{marginRight: '10px'}}
-          />
-          <TextField
-            label="Start Date"
-            type="date"
-            value={startDate}
-            onChange={handleStartDateChange}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            disabled={anyTime} // Disable the Start Date TextField if "Any Time" is checked
-            style={{marginRight: '10px'}}
-          />
-          <TextField
-            label="End Date"
-            type="date"
-            value={endDate}
-            onChange={handleEndDateChange}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            disabled={anyTime} // Disable the End Date TextField if "Any Time" is checked
-            style={{marginRight: '10px'}}
-          />
-          <Button variant="contained" color="primary" onClick={handleSubmitAudits} style={{marginRight: '10px'}}>
-            Submit
-          </Button>
-          <Button variant="contained" color="primary" onClick={handleDownload2} style={{marginRight: '10px'}}>
-            Download CSV
-          </Button>
-          {
-            selectedAudit === 'Driver_App_Audit' ? (
-              auditLog.map((audit, index) => (
-                <Card key={index} style={{ marginBottom: '10px' }}>
-                  <CardContent>
-                    <Typography variant="h6" component="h2">
-                      Driver App ID: {audit.driver_app_id}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      User ID: {audit.user_ID}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      Name: {audit.first_Name}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      Reason: {audit.reason}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      Timestamp: {audit.timestamp}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      App Status: {audit.app_Status}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ))
-            ) : selectedAudit === 'Login_Attempts_Audit' ? (
-              auditLog.map((audit, index) => (
-                <Card key={index} style={{ marginBottom: '10px' }}>
-                  <CardContent>
-                    <Typography variant="h6" component="h2">
-                      Login Attempts ID: {audit.login_attempts_id}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      User ID: {audit.user_ID}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      Name: {audit.first_Name}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      Status: {audit.status}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      Timestamp: {audit.timestamp}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ))
-            ) : selectedAudit === 'Password_Changes_Audit' ? (
-              auditLog.map((audit, index) => (
-                <Card key={index} style={{ marginBottom: '10px' }}>
-                  <CardContent>
-                    <Typography variant="h6" component="h2">
-                      Password Change ID: {audit.password_change_id}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      User ID: {audit.user_ID}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      Name: {audit.first_Name}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      Change Type: {audit.change_type}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      Timestamp: {audit.timestamp}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ))
-            ) : selectedAudit === 'Point_Changes_Audit' && (
-              auditLog.map((audit, index) => (
-                <Card key={index} style={{ marginBottom: '10px' }}>
-                  <CardContent>
-                    <Typography variant="h6" component="h2">
-                      Point Change ID: {audit.point_change_id}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      User ID: {audit.user_ID}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      Name: {audit.first_Name}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      Point Change Value: {audit.point_change_value}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      Reason: {audit.reason}
-                    </Typography>
-                    <Typography variant="body1" component="p">
-                      Timestamp: {audit.timestamp}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ))
-            )
-          }
-        </>
-      )}
+          </>
+        )}
+        {reportValue === 1 && (
+          <>
+            <Select
+              value={selectedAudit}
+              onChange={handleSelectedAudit}
+              displayEmpty
+              style={{ marginRight: '10px' }}
+            >
+              <MenuItem value="">Select Audit</MenuItem>
+              <MenuItem value="Driver_App_Audit">Driver App Audit</MenuItem>
+              <MenuItem value="Login_Attempts_Audit">Login Attempts Audit</MenuItem>
+              <MenuItem value="Password_Changes_Audit">Password Changes Audit</MenuItem>
+              <MenuItem value="Point_Changes_Audit">Point Changes Audit</MenuItem>
+            </Select>
+            <FormControlLabel
+              control={<Checkbox checked={selectAllSponsors} onChange={handleSelectAllSponsors} />}
+              label="All Sponsors"
+              style={{ marginRight: '10px' }}
+            />
+            <Select
+              value={selectedSponsor}
+              onChange={handleSponsorSelect}
+              displayEmpty
+              disabled={selectAllSponsors} // Disable the select if "All Drivers" or "Any Time" is checked
+              style={{ marginBottom: '20px', marginRight: '10px' }}
+            >
+              <MenuItem value="" disabled={selectAllSponsors}>Select Sponsor</MenuItem>
+              {sponsors && sponsors.map((sponsor, index) => (
+                <MenuItem key={index} value={sponsor}>{sponsor}</MenuItem>
+              ))}
+            </Select>
+            <FormControlLabel
+              control={<Checkbox checked={anyTime} onChange={handleAnyTime} />}
+              label="Any Time"
+              style={{ marginRight: '10px' }}
+            />
+            <TextField
+              label="Start Date"
+              type="date"
+              value={startDate}
+              onChange={handleStartDateChange}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              disabled={anyTime} // Disable the Start Date TextField if "Any Time" is checked
+              style={{ marginRight: '10px' }}
+            />
+            <TextField
+              label="End Date"
+              type="date"
+              value={endDate}
+              onChange={handleEndDateChange}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              disabled={anyTime} // Disable the End Date TextField if "Any Time" is checked
+              style={{ marginRight: '10px' }}
+            />
+            <Button variant="contained" color="primary" onClick={handleSubmitAudits} style={{ marginRight: '10px' }}>
+              Submit
+            </Button>
+            <Button variant="contained" color="primary" onClick={handleDownload2} style={{ marginRight: '10px' }}>
+              Download CSV
+            </Button>
+            {
+              selectedAudit === 'Driver_App_Audit' ? (
+                auditLog.map((audit, index) => (
+                  <Card key={index} style={{ marginBottom: '10px' }}>
+                    <CardContent>
+                      <Typography variant="h6" component="h2">
+                        Driver App ID: {audit.driver_app_id}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        User ID: {audit.user_ID}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        Name: {audit.first_Name}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        Reason: {audit.reason}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        Timestamp: {audit.timestamp}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        App Status: {audit.app_Status}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : selectedAudit === 'Login_Attempts_Audit' ? (
+                auditLog.map((audit, index) => (
+                  <Card key={index} style={{ marginBottom: '10px' }}>
+                    <CardContent>
+                      <Typography variant="h6" component="h2">
+                        Login Attempts ID: {audit.login_attempts_id}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        User ID: {audit.user_ID}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        Name: {audit.first_Name}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        Status: {audit.status}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        Timestamp: {audit.timestamp}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : selectedAudit === 'Password_Changes_Audit' ? (
+                auditLog.map((audit, index) => (
+                  <Card key={index} style={{ marginBottom: '10px' }}>
+                    <CardContent>
+                      <Typography variant="h6" component="h2">
+                        Password Change ID: {audit.password_change_id}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        User ID: {audit.user_ID}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        Name: {audit.first_Name}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        Change Type: {audit.change_type}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        Timestamp: {audit.timestamp}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : selectedAudit === 'Point_Changes_Audit' && (
+                auditLog.map((audit, index) => (
+                  <Card key={index} style={{ marginBottom: '10px' }}>
+                    <CardContent>
+                      <Typography variant="h6" component="h2">
+                        Point Change ID: {audit.point_change_id}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        User ID: {audit.user_ID}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        Name: {audit.first_Name}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        Point Change Value: {audit.point_change_value}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        Reason: {audit.reason}
+                      </Typography>
+                      <Typography variant="body1" component="p">
+                        Timestamp: {audit.timestamp}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                ))
+              )
+            }
+          </>
+        )}
 
         <Dialog open={openSponsorDialog} onClose={handleSponsorDialogClose}>
           <DialogContent>

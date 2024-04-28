@@ -1,24 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import Head from 'next/head';
 import { fetchUserAttributes } from '@aws-amplify/auth';
 import {
-  Container,
   Typography,
   Card,
   CardContent,
-  Tabs,
-  Tab,
-  Box,
   Button,
-  TextField,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  MenuItem,
-  Select,
-  DialogTitle,
-  FormControlLabel,
-  Checkbox,
 } from '@mui/material';
 
 
