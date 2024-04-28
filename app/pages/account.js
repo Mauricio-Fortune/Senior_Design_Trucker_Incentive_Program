@@ -31,7 +31,7 @@ export default function Account({isSpoof = false, spoofId = null}) {
         setUser({
           sub: spoofId
         })
-        console.log("spoof")
+        console.log("account spoof")
       }
       else {
         try {

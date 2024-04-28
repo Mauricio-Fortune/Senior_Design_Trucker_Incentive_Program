@@ -13,29 +13,30 @@ export default async function handler(req, res) {
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME
     };
-    const currentTimestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-   
-
-    const {user_ID,is_cart,org_ID} = req.body;
-    // table shoudl be auto increment for the orderID
+    
 
     try {
         // Create a connection to the database
         const connection = await mysql.createConnection(dbConfig);
+        const currentTimestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-        const sql_query = (`INSERT INTO Orders (user_ID, is_cart,org_ID,timestamp) VALUES (?,?,?,?) `);
+        const { user_ID, org_ID, email, name} = req.body;
+        console.log('API');
+        console.log(user_ID);
+        console.log(org_ID);
+        console.log(email);
+        console.log(name);
 
-        const [results] = await connection.execute(sql_query, [user_ID,is_cart,org_ID,currentTimestamp]);
+        
+            const query1 = 'INSERT INTO User (user_ID, user_Type, email, first_Name,is_active) VALUES (?,?,?,?,?)';
+            const response1 = await connection.query(query1,[user_ID,'ADMIN',email,name,1]);
 
         // Close the database connection
         await connection.end();
 
-        if (results.affectedRows > 0) {
-           res.status(200).json({ order_ID: results.insertId });
-        } else {
-            res.status(404).json({ message: "Order could not be added" });
-        }
+        // Send the data as JSON response
+        res.status(200).json({message: "Successfully added Admin User"});
     } catch (error) {
         console.error('Database connection or query failed', error);
         res.status(500).json({ message: 'Internal Server Error' });

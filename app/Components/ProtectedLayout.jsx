@@ -287,6 +287,7 @@ const listener = (data) => {
       }
     }
     signInSuccess();
+    window.location.reload();
   };
 }
 

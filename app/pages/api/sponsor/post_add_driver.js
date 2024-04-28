@@ -33,8 +33,8 @@ export default async function handler(req, res) {
         const query1 = 'INSERT INTO User (user_ID, user_Type, email, first_Name,is_active) VALUES (?,?,?,?,?)';
         const response1 = await connection.query(query1,[user_ID,'DRIVER',email,name,1]);
 
-        const query = 'INSERT INTO User_Org (user_ID, org_ID, app_status,is_current) VALUES (?,?,?,?)';
-        const response = await connection.query(query,[user_ID, org_ID,'ACCEPTED',1]);
+        const query = 'INSERT INTO User_Org (user_ID, org_ID, app_status,is_current,active_User) VALUES (?,?,?,?,?)';
+        const response = await connection.query(query,[user_ID, org_ID,'ACCEPTED',1,1]);
 
 
         const query2 = 'INSERT INTO Driver_App_Audit (org_ID, user_ID,reason,timestamp,app_status) VALUES (?,?,?,?,?)';

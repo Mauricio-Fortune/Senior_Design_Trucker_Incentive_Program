@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
 import { fetchUserAttributes } from '@aws-amplify/auth';
+import { ElevatorSharp } from '@mui/icons-material';
 
 
 export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
@@ -43,12 +44,50 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
       quantity: quantityType,
       points: Math.round(getPoints(item) * pointRatio * quantityType) 
     };
-   
     setCartItem(itemDetails); 
+
   };
 
 
   useEffect(() => {
+
+    const addToCart = async (cartID) => {
+      try{
+          const requestOptions = {
+            method: "POST",
+            headers: {
+            'Content-Type': 'application/json'
+          },
+            body: JSON.stringify({ 
+            order_ID : cartID,
+            item_ID : cartItem.itemID,
+            item_Quantity: cartItem.quantity,
+            item_Name: cartItem.name,
+            points: cartItem.points
+          })
+        };
+          console.log("Cart Order ID oisfdn: " + cartID);
+          console.log("Item: " + cartItem.itemID);
+          console.log("Quantity: " + cartItem.quantity);
+          console.log("Name: " + cartItem.name);
+          console.log("Points: " + cartItem.points);
+
+
+        if(cartID != -1 && cartID != 0){
+
+       
+        const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
+  
+        console.log("added item "+ cartItem.itemID + " to cart "+ cartID);
+    
+        alert("Added item to your cart!");
+      }
+
+    } catch (error) {
+      console.error(`Error adding item to order ${order_ID}`, error);
+    }
+  };
+    
     const createCartOrder = async () => {
       const requestOptions = {
         method: "POST",
@@ -71,7 +110,8 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
   
     setCart(result.order_ID);
 
-    }
+    };
+
     const getCartID = async () => {
       try {
         const requestOptions = {
@@ -80,25 +120,28 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
             'Content-Type': 'application/json'
           }
         };
-        //console.log("USER " + user.sub);
-        const response = await fetch(`/api/driver/get_cart_orderID?user_ID=${user.sub}`, requestOptions);
+        const response = await fetch(`/api/driver/get_cart_orderID?user_ID=${user.sub}&org_ID=${orgID}`, requestOptions);
         if (!response.ok) {
           throw new Error('Failed to fetch data');
         }
         const result = await response.json();
-        setCart(result.order_ID);
-        return result.order_ID; // Return the new cart_ID
+        if(result.order_ID != -1 && result.order_ID != 0){
+          addToCart(result.order_ID);
+        }
+        else {
+          createCartOrder();
+        }
+       
       } catch (error) {
-        //console.error('Failed to fetch data:', error);
-        createCartOrder();
-        return -1; // Return -1 on failure
+        console.error(`Error getting cart order_ID for user: ${user.sub}`, error);
       }
     };
       
     if(user != null && cartItem != null){
+      getCartID();
       if(cart_ID == -1)
         createCartOrder();
-      getCartID();
+
     }
   }, [cartItem]);
 
@@ -120,20 +163,25 @@ export default function Catalog_Manage({isSpoof = false, spoofId = null}) {
             points: cartItem.points
           })
         };
+        
 
 
-  
-        const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
-  
-        console.log("added item "+ cartItem.itemID + " to cart "+ cart_ID);
-    
-      alert("Added item to your cart!");
+          if(cart_ID != -1 && cart_ID != 0){
+
+            const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
+      
+            console.log("added item "+ cartItem.itemID + " to cart "+ cart_ID);
+        
+            alert("Added item to your cart!");
+          }
+      
 
     } catch (error) {
       console.error(`Error adding item to order ${order_ID}`, error);
     }
   }
-  if(user != null && cart_ID != null && cartItem != null)
+
+  if(user != null && cart_ID != null && cartItem != null && cart_ID != -1 && cartItem.itemID != 0 && cartItem != '')
     addToCart();  
   }, [cart_ID]);
   
@@ -147,10 +195,17 @@ const addOrderItem = async (item_ID) => {
     itemID: item_ID,
     name: getName(item), 
     quantity: quantityType,
-    points: Math.round(getPoints(item) * pointRatio * quantityType) 
+    points: Math.round(getPoints(item)) * pointRatio * quantityType
   };
- 
-  setorderItem(itemDetails); 
+  console.log("point for item: " + Math.round(getPoints(item)) * pointRatio * quantityType) ;
+
+  if(Math.round(getPoints(item)) * pointRatio * quantityType > driverPoints){
+    alert("Not Enough Points!");
+  }
+  else{
+    setorderItem(itemDetails); 
+  }
+  
 };
 
 useEffect(() => {
@@ -186,9 +241,12 @@ useEffect(() => {
       setOrderID([0]);
     }
   };
-  if(user != null && orderItem != null){
-    createNewOrder();
+
+    if(user != null && orderItem != null && orderItem.itemID != 0){
+      createNewOrder();
+    
   }
+
 }, [orderItem]);
 
 useEffect(() => {
@@ -234,7 +292,7 @@ useEffect(() => {
     console.error(`Error adding item to order ${order_ID}`, error);
   }
 }
-if(user != null && orderItem != null)
+if(user != null && orderItem != null && orderItem.itemID != 0 && orderItem != '')
   completeOrder();  
 }, [order_ID]);
 
@@ -258,13 +316,10 @@ if(user != null && orderItem != null)
         
     
         
-        const data = await response.json();
-        //console.log(data.totalPoints);
-   
+        const data = await response.json();   
         return data.totalPoints; 
       } catch (error) {
         console.error('Failed to fetch item data:', error);
-        //console.log(user);
         return 0; 
       }
   };
@@ -317,6 +372,7 @@ if(user != null && orderItem != null)
         setEntries([]);
       }
     };
+
     fetchData();
 
     if(orgID != null)
@@ -332,9 +388,7 @@ if(user != null && orderItem != null)
     }
   }, [orgID]);
 
- 
 
- 
   useEffect(() => {
     const getOrgID = async () => { // fetches all itemIDs in database
       try {
@@ -344,7 +398,7 @@ if(user != null && orderItem != null)
             'Content-Type': 'application/json'
           }
         };
-        //console.log("USER " + user.sub);
+        
         const response = await fetch(`/api/driver/get_current_sponsor?user_ID=${user.sub}`, requestOptions);
   
         if (!response.ok) {
@@ -353,8 +407,6 @@ if(user != null && orderItem != null)
         const result = await response.json();
         
         setOrgID(result.org_ID);
-        //console.log("result.org_ID = " + result.org_ID);
-        //console.log("orgID = " + orgID);
       } catch (error) {
         console.error('Failed to fetch data:', error);
         setOrgID([]);
@@ -372,10 +424,6 @@ if(user != null && orderItem != null)
   }, [user]); 
 
 
-  const handleLimitTypeChange = (event) => {
-    setQuantityType(Number(event.target.value)); // Convert to number if it's ensured to be numeric
-  };
-
 
   useEffect(() => {
     async function currentAuthenticatedUser() {
@@ -383,13 +431,11 @@ if(user != null && orderItem != null)
         setUser({
           sub: spoofId
         })
-        //console.log("spoof id: ", spoofId);
       }
       else {
         try {
           const user = await fetchUserAttributes();
           setUser(user);
-         // console.log("driver catalog");
         } catch (err) {
           console.log(err);
         }
@@ -438,49 +484,10 @@ if(user != null && orderItem != null)
     }
   }, [entries]); // Depends on `entries`
   
-
- 
-  
-
-
- 
-
-
-  
-
-const add_to_cart = async (itemID) => {
-try{
-  await getCartID();
-  if(cart_ID == -1){
-    createNewOrder(true);
-  }
-  const points = (Math.round(getPoints(item))* pointRatio * quantityType);
-  
-  const requestOptions = {
-      method: "POST",
-      headers: {
-      'Content-Type': 'application/json'
-    },
-      body: JSON.stringify({ 
-      order_ID : order_ID,
-      item_ID : getID(item),
-      item_Quantity: quantityType,
-      item_Name: getName(item),
-      points: points
-    })
+  const handleLimitTypeChange = (event) => {
+    setQuantityType(Number(event.target.value)); // Convert to number if it's ensured to be numeric
   };
 
-  const response = await fetch('/api/driver/post_add_items_to_order', requestOptions);
-  if (!response.ok) {
-    throw new Error('Failed to add item to order_items');
-  }
-  
-    // Response from the server after adding items to the database
-    const result = await response.json();
-}catch (error) {
-  console.error('ERROR adding items to order', error);
-}
-};
 
          //pull item Name from specific type
   const getName = (item) => {
@@ -618,7 +625,6 @@ try{
     
      const entry = detailedItemData[itemID];
     if(entry){
-      //console.log(entry);
       if (entry.kind == "song") {
             return <SongItem song={entry} />;
         } else if (entry.collectionType == "Album") {
@@ -653,11 +659,11 @@ try{
   return (
     <div>
       <Typography variant="h4" gutterBottom component="div" align = "center">
-       Store
+        Store
       </Typography>
       <Typography variant="h6" gutterBottom component="div" align="center">
-      Your Points: {driverPoints}
-    </Typography>
+        Your Points: {driverPoints}
+      </Typography>
       <TableContainer component={Paper}>
         <Table aria-label="simple table">
           <TableBody>

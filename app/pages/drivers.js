@@ -17,6 +17,9 @@ import {
   FormControl,
   Select,
   Divider,
+  List,
+  ListItem,
+  ListItemText
 } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { useRouter } from 'next/router';
@@ -314,13 +317,13 @@ const getOrgNames = async () => {
 
             {org_ID && (  // Check if org_ID is not null
               <div>
-                {catalogValue === 0 && <Driver_Catalog isSpoof={isSpoofing} spoofId={driverSpoofID}/>}
-                {catalogValue === 1 && <Driver_Cart isSpoof={isSpoofing} spoofId={driverSpoofID}/>}
+                {catalogValue === 0 && <Driver_Catalog isSpoof={isSpoofing} spoofId={user}/>}
+                {catalogValue === 1 && <Driver_Cart isSpoof={isSpoofing} spoofId={user}/>}
               </div>
             )}
  
      {catalogValue === 2 && (
-            <OrderManager isSpoof={isSpoofing} spoofId={driverSpoofID} />
+            <OrderManager isSpoofing={isSpoofing} sponsorSpoofID={user} />
         )}
           </>
 

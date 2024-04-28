@@ -130,7 +130,7 @@ export default function Catalog_add({isSpoof = false, spoofId = null}) {
   
       // Clear selected items after successful addition to the database or notify the user
       setSelectedItems([]);
-      alert('Selected items have been added to the database successfully.');
+      alert('Item has been added to your store!');
   
     } catch (error) {
       console.error('Error adding items to database:', error);
