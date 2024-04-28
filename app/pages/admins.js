@@ -242,7 +242,6 @@ function Admin() {
 
   const handleSelectAllSponsors = (event) => {
     setSelectAllSponsors(event.target.checked);
-    setSelectedSponsor('All Sponsors');
   }
 
   const handleSponsorSelect = (event) => {
@@ -419,7 +418,9 @@ function Admin() {
   }, [invoices]);
 
   useEffect(() => {
-    getDrivers();
+    if(selectedSponsor != '') {
+      getDrivers();
+    }
   }, [selectedSponsor]);
 
   const calcTotalPoints = () => {
@@ -488,19 +489,19 @@ function Admin() {
   }, [sponsorSales]);
 
   const createCSV = () => {
-    if (auditLog > 0) {
+    if (auditLog != []) {
       setCSVContent("data:text/csv;charset=utf-8," + auditLog.map(audit => Object.values(audit).join(",")).join("\n"));
     }
   }
 
   const createCSV2 = () => {
-    if(invoices > 0) {
+    if(invoices != []) {
       setCSVContent("data:text/csv;charset=utf-8," + invoices.map(point => Object.values(point).join(",")).join("\n"));
     }
   }
 
   const createCSV3 = () => {
-    if(sponsorSales > 0) {
+    if(sponsorSales != []) {
       setCSVContent("data:text/csv;charset=utf-8," + sponsorSales.map(sales => Object.values(sales).join(",")).join("\n"));
     }
   }
@@ -1626,9 +1627,9 @@ function Admin() {
     </Button>
     <Card style={{ marginBottom: '10px' }}>
       <CardContent>
-        <Typography variant="h5" component="h2">
-          Organization Name: {selectedSponsor}
-        </Typography>
+      <Typography variant="h5" component="h2">
+        Organization Name: {selectAllSponsors ? 'All Sponsors' : selectedSponsor}
+      </Typography>
         <Typography variant="body1" component="p">
           Total Points Spent: {totalPoints}
         </Typography>
@@ -1833,170 +1834,6 @@ function Admin() {
     )}
   </>
 )}
-
-        {reportValue === 1 && (
-          <>
-            <Select
-              value={selectedAudit}
-              onChange={handleSelectedAudit}
-              displayEmpty
-              style={{ marginRight: '10px' }}
-            >
-              <MenuItem value="">Select Audit</MenuItem>
-              <MenuItem value="Driver_App_Audit">Driver App Audit</MenuItem>
-              <MenuItem value="Login_Attempts_Audit">Login Attempts Audit</MenuItem>
-              <MenuItem value="Password_Changes_Audit">Password Changes Audit</MenuItem>
-              <MenuItem value="Point_Changes_Audit">Point Changes Audit</MenuItem>
-            </Select>
-            <FormControlLabel
-              control={<Checkbox checked={selectAllSponsors} onChange={handleSelectAllSponsors} />}
-              label="All Sponsors"
-              style={{ marginRight: '10px' }}
-            />
-            <Select
-              value={selectedSponsor}
-              onChange={handleSponsorSelect}
-              displayEmpty
-              disabled={selectAllSponsors} // Disable the select if "All Drivers" or "Any Time" is checked
-              style={{ marginBottom: '20px', marginRight: '10px' }}
-            >
-              <MenuItem value="" disabled={selectAllSponsors}>Select Sponsor</MenuItem>
-              {sponsors && sponsors.map((sponsor, index) => (
-                <MenuItem key={index} value={sponsor}>{sponsor}</MenuItem>
-              ))}
-            </Select>
-            <FormControlLabel
-              control={<Checkbox checked={anyTime} onChange={handleAnyTime} />}
-              label="Any Time"
-              style={{ marginRight: '10px' }}
-            />
-            <TextField
-              label="Start Date"
-              type="date"
-              value={startDate}
-              onChange={handleStartDateChange}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              disabled={anyTime} // Disable the Start Date TextField if "Any Time" is checked
-              style={{ marginRight: '10px' }}
-            />
-            <TextField
-              label="End Date"
-              type="date"
-              value={endDate}
-              onChange={handleEndDateChange}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              disabled={anyTime} // Disable the End Date TextField if "Any Time" is checked
-              style={{ marginRight: '10px' }}
-            />
-            <Button variant="contained" color="primary" onClick={handleSubmitAudits} style={{ marginRight: '10px' }}>
-              Submit
-            </Button>
-            <Button variant="contained" color="primary" onClick={handleDownload2} style={{ marginRight: '10px' }}>
-              Download CSV
-            </Button>
-            {
-              selectedAudit === 'Driver_App_Audit' ? (
-                auditLog.map((audit, index) => (
-                  <Card key={index} style={{ marginBottom: '10px' }}>
-                    <CardContent>
-                      <Typography variant="h6" component="h2">
-                        Driver App ID: {audit.driver_app_id}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        User ID: {audit.user_ID}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        Name: {audit.first_Name}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        Reason: {audit.reason}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        Timestamp: {audit.timestamp}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        App Status: {audit.app_Status}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : selectedAudit === 'Login_Attempts_Audit' ? (
-                auditLog.map((audit, index) => (
-                  <Card key={index} style={{ marginBottom: '10px' }}>
-                    <CardContent>
-                      <Typography variant="h6" component="h2">
-                        Login Attempts ID: {audit.login_attempts_id}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        User ID: {audit.user_ID}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        Name: {audit.first_Name}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        Status: {audit.status}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        Timestamp: {audit.timestamp}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : selectedAudit === 'Password_Changes_Audit' ? (
-                auditLog.map((audit, index) => (
-                  <Card key={index} style={{ marginBottom: '10px' }}>
-                    <CardContent>
-                      <Typography variant="h6" component="h2">
-                        Password Change ID: {audit.password_change_id}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        User ID: {audit.user_ID}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        Name: {audit.first_Name}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        Change Type: {audit.change_type}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        Timestamp: {audit.timestamp}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : selectedAudit === 'Point_Changes_Audit' && (
-                auditLog.map((audit, index) => (
-                  <Card key={index} style={{ marginBottom: '10px' }}>
-                    <CardContent>
-                      <Typography variant="h6" component="h2">
-                        Point Change ID: {audit.point_change_id}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        User ID: {audit.user_ID}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        Name: {audit.first_Name}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        Point Change Value: {audit.point_change_value}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        Reason: {audit.reason}
-                      </Typography>
-                      <Typography variant="body1" component="p">
-                        Timestamp: {audit.timestamp}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                ))
-              )
-            }
-          </>
-        )}
 
         <Dialog open={openSponsorDialog} onClose={handleSponsorDialogClose}>
           <DialogContent>

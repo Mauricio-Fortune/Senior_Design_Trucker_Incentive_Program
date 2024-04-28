@@ -41,7 +41,7 @@ export default async function handler(req, res) {
             return res.status(404).json({ message: 'Selected driver not found.' });
         }
 
-        const selectedDriverID = selectedDriverRows[0].org_ID;
+        const selectedDriverID = selectedDriverRows[0].user_ID;
 
         [rows] = await connection.query('SELECT u.first_Name, oi.order_ID, oi.item_Name, oi.item_Quantity, oi.points, o.timestamp FROM Order_Item oi JOIN Orders o ON oi.order_ID = o.order_ID JOIN User u on o.user_ID = u.user_ID WHERE o.org_ID = ? AND o.user_ID = ? AND o.timestamp >= ? AND o.timestamp <= ?', [selectedSponsorID, selectedDriverID, startDate, endDate]);
 
