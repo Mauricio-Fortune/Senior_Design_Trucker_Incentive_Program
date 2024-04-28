@@ -87,6 +87,7 @@ function Admin() {
   const [driverSales, setDriverSales] = useState([]);
   const [selectedDriver, setSelectedDriver] = useState('');
   const [selectAllDrivers, setSelectAllDrivers] = useState(false);
+  const [selectedOrgId, setSelectedOrgId] = useState('');
 
   const getSponsorDriverSales = async () => {
     try {
@@ -740,6 +741,8 @@ function Admin() {
     const selectedOrgIndex = event.target.value;
     setSelectedOrg(selectedOrgIndex);
     setSelectOrgBool(true);
+
+    setSelectedOrgId(selectedOrgIndex + 1);
   };
 
   // Handle an add sponsor
@@ -2003,7 +2006,7 @@ function Admin() {
 
         <Dialog open={openDriverDialog} onClose={handleDriverDialogClose}>
           <DialogContent>
-            <DriversPage isSpoofing={true} driverSpoofID={driverSpoofId} />
+            <DriversPage isSpoofing={true} driverSpoofID={driverSpoofId} orgIdSpoof={selectedOrgId} />
           </DialogContent>
         </Dialog>
       </Container>
