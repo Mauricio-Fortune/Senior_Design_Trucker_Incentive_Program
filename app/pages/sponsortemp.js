@@ -395,7 +395,7 @@ export default function Sponsors({isSpoofing = false, sponsorSpoofID = ''}) {
       })
     };
    
-    fetch('api/sponsor/remove_from_org', requestOptions)
+    fetch('api/sponsor/post_remove_driver', requestOptions)
       .then((response) => response.text())
       .then((result) => console.log(result))
       .catch((error) => console.error(error));
