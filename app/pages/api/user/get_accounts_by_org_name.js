@@ -24,30 +24,29 @@ export default async function handler(req, res) {
         const user_type = req.query.user_type; 
         
         const query = `
-            SELECT 
-                u.user_ID, 
-                u.first_Name,
-                u.user_Type,
-                u.email,
-                uo.app_Status,
-                SUM(pca.point_change_value) AS total_points
-            FROM 
-                User u 
-            JOIN 
-                User_Org uo ON u.user_ID = uo.user_ID 
-            JOIN 
-                Org o ON uo.org_ID = o.org_ID
-            LEFT JOIN
-                Point_Changes_Audit pca ON u.user_ID = pca.user_ID
-            WHERE 
-                o.org_Name = ? AND 
-                u.user_Type = ? AND
-                u.is_active = 1 AND
-                uo.app_status = "ACCEPTED" AND
-                uo.active_User = 1  
-            GROUP BY
-                u.user_ID, u.first_Name, u.email, uo.app_Status;
-            `;
+        SELECT 
+            u.user_ID, 
+            u.first_Name,
+            u.user_Type,
+            u.email,
+            uo.app_Status,
+            SUM(CASE WHEN pca.org_ID = uo.org_ID THEN pca.point_change_value ELSE 0 END) AS total_points
+        FROM 
+            User u 
+        JOIN 
+            User_Org uo ON u.user_ID = uo.user_ID 
+        JOIN 
+            Org o ON uo.org_ID = o.org_ID
+        LEFT JOIN
+            Point_Changes_Audit pca ON u.user_ID = pca.user_ID
+        WHERE 
+            o.org_Name = ? AND 
+            u.user_Type = ? AND
+            u.is_active = 1 AND
+            uo.app_status = "ACCEPTED" AND
+            uo.active_User = 1  
+        GROUP BY
+            u.user_ID, u.first_Name, u.email, uo.app_Status;`
 
         const [rows] = await connection.query(query, [org_name, user_type]);
 
