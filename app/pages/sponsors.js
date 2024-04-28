@@ -1242,7 +1242,7 @@ const handleSubmit = () => {
           </>
         )}
         {value === 4 && (
-            <OrderManager isSpoof={isSpoofing} spoofId={sponsorSpoofID} />
+            <OrderManager isSpoofing={isSpoofing} sponsorSpoofID={user.sub} />
         )}
 
         <Dialog open={openDriverDialog} onClose={handleDriverDialogClose}>

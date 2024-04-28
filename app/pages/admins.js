@@ -21,11 +21,10 @@ import {
   Tabs,
   Tab,
 } from '@mui/material';
-import AdminPanel from '../Components/admin_panel';
 import Account from './account';
-import { fetchUserAttributes } from '@aws-amplify/auth';
 import { signUp } from 'aws-amplify/auth';
-import { ContentCutOutlined } from '@mui/icons-material';
+import DriversPage from '../pages/drivers';
+import SponsorsPage from '../pages/sponsors';
 
 function Admin() {
   const [sponsorOrgs, setSponsorOrgs] = useState([]);
@@ -82,6 +81,29 @@ function Admin() {
   const [selectedAudit, setSelectedAudit] = useState('');
   const [auditLog, setAuditLog] = useState([]);
   const [csvContent, setCSVContent] = useState('');
+
+  const [sponsorSpoofId, setSponsorSpoofId] = useState('');
+  const [openSponsorDialog, setOpenSponsorDialog] = useState(false);
+  const [driverSpoofId, setDriverSpoofId] = useState('');
+  const [openDriverDialog, setOpenDriverDialog] = useState(false);
+
+  const handleSponsorDialogClose = () => {
+    setOpenSponsorDialog(false);
+  };
+
+  const handleSetSponsorSpoof = (spoofId) => {
+    setSponsorSpoofId(spoofId);
+    setOpenSponsorDialog(true);
+  }
+
+  const handleDriverDialogClose = () => {
+    setOpenDriverDialog(false);
+  };
+
+  const handleSetDriverSpoof = (spoofId) => {
+    setDriverSpoofId(spoofId);
+    setOpenDriverDialog(true);
+  }
 
   const getAuditLog = async () => {
     try {
@@ -905,6 +927,13 @@ function Admin() {
               </Button>
               <Button
                 variant="contained"
+                onClick={() => handleSetSponsorSpoof(user.user_ID)}
+                style={{ marginRight: '8px', backgroundColor: 'green' }}
+              >
+                Sponsor View
+              </Button>
+              <Button
+                variant="contained"
                 style={{ marginRight: '8px', backgroundColor: 'red', color: 'white' }}
                 onClick={() => handleDeleteUser(user.user_ID)}
               >
@@ -913,12 +942,25 @@ function Admin() {
             </CardContent>
           </Card>
         ))}
+        {selectedOrgBool && (
+          <form>
+            <Button
+              variant="contained"
+              color="primary"
+              style={{ marginBottom: '20px' }}
+              onClick={() => { setUserType('sponsor'); handleAddDriver(); }}
+            >
+              Add Sponsor
+            </Button>
+          </form>
+        )}
 
         {selectedOrgBool && (
           <Typography variant="h4" gutterBottom>
             Drivers:
           </Typography>
         )}
+        <div>
         {selectedOrgBool && driverUsers.map((user) => (
           <Card key={user.user_ID} style={{ marginBottom: '16px' }}>
             <CardContent>
@@ -944,9 +986,8 @@ function Admin() {
               </Button>
               <Button
                 variant="contained"
-                style={{ marginRight: '8px', backgroundColor: 'green', color: 'white' }}
+                style={{ marginRight: '8px', backgroundColor: 'teal', color: 'white' }}
                 onClick={() => handleEditSponsorOrgs(user.user_ID)}
-              //style={{ marginRight: '8px' }}
               >
                 Edit Sponsor Organization(s)
               </Button>
@@ -959,6 +1000,13 @@ function Admin() {
               </Button>
               <Button
                 variant="contained"
+                onClick={() => handleSetDriverSpoof(user.user_ID)}
+                style={{ marginRight: '8px', backgroundColor: 'green' }}
+              >
+                Driver View
+              </Button>
+              <Button
+                variant="contained"
                 style={{ marginRight: '8px', backgroundColor: 'red', color: 'white' }}
                 onClick={() => handleDeleteUser(user.user_ID)}
               >
@@ -967,8 +1015,20 @@ function Admin() {
             </CardContent>
           </Card>
         ))}
-        {/* Add New Sponsored Driver section */}
         {selectedOrgBool && (
+        <form>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => { setUserType('driver'); handleAddDriver(); }}
+              >
+                Add Driver
+              </Button>
+            </form>
+          )}
+        </div>
+        {/* Add New Sponsored Driver section */}
+        {/* {selectedOrgBool && (
           <>
             <Typography variant="h4" gutterBottom style={{ marginTop: '16px' }}>
               Add New Sponsored Driver
@@ -1007,7 +1067,7 @@ function Admin() {
               </Button>
             </form>
           </>
-        )}
+        )} */}
         {/* Points Management Dialog */}
         <Dialog open={dialogOpen} onClose={handleCloseDialog}>
           <DialogTitle>Manage Points</DialogTitle>
@@ -1161,9 +1221,20 @@ function Admin() {
             {error}
           </Typography>
         )}
-        <AdminPanel />
-        <div style={{ marginTop: '40px' }} />
+
+        <div style={{ display: 'flex', alignItems: 'center' }}>
         <Button variant="contained" onClick={() => setCreateOrgDialogOpen(true)}> Create New Organization</Button>
+        <form>
+              <Button
+                variant="contained"
+                color="primary"
+                style={{marginLeft: '10px'}}
+                onClick={() => { setUserType('admin'); handleAddDriver(); }}
+              >
+                Add Admin
+              </Button>
+            </form>
+        </div>
         <div style={{ marginTop: '40px' }} />
 
         <Dialog open={createOrgDialogOpen} onClose={handleOrgDialogClose}>
@@ -1461,6 +1532,18 @@ function Admin() {
           }
         </>
       )}
+
+        <Dialog open={openSponsorDialog} onClose={handleSponsorDialogClose}>
+          <DialogContent>
+            <SponsorsPage isSpoofing={true} sponsorSpoofID={sponsorSpoofId} />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={openDriverDialog} onClose={handleDriverDialogClose}>
+          <DialogContent>
+            <DriversPage isSpoofing={true} driverSpoofID={driverSpoofId} />
+          </DialogContent>
+        </Dialog>
       </Container>
     </React.Fragment>
   );
