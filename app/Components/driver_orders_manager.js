@@ -140,8 +140,10 @@ export default function Orders_Sponsors({isSpoofing = false, sponsorSpoofID = ''
    
    
     const rejectOrder = async (order) => {
+      const points = order.items.reduce((total, item) => total + item.points, 0)
 
       console.log(`Rejecting ${order.name}'s order`);
+      console.log(`This order is ${points} points`);
       // Add the accepted driver to the sponsored drivers
       const requestOptions = {
         method: "POST",
@@ -166,7 +168,7 @@ export default function Orders_Sponsors({isSpoofing = false, sponsorSpoofID = ''
         },
         body: JSON.stringify({ 
           user_ID : order.userID,
-          point_change_value : order.points,
+          point_change_value : points,
           reason: "Refund order", 
           org_ID: orgID,
           timestamp: "timestamp"

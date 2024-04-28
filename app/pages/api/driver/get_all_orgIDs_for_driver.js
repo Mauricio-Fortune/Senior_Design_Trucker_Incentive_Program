@@ -20,7 +20,7 @@ export default async function handler(req, res) {
         const user_ID = req.query.user_ID;
 
         // Query organization IDs for the provided user_ID
-        const [rows] = await connection.query('SELECT org_ID FROM User_Org WHERE user_ID = ? AND app_Status = ?', [user_ID, 'ACCEPTED']);
+        const [rows] = await connection.query('SELECT org_ID FROM User_Org WHERE user_ID = ? AND app_Status = ? AND active_User = ?', [user_ID, 'ACCEPTED',1]);
 
         // Check if rows array is empty
         if (rows.length === 0) {
